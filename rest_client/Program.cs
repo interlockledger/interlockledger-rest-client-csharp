@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -54,6 +54,8 @@ namespace rest_client
             do { Console.WriteLine("Press <ESC> to exit!"); } while (Console.ReadKey(intercept: true).Key != ConsoleKey.Escape);
         }
 
+        private static void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
+
         private static void Exercise(RestClient client) {
             Console.WriteLine($"Client connected to {client.BaseUri} using certificate {client.CertificateName}");
             Console.WriteLine();
@@ -89,7 +91,5 @@ namespace rest_client
             }
             Console.WriteLine();
         }
-
-        private static void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
     }
 }

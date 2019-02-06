@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -111,5 +111,4 @@ namespace InterlockLedger
 
         private static readonly Regex _nameFilter = new Regex(@"[\.\s\r\n<>\:""/\\|\?\*]+");
     }
-
 }

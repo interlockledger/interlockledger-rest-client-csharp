@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -32,13 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System.Diagnostics.CodeAnalysis;
 
-// This file is used by Code Analysis to maintain SuppressMessage 
+// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
-// Project-level suppressions either have no target or are given 
+// Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
 
 [assembly: SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "Dumb warning")]
 [assembly: SuppressMessage("Minor Code Smell", "S1075:-", Justification = "This is an REST API wrapper")]
 [assembly: SuppressMessage("Minor Code Smell", "S1210:-", Justification = "Dumb")]
-
-

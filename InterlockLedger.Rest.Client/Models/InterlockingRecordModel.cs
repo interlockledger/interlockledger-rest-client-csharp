@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -38,14 +38,14 @@ namespace InterlockLedger
     public class InterlockingRecordModel : RecordModel
     {
         /// <summary>
-        /// Interlock Record Hash
-        /// </summary>
-        public string InterlockedRecordHash { get; set; }
-
-        /// <summary>
         /// Interlocked Chain
         /// </summary>
         public string InterlockedChainId { get; set; }
+
+        /// <summary>
+        /// Interlock Record Hash
+        /// </summary>
+        public string InterlockedRecordHash { get; set; }
 
         /// <summary>
         /// Interlocked Record Offset

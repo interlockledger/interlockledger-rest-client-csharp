@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
 using System.Drawing;
-using System.Globalization;
 using System.Linq;
 
 namespace InterlockLedger
 {
-
     /// <summary>
     /// Node details
     /// </summary>
