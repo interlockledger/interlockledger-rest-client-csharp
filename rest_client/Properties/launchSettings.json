@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "rest_client": {
+      "commandName": "Project",
+      "commandLineArgs": "writer.pfx  password 32016"
+    }
+  }
+}
