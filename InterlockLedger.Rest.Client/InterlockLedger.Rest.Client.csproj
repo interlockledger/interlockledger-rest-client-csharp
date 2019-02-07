@@ -1,11 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Version>0.1.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Copyright>Copyright (c) 2018-2019 InterlockLedger Network</Copyright>
+        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.</Description>
+        <PackageLicenseUrl>https://github.com/interlockledger/rest.client/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/interlockledger/rest.client.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <LangVersion>latest</LangVersion>
+        <PackageTags>REST Client InterlockLedger</PackageTags>
+        <PackageReleaseNotes>Half of it: Just ways to retrieve info from chains in a node, no way to add info to the chains yet</PackageReleaseNotes>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    </ItemGroup>
 
 </Project>
