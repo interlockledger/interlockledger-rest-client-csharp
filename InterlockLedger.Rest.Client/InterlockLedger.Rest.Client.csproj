@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>0.1.0</Version>
+        <Version>0.1.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2019 InterlockLedger Network</Copyright>
         <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.</Description>
@@ -13,7 +13,8 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Half of it: Just ways to retrieve info from chains in a node, no way to add info to the chains yet</PackageReleaseNotes>
+        <PackageReleaseNotes>Package icon added</PackageReleaseNotes>
+        <PackageIconUrl>https://raw.githubusercontent.com/interlockledger/rest.client/master/IL2.png</PackageIconUrl>
     </PropertyGroup>
 
     <ItemGroup>
