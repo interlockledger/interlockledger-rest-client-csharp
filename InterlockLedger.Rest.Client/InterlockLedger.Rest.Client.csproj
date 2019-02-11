@@ -5,8 +5,10 @@
         <Version>0.1.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2019 InterlockLedger Network</Copyright>
-        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.</Description>
-        <PackageLicenseUrl>https://github.com/interlockledger/rest.client/blob/master/LICENSE</PackageLicenseUrl>
+        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.
+BSD 3-Clause License
+</Description>
+        <PackageLicenseUrl></PackageLicenseUrl>
         <PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/interlockledger/rest.client.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -15,6 +17,8 @@
         <PackageTags>REST Client InterlockLedger</PackageTags>
         <PackageReleaseNotes>Package icon added</PackageReleaseNotes>
         <PackageIconUrl>https://raw.githubusercontent.com/interlockledger/rest.client/master/IL2.png</PackageIconUrl>
+        <Authors>InterlockLedger Network</Authors>
+        <Product>InterlockLedger</Product>
     </PropertyGroup>
 
     <ItemGroup>
