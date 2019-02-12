@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -30,35 +30,64 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace InterlockLedger
 {
     /// <summary>
-    /// Interlocking details
+    /// Peer details
     /// </summary>
-    public class InterlockingRecordModel : RecordModel
+    public sealed class PeerModel
     {
         /// <summary>
-        /// Interlocked Chain
+        /// Network address to contact the peer
         /// </summary>
-        public string InterlockedChainId { get; set; }
+        public string Address { get; set; }
 
         /// <summary>
-        /// Interlock Record Hash
+        /// Mapping color
         /// </summary>
-        public string InterlockedRecordHash { get; set; }
+        public Color Color { get; set; }
 
         /// <summary>
-        /// Interlocked Record Offset
+        /// Unique node id
         /// </summary>
-        public ulong InterlockedRecordOffset { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Interlocked Record Serial
+        /// Node name
         /// </summary>
-        public ulong InterlockedRecordSerial { get; set; }
+        public string Name { get; set; }
 
-        public override string ToString() => $"Interlocked chain {InterlockedChainId} at record #{InterlockedRecordSerial} (offset: {InterlockedRecordOffset}) with hash {InterlockedRecordHash}{Environment.NewLine}{base.ToString()}";
+        /// <summary>
+        /// Network this node participates on
+        /// </summary>
+        public string Network { get; set; }
+
+        /// <summary>
+        /// Node owner id [Optional]
+        /// </summary>
+        public string OwnerId { get; set; }
+
+        /// <summary>
+        /// Node owner name [Optional]
+        /// </summary>
+        public string OwnerName { get; set; }
+
+        /// <summary>
+        /// Port the peer is listening
+        /// </summary>
+        public ushort Port { get; set; }
+
+        /// <summary>
+        /// Network protocol the peer is listening
+        /// </summary>
+        public string Protocol { get; set; }
+
+        /// <summary>
+        /// List of active roles running in the node
+        /// </summary>
+        public IEnumerable<string> Roles { get; set; }
     }
 }

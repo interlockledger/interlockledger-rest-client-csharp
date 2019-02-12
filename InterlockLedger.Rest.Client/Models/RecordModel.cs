@@ -82,5 +82,7 @@ namespace InterlockLedger
         /// Version of this record structure
         /// </summary>
         public ushort Version { get; set; }
+
+        public override string ToString() => $"#{Serial} App {ApplicationId} Type {Type ?? "Root"} Payload#{PayloadTagId}  Hash {Hash} {Environment.NewLine}{Convert.ToBase64String(PayloadBytes, Base64FormattingOptions.InsertLineBreaks)}";
     }
 }

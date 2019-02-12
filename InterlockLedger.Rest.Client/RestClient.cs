@@ -38,6 +38,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace InterlockLedger
 {
@@ -55,9 +56,13 @@ namespace InterlockLedger
         public Uri BaseUri { get; }
         public string CertificateName => _certificate.FriendlyName;
         public IEnumerable<ChainIdModel> Chains => Get<IEnumerable<ChainIdModel>>("/chain");
+        public IEnumerable<ChainIdModel> Mirrors => Get<IEnumerable<ChainIdModel>>("/mirrors");
         public NodeDetailsModel NodeDetails => Get<NodeDetailsModel>("/");
+        public IEnumerable<PeerModel> Peers => Get<IEnumerable<PeerModel>>("/peers");
 
         public IEnumerable<ulong> ActiveAppsOn(string chain) => Get<IEnumerable<ulong>>($"/chain/{chain}/activeApps");
+
+        public IEnumerable<ChainIdModel> AddMirrorOf(IEnumerable<string> newMirrors) => Post<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
         public IEnumerable<DocumentDetailsModel> DocumentsOn(string chain) => Get<IEnumerable<DocumentDetailsModel>>($"/chain/{chain}/document");
 
@@ -65,9 +70,17 @@ namespace InterlockLedger
 
         public RawDocumentModel GetRawDocument(string chain, string fileId) => CallRawDocApi($"/chain/{chain}/document/{fileId}", "GET");
 
-        public IEnumerable<InterlockingRecordModel> InterlocksOn(string chain) => Get<IEnumerable<InterlockingRecordModel>>($"/chain/{chain}/interlock");
+        public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain) => Get<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
+
+        public IEnumerable<InterlockingRecordModel> InterlocksStoredOn(string chain) => Get<IEnumerable<InterlockingRecordModel>>($"/chain/{chain}/interlock");
 
         public IEnumerable<KeyModel> PermittedKeysOn(string chain) => Get<IEnumerable<KeyModel>>($"/chain/{chain}/key");
+
+        public IEnumerable<RecordModel> Records(string chain) => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record");
+
+        public IEnumerable<RecordModel> Records(string chain, ulong firstSerial) => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record?firstSerial={firstSerial}");
+
+        public IEnumerable<RecordModel> Records(string chain, ulong firstSerial, ulong lastSerial) => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         private readonly X509Certificate2 _certificate;
 
@@ -133,6 +146,20 @@ namespace InterlockLedger
                 } while (true);
                 return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
             }
+        }
+
+        private T Post<T>(string url, object body) => Deserialize<T>(GetStringResponse(PreparePostRequest(url, body)));
+
+        private HttpWebRequest PreparePostRequest(string url, object body) {
+            var request = PrepareRequest(url, "POST", "application/json");
+            request.ContentType = "application/json";
+            using (var stream = request.GetRequestStream()) {
+                var json = JsonConvert.SerializeObject(body);
+                var writer = new StreamWriter(stream, Encoding.UTF8);
+                writer.Write(json);
+                writer.Flush();
+            }
+            return request;
         }
 
         private HttpWebRequest PrepareRequest(string url, string method, string accept) {

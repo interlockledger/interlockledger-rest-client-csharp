@@ -61,34 +61,55 @@ namespace rest_client
             Console.WriteLine();
             Console.WriteLine(client.NodeDetails);
             AppsModel apps = client.Apps;
-            Console.WriteLine($"Valid apps for network {apps.Network}:");
+            Console.WriteLine($"-- Valid apps for network {apps.Network}:");
             foreach (var app in apps.ValidApps.OrderBy(a => a))
                 Console.WriteLine(app);
             Console.WriteLine();
-            foreach (var chain in client.Chains) {
-                Console.WriteLine(chain);
-                Console.WriteLine($"  Active apps: {string.Join(", ", client.ActiveAppsOn(chain.Id))}");
-                Console.WriteLine();
-                Console.WriteLine("  Keys:");
-                foreach (var key in client.PermittedKeysOn(chain.Id))
-                    Console.WriteLine($"    {key}");
-                Console.WriteLine();
-                Console.WriteLine("  Documents:");
-                bool first = true;
-                foreach (var doc in client.DocumentsOn(chain.Id)) {
-                    Console.WriteLine($"    {doc}");
-                    if (first && doc.IsPlainText) {
-                        Dump(client.GetPlainDocument(chain.Id, doc.FileId));
-                        Dump(client.GetRawDocument(chain.Id, doc.FileId).ToString());
-                        first = false;
-                    }
+            var peers = client.Peers;
+            Console.WriteLine($"-- Known peers for network {apps.Network}:");
+            foreach (var peer in peers.OrderBy(a => a.Name))
+                Console.WriteLine(peer);
+            Console.WriteLine();
+            Console.WriteLine("-- Chains:");
+            foreach (var chain in client.Chains)
+                ExerciseChain(client, chain);
+            Console.WriteLine();
+            Console.WriteLine("-- Mirrors:");
+            foreach (var chain in client.Mirrors)
+                ExerciseChain(client, chain);
+            Console.WriteLine();
+        }
+
+        private static void ExerciseChain(RestClient client, ChainIdModel chain) {
+            Console.WriteLine(chain);
+            Console.WriteLine($"  Active apps: {string.Join(", ", client.ActiveAppsOn(chain.Id))}");
+            Console.WriteLine();
+            Console.WriteLine("  Keys:");
+            foreach (var key in client.PermittedKeysOn(chain.Id))
+                Console.WriteLine($"    {key}");
+            Console.WriteLine();
+            Console.WriteLine("  Documents:");
+            bool first = true;
+            foreach (var doc in client.DocumentsOn(chain.Id)) {
+                Console.WriteLine($"    {doc}");
+                if (first && doc.IsPlainText) {
+                    Dump(client.GetPlainDocument(chain.Id, doc.FileId));
+                    Dump(client.GetRawDocument(chain.Id, doc.FileId).ToString());
+                    first = false;
                 }
-                Console.WriteLine();
-                Console.WriteLine("  Interlocks:");
-                foreach (var interlock in client.InterlocksOn(chain.Id))
-                    Console.WriteLine($"    {interlock}");
-                Console.WriteLine();
             }
+            Console.WriteLine();
+            Console.WriteLine("  Interlocks stored here:");
+            foreach (var interlock in client.InterlocksStoredOn(chain.Id))
+                Console.WriteLine($"    {interlock}");
+            Console.WriteLine();
+            Console.WriteLine("  Interlocks of this chain:");
+            foreach (var interlock in client.InterlocksOf(chain.Id))
+                Console.WriteLine($"    {interlock}");
+            Console.WriteLine();
+            Console.WriteLine("  Records:");
+            foreach (var record in client.Records(chain.Id, 0, 1))
+                Console.WriteLine($"    {record}");
             Console.WriteLine();
         }
     }
