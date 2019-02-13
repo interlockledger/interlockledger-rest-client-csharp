@@ -72,7 +72,7 @@ namespace rest_client
             Console.WriteLine();
             Console.WriteLine("-- Chains:");
             foreach (var chain in client.Chains)
-                ExerciseChain(client, chain);
+                ExerciseChain(client, chain, forceInterlock: true);
             Console.WriteLine();
             Console.WriteLine("-- Mirrors:");
             foreach (var chain in client.Mirrors)
@@ -80,7 +80,7 @@ namespace rest_client
             Console.WriteLine();
         }
 
-        private static void ExerciseChain(RestClient client, ChainIdModel chain) {
+        private static void ExerciseChain(RestClient client, ChainIdModel chain, bool forceInterlock = false) {
             Console.WriteLine(chain);
             Console.WriteLine($"  Active apps: {string.Join(", ", client.ActiveAppsOn(chain.Id))}");
             Console.WriteLine();
@@ -110,6 +110,15 @@ namespace rest_client
             Console.WriteLine("  Records:");
             foreach (var record in client.Records(chain.Id, 0, 1))
                 Console.WriteLine($"    {record}");
+            if (forceInterlock)
+                try {
+                    Console.WriteLine();
+                    Console.WriteLine("  Trying to force an interlock:");
+                    var interlock = client.ForceInterlock(chain.Id, new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
+                    Console.WriteLine($"    {interlock}");
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
             Console.WriteLine();
         }
     }

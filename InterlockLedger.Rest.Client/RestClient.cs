@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,6 +67,8 @@ namespace InterlockLedger
 
         public IEnumerable<DocumentDetailsModel> DocumentsOn(string chain) => Get<IEnumerable<DocumentDetailsModel>>($"/chain/{chain}/document");
 
+        public InterlockingRecordModel ForceInterlock(string chain, ForceInterlockModel model) => Post<InterlockingRecordModel>($"/chain/{chain}/interlock", model);
+
         public string GetPlainDocument(string chain, string fileId) => CallPlainDocApi($"/chain/{chain}/document/{fileId}", "GET");
 
         public RawDocumentModel GetRawDocument(string chain, string fileId) => CallRawDocApi($"/chain/{chain}/document/{fileId}", "GET");
@@ -82,6 +85,11 @@ namespace InterlockLedger
 
         public IEnumerable<RecordModel> Records(string chain, ulong firstSerial, ulong lastSerial) => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
+        private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings {
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
+
+        private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
         private readonly X509Certificate2 _certificate;
 
         private static byte[] ArrayConcat(byte[] firstBuffer, byte[] secondBuffer, int count) {
@@ -97,18 +105,20 @@ namespace InterlockLedger
             => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
         private static HttpWebResponse GetResponse(HttpWebRequest req) {
-            var resp = (HttpWebResponse)req.GetResponse();
+            WebResponse GetInnerResponse() {
+                try {
+                    return req.GetResponse();
+                } catch (WebException e) {
+                    return e.Response;
+                }
+            }
+            var resp = (HttpWebResponse)GetInnerResponse();
             if (resp.StatusCode != HttpStatusCode.OK)
-                throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}");
+                throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}");
             return resp;
         }
 
-        private static string GetStringResponse(HttpWebRequest req) {
-            HttpWebResponse resp = GetResponse(req);
-            using (var readStream = new StreamReader(resp.GetResponseStream())) {
-                return readStream.ReadToEnd();
-            }
-        }
+        private static string GetStringResponse(HttpWebRequest req) => ReadAsString(GetResponse(req));
 
         private static string ParseFileName(HttpWebResponse resp) {
             var disposition = resp.GetResponseHeader("Content-Disposition");
@@ -120,6 +130,12 @@ namespace InterlockLedger
                     return WebUtility.UrlDecode(filename.Substring(7));
             }
             return filename;
+        }
+
+        private static string ReadAsString(HttpWebResponse resp) {
+            using (var readStream = new StreamReader(resp.GetResponseStream())) {
+                return readStream.ReadToEnd();
+            }
         }
 
         private string CallApi(string url, string method, string accept = "application/json")
@@ -152,10 +168,10 @@ namespace InterlockLedger
 
         private HttpWebRequest PreparePostRequest(string url, object body) {
             var request = PrepareRequest(url, "POST", "application/json");
-            request.ContentType = "application/json";
+            request.ContentType = "application/json; charset=utf-8";
             using (var stream = request.GetRequestStream()) {
-                var json = JsonConvert.SerializeObject(body);
-                var writer = new StreamWriter(stream, Encoding.UTF8);
+                var json = JsonConvert.SerializeObject(body, _jsonSettings);
+                var writer = new StreamWriter(stream, _utf8WithoutBOM);
                 writer.Write(json);
                 writer.Flush();
             }

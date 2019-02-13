@@ -30,31 +30,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace InterlockLedger
 {
-
-    public class RawDocumentModel
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum HashAlgorithms : ushort
     {
-        public RawDocumentModel(string contentType, byte[] content, string name) {
-            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-            Content = content ?? throw new ArgumentNullException(nameof(content));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+        SHA1 = 0,
+        SHA256 = 1,
+        SHA512 = 2,
+        SHA3_256 = 3,
+        SHA3_512 = 4,
 
-        public byte[] Content { get; }
-        public string ContentType { get; }
-        public string Name { get; }
-
-        public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{PartialContentAsBase64}";
-
-        private string PartialContentAsBase64 {
-            get {
-                if (Content is null)
-                    return "?";
-                return Content.Length > 256 ? Convert.ToBase64String(Content, 0, 256) + "..." : Convert.ToBase64String(Content);
-            }
-        }
+        Copy = 0xFFFF
     }
 }

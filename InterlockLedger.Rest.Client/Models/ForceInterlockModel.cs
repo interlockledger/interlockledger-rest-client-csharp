@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -30,31 +30,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
 
 namespace InterlockLedger
 {
-
-    public class RawDocumentModel
+    public class ForceInterlockModel
     {
-        public RawDocumentModel(string contentType, byte[] content, string name) {
-            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-            Content = content ?? throw new ArgumentNullException(nameof(content));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+        /// <summary>
+        /// Hash algorithm to use. Default: SHA256
+        /// </summary>
+        public HashAlgorithms? HashAlgorithm { get; set; }
 
-        public byte[] Content { get; }
-        public string ContentType { get; }
-        public string Name { get; }
+        /// <summary>
+        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
+        /// </summary>
+        public ulong? MinSerial { get; set; }
 
-        public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{PartialContentAsBase64}";
+        /// <summary>
+        /// Id of chain to be interlocked
+        /// </summary>
+        public string TargetChain { get; set; }
 
-        private string PartialContentAsBase64 {
-            get {
-                if (Content is null)
-                    return "?";
-                return Content.Length > 256 ? Convert.ToBase64String(Content, 0, 256) + "..." : Convert.ToBase64String(Content);
-            }
-        }
+        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm.GetValueOrDefault(HashAlgorithms.SHA256)}";
     }
 }
