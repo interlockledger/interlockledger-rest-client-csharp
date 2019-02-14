@@ -31,50 +31,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace InterlockLedger
 {
-
-    public class DocumentDetailsModel
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum HashAlgorithms : ushort
     {
-        /// <summary>
-        /// Cipher algorithm used to cipher the document
-        /// </summary>
-        public string Cipher { get; set; }
-
-        /// <summary>
-        /// Document content type (mime-type)
-        /// </summary>
-        public string ContentType { get; set; }
-
-        /// <summary>
-        /// Unique id of the document
-        /// -- derived from its content, so the same content stored in different chains
-        /// -- will have the same FileId
-        /// </summary>
-        public string FileId { get; set; }
-
-        public bool IsPlainText => ContentType == "plain/text";
-
-        /// <summary>
-        /// Unique id of key that ciphers this
-        /// </summary>
-        public string KeyId { get; set; }
-
-        /// <summary>
-        /// Document name (may be a file name with an extension)
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Compound id for this document as stored in this chain
-        /// </summary>
-        public string PhysicalDocumentID { get; set; }
-
-        /// <summary>
-        /// A reference to a previous version of this document (ChainId and RecordNumber)
-        /// </summary>
-        public string PreviousVersion { get; set; }
-
-        public override string ToString() => $"Document '{Name}' [{ContentType}] {FileId}";
+        SHA256, // Default
+        SHA1,
+        SHA512,
+        SHA3_256,
+        SHA3_512,
+        Copy
     }
 }

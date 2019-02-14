@@ -30,51 +30,58 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace InterlockLedger
 {
-
-    public class DocumentDetailsModel
+    public class KeyPermitModel
     {
+        public KeyPermitModel(ulong app, IEnumerable<ulong> appActions, string id, string name, string publicKey, params KeyPurpose[] purposes) {
+            App = app;
+            AppActions = appActions ?? throw new ArgumentNullException(nameof(appActions));
+            if (!AppActions.Any())
+                throw new InvalidDataException("This key doesn't have at least one action to be permitted");
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+            Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
+            if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
+                throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
+        }
+
         /// <summary>
-        /// Cipher algorithm used to cipher the document
+        /// App to be permitted (by number)
         /// </summary>
-        public string Cipher { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include, Required = Required.Always)]
+        public ulong App { get; set; }
 
         /// <summary>
-        /// Document content type (mime-type)
+        /// App actions to be permitted by number
         /// </summary>
-        public string ContentType { get; set; }
+        public IEnumerable<ulong> AppActions { get; set; }
 
         /// <summary>
-        /// Unique id of the document
-        /// -- derived from its content, so the same content stored in different chains
-        /// -- will have the same FileId
+        /// Unique key id
         /// </summary>
-        public string FileId { get; set; }
-
-        public bool IsPlainText => ContentType == "plain/text";
+        public string Id { get; set; }
 
         /// <summary>
-        /// Unique id of key that ciphers this
-        /// </summary>
-        public string KeyId { get; set; }
-
-        /// <summary>
-        /// Document name (may be a file name with an extension)
+        /// Key name
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Compound id for this document as stored in this chain
+        /// Key public key
         /// </summary>
-        public string PhysicalDocumentID { get; set; }
+        public string PublicKey { get; set; }
 
         /// <summary>
-        /// A reference to a previous version of this document (ChainId and RecordNumber)
+        /// Key valid purposes
         /// </summary>
-        public string PreviousVersion { get; set; }
-
-        public override string ToString() => $"Document '{Name}' [{ContentType}] {FileId}";
+        public KeyPurpose[] Purposes { get; set; }
     }
 }

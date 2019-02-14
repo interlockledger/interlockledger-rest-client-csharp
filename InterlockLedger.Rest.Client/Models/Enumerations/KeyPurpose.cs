@@ -30,21 +30,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace InterlockLedger
 {
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum HashAlgorithms : ushort
+    public enum KeyPurpose : ulong
     {
-        SHA1 = 0,
-        SHA256 = 1,
-        SHA512 = 2,
-        SHA3_256 = 3,
-        SHA3_512 = 4,
-
-        Copy = 0xFFFF
+        Action,
+        ChainOperation,
+        Encryption,
+        ForceInterlock,
+        KeyManagement,
+        Protocol,
     }
 }

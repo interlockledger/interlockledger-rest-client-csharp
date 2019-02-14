@@ -39,7 +39,7 @@ namespace InterlockLedger
     [JsonConverter(typeof(StringEnumConverter))]
     public enum CipherAlgorithms : ushort
     {
-        AES256 = 0,
-        None = 0xFFFF,
+        None, // default
+        AES256,
     }
 }
