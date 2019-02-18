@@ -36,7 +36,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     public static class StringExtensions
     {

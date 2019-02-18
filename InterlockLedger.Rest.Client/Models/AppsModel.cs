@@ -34,7 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     public class AppsModel
     {

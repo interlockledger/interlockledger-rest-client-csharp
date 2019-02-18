@@ -30,11 +30,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     [JsonConverter(typeof(StringEnumConverter))]
     public enum HashAlgorithms : ushort

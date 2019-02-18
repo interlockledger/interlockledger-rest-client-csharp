@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -30,19 +30,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Collections.Generic;
 
 namespace InterlockLedger.Rest.Client
 {
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum KeyPurpose : ulong
+    public sealed class ChainSummaryModel : ChainIdModel
     {
-        Action,
-        ChainOperation,
-        Encryption,
-        ForceInterlock,
-        KeyManagement,
-        Protocol,
+        /// <summary>
+        /// List of active apps (only the numeric ids)
+        /// </summary>
+        public List<ulong> ActiveApps { get; set; }
+
+        /// <summary>
+        /// Description (perhaps intended primary usage) [Optional]
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Is this record not able to accept new records?
+        /// </summary>
+        public bool IsClosedForNewTransactions { get; set; }
+
+        /// <summary>
+        /// Last record (serial number)
+        /// </summary>
+        public ulong LastRecord { get; set; }
     }
 }

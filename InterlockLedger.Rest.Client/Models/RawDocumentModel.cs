@@ -32,9 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
-
     public class RawDocumentModel
     {
         public RawDocumentModel(string contentType, byte[] content, string name) {

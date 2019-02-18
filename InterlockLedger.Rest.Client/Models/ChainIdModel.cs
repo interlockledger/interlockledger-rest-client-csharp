@@ -32,12 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     /// <summary>
     /// Chain Id
     /// </summary>
-    public sealed class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
+    public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
     {
         /// <summary>
         /// Unique record id

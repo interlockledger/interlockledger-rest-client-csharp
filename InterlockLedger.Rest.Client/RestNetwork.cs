@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -30,19 +30,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System;
 
 namespace InterlockLedger.Rest.Client
 {
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum KeyPurpose : ulong
+    public class RestNetwork
     {
-        Action,
-        ChainOperation,
-        Encryption,
-        ForceInterlock,
-        KeyManagement,
-        Protocol,
+        public AppsModel Apps => _rest.Get<AppsModel>("/apps");
+
+        internal RestNetwork(RestNode rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
+
+        private readonly RestNode _rest;
     }
 }

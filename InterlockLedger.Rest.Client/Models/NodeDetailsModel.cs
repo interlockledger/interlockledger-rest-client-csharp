@@ -34,7 +34,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     /// <summary>
     /// Node details

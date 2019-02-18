@@ -32,10 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
-
-
     /// <summary>
     /// Interlocking details
     /// </summary>

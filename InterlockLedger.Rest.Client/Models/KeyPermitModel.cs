@@ -36,7 +36,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     public class KeyPermitModel
     {

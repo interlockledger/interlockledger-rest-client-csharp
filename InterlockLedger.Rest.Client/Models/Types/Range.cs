@@ -37,7 +37,7 @@ using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using System.Linq;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
     [TypeConverter(typeof(RangeConverter))]
     public struct Range : IEquatable<Range>

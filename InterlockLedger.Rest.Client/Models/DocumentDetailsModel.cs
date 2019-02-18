@@ -30,10 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
-
     public class DocumentDetailsModel
     {
         /// <summary>

@@ -35,70 +35,50 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace InterlockLedger
+namespace InterlockLedger.Rest.Client
 {
-    public class Rest
+    public class RestNode
     {
-        public Rest(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
+        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
             : this(certFile, certPassword, (ushort)networkId, address) { }
 
-        public Rest(string certFile, string certPassword, ushort port, string address = "localhost") {
+        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") {
             BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
             _certificate = GetCertFromFile(certFile, certPassword);
+            Network = new RestNetwork(this);
         }
 
         public Uri BaseUri { get; }
         public string CertificateName => _certificate.FriendlyName;
-        public AppsModel Network_Apps => Get<AppsModel>("/apps");
-        public IEnumerable<ChainIdModel> Node_Chains => Get<IEnumerable<ChainIdModel>>("/chain");
-        public NodeDetailsModel Node_Details => Get<NodeDetailsModel>("/");
-        public IEnumerable<ChainIdModel> Node_Mirrors => Get<IEnumerable<ChainIdModel>>("/mirrors");
-        public IEnumerable<PeerModel> Node_Peers => Get<IEnumerable<PeerModel>>("/peers");
+        public IEnumerable<RestChain> Chains => Get<IEnumerable<ChainIdModel>>("/chain").Select(c => new RestChain(this, c));
+        public NodeDetailsModel Details => Get<NodeDetailsModel>("/");
+        public IEnumerable<RestChain> Mirrors => Get<IEnumerable<ChainIdModel>>("/mirrors").Select(c => new RestChain(this, c));
+        public RestNetwork Network { get; }
 
-        public IEnumerable<ulong> Chain_ActiveApps(string chain)
-            => Get<IEnumerable<ulong>>($"/chain/{chain}/activeApps");
+        public IEnumerable<PeerModel> Peers => Get<IEnumerable<PeerModel>>("/peers");
 
-        public string Chain_DocumentAsPlain(string chain, string fileId)
-            => CallApiPlainDoc($"/chain/{chain}/document/{fileId}", "GET");
-
-        public RawDocumentModel Chain_DocumentAsRaw(string chain, string fileId)
-            => CallApiRawDoc($"/chain/{chain}/document/{fileId}", "GET");
-
-        public IEnumerable<DocumentDetailsModel> Chain_Documents(string chain)
-            => Get<IEnumerable<DocumentDetailsModel>>($"/chain/{chain}/document");
-
-        public InterlockingRecordModel Chain_ForceInterlock(string chain, ForceInterlockModel model)
-            => Post<InterlockingRecordModel>($"/chain/{chain}/interlock", model);
-
-        public IEnumerable<InterlockingRecordModel> Chain_Interlocks(string chain)
-            => Get<IEnumerable<InterlockingRecordModel>>($"/chain/{chain}/interlock");
-
-        public IEnumerable<KeyModel> Chain_PermittedKeys(string chain, params KeyPermitModel[] keysToPermit)
-            => Post<IEnumerable<KeyModel>>($"/chain/{chain}/key", keysToPermit);
-
-        public IEnumerable<KeyModel> Chain_PermittedKeys(string chain)
-            => Get<IEnumerable<KeyModel>>($"/chain/{chain}/key");
-
-        public IEnumerable<RecordModel> Chain_Records(string chain)
-            => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record");
-
-        public IEnumerable<RecordModel> Chain_Records(string chain, ulong firstSerial)
-            => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record?firstSerial={firstSerial}");
-
-        public IEnumerable<RecordModel> Chain_Records(string chain, ulong firstSerial, ulong lastSerial)
-            => Get<IEnumerable<RecordModel>>($"/chain/{chain}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
-
-        public IEnumerable<ChainIdModel> Node_AddMirrorsOf(IEnumerable<string> newMirrors)
+        public IEnumerable<ChainIdModel> AddMirrorsOf(IEnumerable<string> newMirrors)
             => Post<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
-        public IEnumerable<InterlockingRecordModel> Node_InterlocksOf(string chain)
+        public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain)
             => Get<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
+
+        internal string CallApiPlainDoc(string url, string method, string accept = "plain/text")
+            => GetStringResponse(PrepareRequest(url, method, accept));
+
+        internal RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*")
+            => GetRawResponse(PrepareRequest(url, method, accept));
+
+        internal T Get<T>(string url) => Deserialize<T>(CallApi(url, "GET"));
+
+        internal T Post<T>(string url, object body) => Deserialize<T>(GetStringResponse(PreparePostRequest(url, body, "application/json")));
 
         private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -156,14 +136,6 @@ namespace InterlockLedger
         private string CallApi(string url, string method, string accept = "application/json")
             => GetStringResponse(PrepareRequest(url, method, accept));
 
-        private string CallApiPlainDoc(string url, string method, string accept = "plain/text")
-            => GetStringResponse(PrepareRequest(url, method, accept));
-
-        private RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*")
-            => GetRawResponse(PrepareRequest(url, method, accept));
-
-        private T Get<T>(string url) => Deserialize<T>(CallApi(url, "GET"));
-
         private RawDocumentModel GetRawResponse(HttpWebRequest req) {
             HttpWebResponse resp = GetResponse(req);
             using (var readStream = resp.GetResponseStream()) {
@@ -178,8 +150,6 @@ namespace InterlockLedger
                 return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
             }
         }
-
-        private T Post<T>(string url, object body) => Deserialize<T>(GetStringResponse(PreparePostRequest(url, body, "application/json")));
 
         private HttpWebRequest PreparePostRequest(string url, object body, string accept) {
             var request = PrepareRequest(url, "POST", accept);
