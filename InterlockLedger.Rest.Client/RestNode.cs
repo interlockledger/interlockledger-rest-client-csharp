@@ -67,6 +67,9 @@ namespace InterlockLedger.Rest.Client
         public IEnumerable<ChainIdModel> AddMirrorsOf(IEnumerable<string> newMirrors)
             => Post<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
+        public ChainCreatedModel CreateChain(ChainCreationModel model)
+            => Post<ChainCreatedModel>($"/chain", model);
+
         public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain)
             => Get<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
 
@@ -108,7 +111,7 @@ namespace InterlockLedger.Rest.Client
                 }
             }
             var resp = (HttpWebResponse)GetInnerResponse();
-            if (resp.StatusCode != HttpStatusCode.OK)
+            if (resp.StatusCode != HttpStatusCode.OK && resp.StatusCode != HttpStatusCode.Created)
                 throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}");
             return resp;
         }

@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using InterlockLedger.Rest.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace rest_client
@@ -77,6 +78,30 @@ namespace rest_client
             Console.WriteLine("-- Mirrors:");
             foreach (var chain in node.Mirrors)
                 ExerciseChain(node, chain);
+            Console.WriteLine();
+            Console.WriteLine("-- Create Mirror:");
+            try {
+                foreach (var chain in node.AddMirrorsOf(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
+                    Console.WriteLine(chain);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine();
+            Console.WriteLine("-- Create Chain:");
+            try {
+                var chain = node.CreateChain(new ChainCreationModel {
+                    Name = "Rest Created Test Chain",
+                    Description = "Just a test",
+                    EmergencyClosingKeyPassword = "password",
+                    KeyManagementKeyPassword = "password",
+                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
+                    KeysAlgorithm = Algorithms.RSA,
+                    AdditionalApps = new List<ulong> { 4 }
+                });
+                Console.WriteLine(chain);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
             Console.WriteLine();
         }
 

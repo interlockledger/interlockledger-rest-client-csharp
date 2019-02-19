@@ -35,15 +35,15 @@ using Newtonsoft.Json.Converters;
 
 namespace InterlockLedger.Rest.Client
 {
-
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum KeyPurpose : ulong
+    public enum KeyStrength
     {
-        Action,
-        ChainOperation,
-        Encryption,
-        ForceInterlock,
-        KeyManagement,
-        Protocol,
+        Normal,         // RSA 2048
+        Strong,         // RSA 3072
+        ExtraStrong,    // RSA 4096
+        MegaStrong,     // RSA 5120
+        SuperStrong,    // RSA 6144
+        HyperStrong,    // RSA 7172
+        UltraStrong     // RSA 8192
     }
 }

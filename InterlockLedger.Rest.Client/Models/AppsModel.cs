@@ -56,7 +56,7 @@ namespace InterlockLedger.Rest.Client
             public string Description { get; set; }
             public ulong Id { get; set; }
 
-            //public IEnumerable<DataModel> DataModels { get; set; }
+            // TODO: map public IEnumerable<DataModel> DataModels { get; set; }
             public string Name { get; set; }
 
             public string PublisherId { get; set; }

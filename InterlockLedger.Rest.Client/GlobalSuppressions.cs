@@ -41,3 +41,5 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Minor Code Smell", "S1075:-", Justification = "This is an REST API wrapper")]
 [assembly: SuppressMessage("Minor Code Smell", "S1210:-", Justification = "Dumb")]
 [assembly: SuppressMessage("Major Code Smell", "S4035:Classes implementing \"IEquatable<T>\" should be sealed", Justification = "Exception", Scope = "type", Target = "~T:InterlockLedger.Rest.Client.ChainIdModel")]
+[assembly: SuppressMessage("Major Code Smell", "S125:Remove this commented out code", Justification = "Dumb")]
+
