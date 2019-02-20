@@ -30,60 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace InterlockLedger.Rest.Client
 {
-
-    public class RecordModel
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum RecordType
     {
-        /// <summary>
-        /// Application id this record is associated with
-        /// </summary>
-        public ulong ApplicationId { get; set; }
-
-        /// <summary>
-        /// chain id that owns this record
-        /// </summary>
-        public string ChainId { get; set; }
-
-        /// <summary>
-        /// Time of record creation
-        /// </summary>
-        public DateTimeOffset CreatedAt { get; set; }
-
-        /// <summary>
-        /// Hash of the full encoded bytes of the record
-        /// </summary>
-        public string Hash { get; set; }
-
-        /// <summary>
-        /// The payload's bytes
-        /// </summary>
-        public byte[] PayloadBytes { get; set; }
-
-        /// <summary>
-        /// The payload's TagId
-        /// </summary>
-        public ulong PayloadTagId { get; set; }
-
-        /// <summary>
-        /// Record serial number.
-        /// For the first record this value is zero (0)
-        /// </summary>
-        public ulong Serial { get; set; }
-
-        /// <summary>
-        /// Block type
-        /// Most records are of the type 'Data'
-        /// </summary>
-        public RecordType Type { get; set; }
-
-        /// <summary>
-        /// Version of this record structure
-        /// </summary>
-        public ushort Version { get; set; }
-
-        public override string ToString() => $"#{Serial} App {ApplicationId} Type {Type} Payload#{PayloadTagId}  Hash {Hash} {Environment.NewLine}{Convert.ToBase64String(PayloadBytes, Base64FormattingOptions.InsertLineBreaks)}";
+        Data,
+        Root,
+        Closing,
+        EmergencyClosing,
+        Corrupted
     }
 }

@@ -39,6 +39,25 @@ namespace rest_client
 {
     public static class Program
     {
+        public static void CreateChain(RestNode node) {
+            Console.WriteLine("-- Create Chain:");
+            try {
+                var chain = node.CreateChain(new ChainCreationModel {
+                    Name = "Rest Created Test Chain",
+                    Description = "Just a test",
+                    EmergencyClosingKeyPassword = "password",
+                    KeyManagementKeyPassword = "password",
+                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
+                    KeysAlgorithm = Algorithms.RSA,
+                    AdditionalApps = new List<ulong> { 4 }
+                });
+                Console.WriteLine(chain);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine();
+        }
+
         public static void Main(string[] args) {
             if (args.Length < 2) {
                 Console.WriteLine("You must provide at least 2 parameters!");
@@ -87,22 +106,6 @@ namespace rest_client
                 Console.WriteLine(e);
             }
             Console.WriteLine();
-            Console.WriteLine("-- Create Chain:");
-            try {
-                var chain = node.CreateChain(new ChainCreationModel {
-                    Name = "Rest Created Test Chain",
-                    Description = "Just a test",
-                    EmergencyClosingKeyPassword = "password",
-                    KeyManagementKeyPassword = "password",
-                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
-                    KeysAlgorithm = Algorithms.RSA,
-                    AdditionalApps = new List<ulong> { 4 }
-                });
-                Console.WriteLine(chain);
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-            Console.WriteLine();
         }
 
         private static void ExerciseChain(RestNode node, RestChain chain, bool transact = false) {
@@ -143,10 +146,23 @@ namespace rest_client
             foreach (var record in chain.RecordsFromTo(0, 1))
                 Console.WriteLine($"    {record}");
             if (transact) {
+                TryToPermitApp4(chain);
+                TryToAddRecord(chain);
                 TryToForceInterlock(chain);
                 TryToPermitKey(chain);
             }
             Console.WriteLine();
+        }
+
+        private static void TryToAddRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a record:");
+                var record = chain.AddRecord(new NewRecordModel() { ApplicationId = 1, PayloadBytes = new byte[] { 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 } });
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
         }
 
         private static void TryToForceInterlock(RestChain chain) {
@@ -155,6 +171,16 @@ namespace rest_client
                 Console.WriteLine("  Trying to force an interlock:");
                 var interlock = chain.ForceInterlock(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
                 Console.WriteLine($"    {interlock}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToPermitApp4(RestChain chain) {
+            try {
+                var apps = chain.PermitApps(4);
+                Console.WriteLine($"  Permit app 4: {string.Join(", ", apps)}");
+                Console.WriteLine();
             } catch (Exception e) {
                 Console.WriteLine(e);
             }

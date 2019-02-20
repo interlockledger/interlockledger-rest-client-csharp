@@ -38,20 +38,16 @@ namespace InterlockLedger.Rest.Client
     public class RestChain
     {
         public IEnumerable<ulong> ActiveApps => _rest.Get<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
-
         public IEnumerable<DocumentDetailsModel> Documents => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/chain/{Id}/document");
-
         public string Id { get; }
-
         public IEnumerable<InterlockingRecordModel> Interlocks => _rest.Get<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlock");
-
         public string Name { get; }
-
         public IEnumerable<KeyModel> PermittedKeys => _rest.Get<IEnumerable<KeyModel>>($"/chain/{Id}/key");
-
         public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record");
-
         public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
+
+        public MessageModel AddRecord(NewRecordModel model)
+            => _rest.Post<MessageModel>($"/chain/{Id}/record", model);
 
         public string DocumentAsPlain(string fileId)
             => _rest.CallApiPlainDoc($"/chain/{Id}/document/{fileId}", "GET");
@@ -61,6 +57,9 @@ namespace InterlockLedger.Rest.Client
 
         public InterlockingRecordModel ForceInterlock(ForceInterlockModel model)
             => _rest.Post<InterlockingRecordModel>($"/chain/{Id}/interlock", model);
+
+        public IEnumerable<ulong> PermitApps(params ulong[] appsToPermit)
+            => _rest.Post<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
 
         public IEnumerable<KeyModel> PermitKeys(params KeyPermitModel[] keysToPermit)
             => _rest.Post<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
