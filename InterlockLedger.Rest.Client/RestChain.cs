@@ -46,8 +46,8 @@ namespace InterlockLedger.Rest.Client
         public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record");
         public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
 
-        public MessageModel AddRecord(NewRecordModel model)
-            => _rest.Post<MessageModel>($"/chain/{Id}/record", model);
+        public RecordModel AddRecord(NewRecordModel model)
+            => _rest.Post<RecordModel>($"/chain/{Id}/record", model);
 
         public string DocumentAsPlain(string fileId)
             => _rest.CallApiPlainDoc($"/chain/{Id}/document/{fileId}", "GET");

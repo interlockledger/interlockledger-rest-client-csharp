@@ -35,7 +35,6 @@ using Newtonsoft.Json.Converters;
 
 namespace InterlockLedger.Rest.Client
 {
-
     [JsonConverter(typeof(StringEnumConverter))]
     public enum KeyPurpose : ulong
     {

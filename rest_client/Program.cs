@@ -74,6 +74,9 @@ namespace rest_client
             do { Console.WriteLine("Press <ESC> to exit!"); } while (Console.ReadKey(intercept: true).Key != ConsoleKey.Escape);
         }
 
+        private static RecordModel AddRecord(RestChain chain, ulong appId, params byte[] payload)
+            => chain.AddRecord(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
+
         private static void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 
         private static void Exercise(RestNode node) {
@@ -147,18 +150,30 @@ namespace rest_client
                 Console.WriteLine($"    {record}");
             if (transact) {
                 TryToPermitApp4(chain);
-                TryToAddRecord(chain);
+                TryToAddNiceRecord(chain);
+                TryToAddBadRecord(chain);
                 TryToForceInterlock(chain);
                 TryToPermitKey(chain);
             }
             Console.WriteLine();
         }
 
-        private static void TryToAddRecord(RestChain chain) {
+        private static void TryToAddBadRecord(RestChain chain) {
             try {
                 Console.WriteLine();
-                Console.WriteLine("  Trying to add a record:");
-                var record = chain.AddRecord(new NewRecordModel() { ApplicationId = 1, PayloadBytes = new byte[] { 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 } });
+                Console.WriteLine("  Trying to add a bad record:");
+                RecordModel record = AddRecord(chain, 1, 0);
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToAddNiceRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a nice record:");
+                RecordModel record = AddRecord(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);

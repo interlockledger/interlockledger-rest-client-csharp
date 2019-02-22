@@ -34,7 +34,6 @@ using System;
 
 namespace InterlockLedger.Rest.Client
 {
-
     /// <summary>
     /// Chain Id
     /// </summary>

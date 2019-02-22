@@ -34,7 +34,6 @@ using System;
 
 namespace InterlockLedger.Rest.Client
 {
-
     public class RecordModel
     {
         /// <summary>

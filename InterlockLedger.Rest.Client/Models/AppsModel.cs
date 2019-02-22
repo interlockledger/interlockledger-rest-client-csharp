@@ -65,13 +65,13 @@ namespace InterlockLedger.Rest.Client
             public DateTimeOffset Start { get; set; }
             public ushort Version { get; set; }
 
-            public override string ToString() => $"  #{Id} {CompositeName}   {Environment.NewLine}    {Description}";
-
             int IComparable<PublishedApp>.CompareTo(PublishedApp other) {
                 if (other == null) return 1;
                 var idCompare = Id.CompareTo(other.Id);
                 return idCompare == 0 ? AppVersion.CompareTo(other.AppVersion) : idCompare;
             }
+
+            public override string ToString() => $"  #{Id} {CompositeName}   {Environment.NewLine}    {Description}";
 
             private static string Safe(string name) => Regex.Replace(name, @"[\s\\/:""<>|\*\?]+", "_");
         }
