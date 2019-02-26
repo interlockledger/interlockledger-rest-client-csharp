@@ -35,6 +35,7 @@ namespace InterlockLedger.Rest.Client
     public enum NetworkPredefinedPorts : ushort
     {
         MainNet = 32032,
+        MetaNet = 32036,
         TestNet_Jupiter = 32030,
         TestNet_Saturn = 32028,
         TestNet_Neptune = 32026,
