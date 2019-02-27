@@ -49,6 +49,12 @@ namespace InterlockLedger.Rest.Client
         public RecordModel AddRecord(NewRecordModel model)
             => _rest.Post<RecordModel>($"/chain/{Id}/record", model);
 
+        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, byte[] bytes)
+            => AddRecord(applicationId, payloadTagId, RecordType.Data, bytes);
+
+        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
+            => _rest.PostRaw<RecordModel>($"/chain/{Id}/record/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
+
         public string DocumentAsPlain(string fileId)
             => _rest.CallApiPlainDoc($"/chain/{Id}/document/{fileId}", "GET");
 

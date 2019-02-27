@@ -149,9 +149,11 @@ namespace rest_client
             foreach (var record in chain.RecordsFromTo(0, 1))
                 Console.WriteLine($"    {record}");
             if (transact) {
-                TryToPermitApp4(chain);
+                TryToAddNiceUnpackedRecord(chain);
                 TryToAddNiceRecord(chain);
+                TryToAddBadlyEncodedUnpackedRecord(chain);
                 TryToAddBadRecord(chain);
+                TryToPermitApp4(chain);
                 TryToForceInterlock(chain);
                 TryToPermitKey(chain);
             }
@@ -174,6 +176,28 @@ namespace rest_client
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice record:");
                 RecordModel record = AddRecord(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToAddNiceUnpackedRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a nice unpacked record:");
+                RecordModel record = chain.AddRecord(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToAddBadlyEncodedUnpackedRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a badly encoded unpacked record:");
+                RecordModel record = chain.AddRecord(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);

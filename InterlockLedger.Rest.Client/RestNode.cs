@@ -83,11 +83,14 @@ namespace InterlockLedger.Rest.Client
 
         internal T Post<T>(string url, object body) => Deserialize<T>(GetStringResponse(PreparePostRequest(url, body, "application/json")));
 
+        internal T PostRaw<T>(string url, byte[] body, string contentType) => Deserialize<T>(GetStringResponse(PreparePostRawRequest(url, body, "application/json", contentType)));
+
         private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
         private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
+
         private readonly X509Certificate2 _certificate;
 
         private static byte[] ArrayConcat(byte[] firstBuffer, byte[] secondBuffer, int count) {
@@ -152,6 +155,16 @@ namespace InterlockLedger.Rest.Client
                 } while (true);
                 return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
             }
+        }
+
+        private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
+            var request = PrepareRequest(url, "POST", accept);
+            request.ContentType = contentType;
+            using (var stream = request.GetRequestStream()) {
+                stream.Write(body, 0, body.Length);
+                stream.Flush();
+            }
+            return request;
         }
 
         private HttpWebRequest PreparePostRequest(string url, object body, string accept) {
