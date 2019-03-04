@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace InterlockLedger.Rest.Client
 {
@@ -76,6 +77,26 @@ namespace InterlockLedger.Rest.Client
         public IEnumerable<RecordModel> RecordsFromTo(ulong firstSerial, ulong lastSerial)
             => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
+        public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
+            => PostDocument(bytes, new DocumentUploadModel(name, contentType));
+
+        public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model)
+            => PostDocument(bytes, model);
+
+        public DocumentDetailsModel StoreDocumentFromFile(string filePath, string name, string contentType)
+            => StoreDocumentFromFile(filePath, new DocumentUploadModel(name, contentType));
+
+        public DocumentDetailsModel StoreDocumentFromFile(string filePath, DocumentUploadModel model) {
+            if (!File.Exists(filePath))
+                throw new ArgumentException($"No file '{filePath}' to store as a document!");
+            if (model.Name == "?")
+                model.Name = Path.GetFileName(filePath);
+            return PostDocument(File.ReadAllBytes(filePath), model);
+        }
+
+        public DocumentDetailsModel StoreDocumentFromText(string content, string name, string contentType = "plain/text")
+            => StoreDocumentFromBytes(content.UTF8Bytes(), name, contentType);
+
         public override string ToString() => $"Chain '{Name}' #{Id}";
 
         internal RestChain(RestNode rest, ChainIdModel chainId) {
@@ -87,5 +108,11 @@ namespace InterlockLedger.Rest.Client
         }
 
         private readonly RestNode _rest;
+
+        private DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+            return _rest.PostRaw<DocumentDetailsModel>($"/chain/{Id}/document{model.ToQueryString()}", bytes, model.ContentType);
+        }
     }
 }

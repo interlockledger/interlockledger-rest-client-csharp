@@ -154,10 +154,22 @@ namespace rest_client
                 TryToAddBadlyEncodedUnpackedRecord(chain);
                 TryToAddBadRecord(chain);
                 TryToPermitApp4(chain);
+                TryToStoreNiceDocument(chain);
                 TryToForceInterlock(chain);
                 TryToPermitKey(chain);
             }
             Console.WriteLine();
+        }
+
+        private static void TryToAddBadlyEncodedUnpackedRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a badly encoded unpacked record:");
+                RecordModel record = chain.AddRecord(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
         }
 
         private static void TryToAddBadRecord(RestChain chain) {
@@ -187,17 +199,6 @@ namespace rest_client
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice unpacked record:");
                 RecordModel record = chain.AddRecord(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToAddBadlyEncodedUnpackedRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a badly encoded unpacked record:");
-                RecordModel record = chain.AddRecord(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -235,6 +236,17 @@ namespace rest_client
                         "PubKey!KPkBERD5AQiuLtsWMFr3H6HtQVUMky1wFzL0TQF3VC-X24G4gjFqcrHHawNxNgDiw21YS8Fx6o1ornUOHqJPvIpYX1H2T2bqbIsIMNgyO4H234Ahken7SadTlnRPw92_sRpqprBobfuX9f9K6iM-SUJ2WY_6U4bAG4HdsFRV4yqfdDhrCAedBUs8O9qyne6vHFN8CiTEcapfQE7K-StPlW2wVmLdIXov2FdfYdJpFLXbbkgBCdkAZl2Oc86PRVzPkqD5dzl86QNZGZxhq2ngQ1UXASUQVh4tV5XqXQoe7xgeiE-1O82oWZWOvH6xdHjY9sMFyY3Mhjz8_MrI_0_DBEH7Pikmhp0LlyucyUA6dz4G_e13Xmyty2LDeqyYNhYORuZu2ev7zIEPvclpKeztC5gmJdCdcXZf_Omigb6I20HiggFBBrTGIjxJ_5xvpfb8DZCB6jqG5deTqybkjDJYPkA0TeoswKlwncT6mmZ3RdNNxoojUEX0TcBfSioKrnWRqGZ6Yc5wPFIvZ2REU6NP5gJv53FYe2yGAFygvWM1t2wBpWb6bx4h4BFKbfHPcCdmPqJHF0WQdMd7rtryENICHh9ozcVHtpHUtGdwoqV8gmeav836canWcXhKWQILiTiLpGAMa7FuUmPUr3K3q0c2rAy0IYXigjHvujTMz_0aGYqZoHD726gb4RADAQAB#RSA",
                         KeyPurpose.Protocol, KeyPurpose.Action)))
                     Console.WriteLine($"    {key}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToStoreNiceDocument(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to store a nice document:");
+                var document = chain.StoreDocumentFromText("Simple test document", "TestDocument");
+                Console.WriteLine($"    {document}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
