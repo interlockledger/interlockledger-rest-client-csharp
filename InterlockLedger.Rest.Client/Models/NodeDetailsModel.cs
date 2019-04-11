@@ -81,7 +81,12 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public IEnumerable<string> Roles { get; set; }
 
-        public override string ToString() => $@"Node '{Name}' #{Id}
+        /// <summary>
+        /// Version of software running the Node
+        /// </summary>
+        public string SoftwareVersion { get; set; }
+
+        public override string ToString() => $@"Node '{Name}' #{Id} - Running '{SoftwareVersion}'
 Network {Network}
 Color {Color}
 Owner {OwnerName} #{OwnerId}
