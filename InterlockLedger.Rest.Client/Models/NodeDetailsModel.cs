@@ -31,69 +31,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 
 namespace InterlockLedger.Rest.Client
 {
     /// <summary>
     /// Node details
     /// </summary>
-    public class NodeDetailsModel
+    public class NodeDetailsModel : NodeCommonModel
     {
         /// <summary>
         /// List of owned records, only the ids
         /// </summary>
         public IEnumerable<string> Chains { get; set; }
 
-        /// <summary>
-        /// Mapping color
-        /// </summary>
-        public Color Color { get; set; }
-
-        /// <summary>
-        /// Unique node id
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Node name
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Network this node participates on
-        /// </summary>
-        public string Network { get; set; }
-
-        /// <summary>
-        /// Node owner id [Optional]
-        /// </summary>
-        public string OwnerId { get; set; }
-
-        /// <summary>
-        /// Node owner name [Optional]
-        /// </summary>
-        public string OwnerName { get; set; }
-
-        /// <summary>
-        /// List of active roles running in the node
-        /// </summary>
-        public IEnumerable<string> Roles { get; set; }
-
-        /// <summary>
-        /// Version of software running the Node
-        /// </summary>
-        public string SoftwareVersion { get; set; }
-
-        public override string ToString() => $@"Node '{Name}' #{Id} - Running '{SoftwareVersion}'
-Network {Network}
-Color {Color}
-Owner {OwnerName} #{OwnerId}
-Roles: {string.Join(", ", Roles ?? _empty)}
-Chains: {string.Join(", ", Chains ?? _empty)}
-";
-
-        private static readonly IEnumerable<string> _empty = Enumerable.Empty<string>();
+        protected override string Extras => $"Chains: {string.Join(", ", Chains ?? _empty)}";
     }
 }

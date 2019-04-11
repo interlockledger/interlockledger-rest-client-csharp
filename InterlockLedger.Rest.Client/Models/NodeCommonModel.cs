@@ -30,28 +30,69 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+
 namespace InterlockLedger.Rest.Client
 {
     /// <summary>
-    /// Peer details
+    /// Node/Peer common details
     /// </summary>
-    public sealed class PeerModel : NodeCommonModel
+    public class NodeCommonModel
     {
         /// <summary>
-        /// Network address to contact the peer
+        /// Mapping color
         /// </summary>
-        public string Address { get; set; }
+        public Color Color { get; set; }
 
         /// <summary>
-        /// Port the peer is listening
+        /// Unique node id
         /// </summary>
-        public ushort Port { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Network protocol the peer is listening
+        /// Node name
         /// </summary>
-        public string Protocol { get; set; }
+        public string Name { get; set; }
 
-        protected override string Extras => $"P2P listening at {Address}:{Port}";
+        /// <summary>
+        /// Network this node participates on
+        /// </summary>
+        public string Network { get; set; }
+
+        /// <summary>
+        /// Node owner id [Optional]
+        /// </summary>
+        public string OwnerId { get; set; }
+
+        /// <summary>
+        /// Node owner name [Optional]
+        /// </summary>
+        public string OwnerName { get; set; }
+
+        /// <summary>
+        /// List of active roles running in the node
+        /// </summary>
+        public IEnumerable<string> Roles { get; set; }
+
+        /// <summary>
+        /// Version of software running the Node
+        /// </summary>
+        public Versions SoftwareVersions { get; set; }
+
+        public override string ToString() => $@"Node '{Name}' {Id}
+Running il2 node#{SoftwareVersions?.Node} using [Message Envelope Wire Format #{SoftwareVersions?.MessageEnvelopeWireFormat}] with Peer2Peer#{SoftwareVersions?.Peer2peer}
+Network {Network}
+Color {Fancy(Color)}
+Owner {OwnerName} #{OwnerId}
+Roles: {string.Join(", ", Roles ?? _empty)}
+{Extras}
+";
+
+        protected static readonly IEnumerable<string> _empty = Enumerable.Empty<string>();
+        protected virtual string Extras { get; }
+
+        private static string Fancy(Color color) => color.IsNamedColor ? color.Name : "#" + color.Name.Remove(0, 2).ToUpperInvariant();
     }
 }

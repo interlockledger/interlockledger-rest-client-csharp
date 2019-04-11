@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -33,25 +33,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace InterlockLedger.Rest.Client
 {
     /// <summary>
-    /// Peer details
+    /// Versions for parts of the software
     /// </summary>
-    public sealed class PeerModel : NodeCommonModel
+    public class Versions
     {
         /// <summary>
-        /// Network address to contact the peer
+        /// Message envelope wire format version
         /// </summary>
-        public string Address { get; set; }
+        public string MessageEnvelopeWireFormat { get; set; }
 
         /// <summary>
-        /// Port the peer is listening
+        /// Interlockledger node daemon version
         /// </summary>
-        public ushort Port { get; set; }
+        public string Node { get; set; }
 
         /// <summary>
-        /// Network protocol the peer is listening
+        /// Peer2Peer connectivity library version
         /// </summary>
-        public string Protocol { get; set; }
-
-        protected override string Extras => $"P2P listening at {Address}:{Port}";
+        public string Peer2peer { get; set; }
     }
 }

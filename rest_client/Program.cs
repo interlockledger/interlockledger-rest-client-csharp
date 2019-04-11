@@ -39,25 +39,6 @@ namespace rest_client
 {
     public static class Program
     {
-        public static void CreateChain(RestNode node) {
-            Console.WriteLine("-- Create Chain:");
-            try {
-                var chain = node.CreateChain(new ChainCreationModel {
-                    Name = "Rest Created Test Chain",
-                    Description = "Just a test",
-                    EmergencyClosingKeyPassword = "password",
-                    KeyManagementKeyPassword = "password",
-                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
-                    KeysAlgorithm = Algorithms.RSA,
-                    AdditionalApps = new List<ulong> { 4 }
-                });
-                Console.WriteLine(chain);
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-            Console.WriteLine();
-        }
-
         public static void Main(string[] args) {
             if (args.Length < 2) {
                 Console.WriteLine("You must provide at least 2 parameters!");
@@ -76,6 +57,25 @@ namespace rest_client
 
         private static RecordModel AddRecord(RestChain chain, ulong appId, params byte[] payload)
             => chain.AddRecord(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
+
+        private static void CreateChain(RestNode node) {
+            Console.WriteLine("-- Create Chain:");
+            try {
+                var chain = node.CreateChain(new ChainCreationModel {
+                    Name = "Rest Created Test Chain",
+                    Description = "Just a test",
+                    EmergencyClosingKeyPassword = "password",
+                    KeyManagementKeyPassword = "password",
+                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
+                    KeysAlgorithm = Algorithms.RSA,
+                    AdditionalApps = new List<ulong> { 4 }
+                });
+                Console.WriteLine(chain);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine();
+        }
 
         private static void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 

@@ -110,7 +110,7 @@ namespace InterlockLedger.Rest.Client
                 try {
                     return req.GetResponse();
                 } catch (WebException e) {
-                    return e.Response;
+                    return e.Response ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
                 }
             }
             var resp = (HttpWebResponse)GetInnerResponse();
@@ -134,6 +134,8 @@ namespace InterlockLedger.Rest.Client
         }
 
         private static string ReadAsString(HttpWebResponse resp) {
+            if (resp == null)
+                return string.Empty;
             using (var readStream = new StreamReader(resp.GetResponseStream())) {
                 return readStream.ReadToEnd();
             }
@@ -183,11 +185,15 @@ namespace InterlockLedger.Rest.Client
             var req = (HttpWebRequest)WebRequest.Create(new Uri(BaseUri, url));
             req.AllowAutoRedirect = false;
             req.AuthenticationLevel = AuthenticationLevel.MutualAuthRequired;
+            req.ServerCertificateValidationCallback = ServerCertificateValidation;
             req.ClientCertificates.Add(_certificate);
             req.Method = method;
             req.Accept = accept;
             req.UserAgent = nameof(InterlockLedger);
             return req;
         }
+
+        private bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+            => true;
     }
 }
