@@ -32,22 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace InterlockLedger.Rest.Client
 {
-    public class NewRecordModel
+    public class NewRecordModel : NewRecordModelBase
     {
-        /// <summary>
-        /// Application id this record is associated with
-        /// </summary>
-        public ulong ApplicationId { get; set; }
-
         /// <summary>
         /// The payload's bytes
         /// </summary>
         public byte[] PayloadBytes { get; set; }
-
-        /// <summary>
-        /// Block type
-        /// Most records are of the type 'Data'
-        /// </summary>
-        public RecordType Type { get; set; } = RecordType.Data;
     }
 }

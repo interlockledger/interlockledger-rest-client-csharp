@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -32,11 +32,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace InterlockLedger.Rest.Client
 {
-    public class RecordModel : RecordModelBase
+    public abstract class NewRecordModelBase
     {
         /// <summary>
-        /// The payload's bytes
+        /// Application id this record is associated with
         /// </summary>
-        public byte[] PayloadBytes { get; set; }
+        public ulong ApplicationId { get; set; }
+
+        /// <summary>
+        /// Block type
+        /// Most records are of the type 'Data'
+        /// </summary>
+        public RecordType Type { get; set; } = RecordType.Data;
     }
 }

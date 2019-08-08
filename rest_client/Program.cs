@@ -52,7 +52,6 @@ namespace rest_client
                     Console.WriteLine(e);
                 }
             }
-            do { Console.WriteLine("Press <ESC> to exit!"); } while (Console.ReadKey(intercept: true).Key != ConsoleKey.Escape);
         }
 
         private static RecordModel AddRecord(RestChain chain, ulong appId, params byte[] payload)
@@ -147,6 +146,9 @@ namespace rest_client
             Console.WriteLine();
             Console.WriteLine("  Records:");
             foreach (var record in chain.RecordsFromTo(0, 1))
+                Console.WriteLine($"    {record}");
+            Console.WriteLine("  RecordsAsJson:");
+            foreach (var record in chain.RecordsFromToAsJson(0, 2))
                 Console.WriteLine($"    {record}");
             if (transact) {
                 TryToAddNiceUnpackedRecord(chain);

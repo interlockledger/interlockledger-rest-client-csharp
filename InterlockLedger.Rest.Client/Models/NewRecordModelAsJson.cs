@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -32,11 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace InterlockLedger.Rest.Client
 {
-    public class RecordModel : RecordModelBase
+    public class NewRecordModelAsJson : NewRecordModelBase
     {
         /// <summary>
-        /// The payload's bytes
+        /// The payload data matching the metadata for PayloadTagId
         /// </summary>
-        public byte[] PayloadBytes { get; set; }
+        public object Json { get; set; }
+
+        /// <summary>
+        /// The tag id for the payload, as registered for the application
+        /// </summary>
+        public ulong PayloadTagId { get; set; }
     }
 }

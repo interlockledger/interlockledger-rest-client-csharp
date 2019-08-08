@@ -1,4 +1,4 @@
-/******************************************************************************************************************************
+﻿/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -32,11 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace InterlockLedger.Rest.Client
 {
-    public class RecordModel : RecordModelBase
+    /// <summary>
+    /// Generic payload as json record
+    /// </summary>
+    public class RecordModelAsJson : RecordModelBase
     {
         /// <summary>
         /// The payload's bytes
         /// </summary>
-        public byte[] PayloadBytes { get; set; }
+        public object Payload { get; set; }
     }
 }

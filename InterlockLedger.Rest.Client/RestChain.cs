@@ -45,6 +45,8 @@ namespace InterlockLedger.Rest.Client
         public string Name { get; }
         public IEnumerable<KeyModel> PermittedKeys => _rest.Get<IEnumerable<KeyModel>>($"/chain/{Id}/key");
         public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record");
+        public IEnumerable<RecordModelAsJson> RecordsAsJson => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json");
+
         public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
 
         public RecordModel AddRecord(NewRecordModel model)
@@ -55,6 +57,9 @@ namespace InterlockLedger.Rest.Client
 
         public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
             => _rest.PostRaw<RecordModel>($"/chain/{Id}/record/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
+
+        public RecordModelAsJson AddRecordAsJson(NewRecordModelAsJson model)
+                            => _rest.Post<RecordModelAsJson>($"/chain/{Id}/record.json", model);
 
         public string DocumentAsPlain(string fileId)
             => _rest.CallApiPlainDoc($"/chain/{Id}/document/{fileId}", "GET");
@@ -74,8 +79,14 @@ namespace InterlockLedger.Rest.Client
         public IEnumerable<RecordModel> RecordsFrom(ulong firstSerial)
             => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record?firstSerial={firstSerial}");
 
+        public IEnumerable<RecordModelAsJson> RecordsFromAsJson(ulong firstSerial)
+            => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json?firstSerial={firstSerial}");
+
         public IEnumerable<RecordModel> RecordsFromTo(ulong firstSerial, ulong lastSerial)
             => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
+
+        public IEnumerable<RecordModelAsJson> RecordsFromToAsJson(ulong firstSerial, ulong lastSerial)
+            => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
             => PostDocument(bytes, new DocumentUploadModel(name, contentType));
