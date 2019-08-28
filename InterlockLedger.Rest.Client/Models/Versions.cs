@@ -1,4 +1,4 @@
-﻿/******************************************************************************************************************************
+/******************************************************************************************************************************
 
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
@@ -37,6 +37,11 @@ namespace InterlockLedger.Rest.Client
     /// </summary>
     public class Versions
     {
+        /// <summary>
+        /// Core libraries and il2apps version
+        /// </summary>
+        public string CoreLibs { get; set; }
+
         /// <summary>
         /// Message envelope wire format version
         /// </summary>
