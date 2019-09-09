@@ -30,9 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using Newtonsoft.Json;
 using System;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace InterlockLedger.Rest.Client
 {
