@@ -40,15 +40,15 @@ using System.Linq;
 namespace InterlockLedger.Rest.Client
 {
     [TypeConverter(typeof(RangeConverter))]
-    public struct Range : IEquatable<Range>
+    public struct LimitedRange : IEquatable<LimitedRange>
     {
         public readonly ulong End;
         public readonly ulong Start;
 
-        public Range(ulong start) : this(start, 1) {
+        public LimitedRange(ulong start) : this(start, 1) {
         }
 
-        public Range(ulong start, ushort count) {
+        public LimitedRange(ulong start, ushort count) {
             if (count == 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
             Start = start;
@@ -57,42 +57,42 @@ namespace InterlockLedger.Rest.Client
             }
         }
 
-        public static bool operator !=(Range left, Range right) => !(left == right);
+        public static bool operator !=(LimitedRange left, LimitedRange right) => !(left == right);
 
-        public static bool operator ==(Range left, Range right) => left.Equals(right);
+        public static bool operator ==(LimitedRange left, LimitedRange right) => left.Equals(right);
 
-        public static Range Resolve(string text) {
+        public static LimitedRange Resolve(string text) {
             var parts = text.Trim('[', ']').Split('-');
             var start = ulong.Parse(parts[0].Trim());
             if (parts.Length == 1)
-                return new Range(start);
+                return new LimitedRange(start);
             var end = ulong.Parse(parts[1].Trim());
-            var range = new Range(start, end);
+            var range = new LimitedRange(start, end);
             return range;
         }
 
         public bool Contains(ulong value) => Start <= value && value <= End;
 
-        public bool Contains(Range other) => Contains(other.Start) && Contains(other.End);
+        public bool Contains(LimitedRange other) => Contains(other.Start) && Contains(other.End);
 
-        public override bool Equals(object obj) => obj is Range && Equals((Range)obj);
+        public override bool Equals(object obj) => obj is LimitedRange range && Equals(range);
 
-        public bool Equals(Range other) => End == other.End && Start == other.Start;
+        public bool Equals(LimitedRange other) => End == other.End && Start == other.Start;
 
         public override int GetHashCode() {
             var hashCode = 945720665;
-            hashCode = hashCode * -1521134295 + End.GetHashCode();
-            hashCode = hashCode * -1521134295 + Start.GetHashCode();
+            hashCode = (hashCode * -1521134295) + End.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Start.GetHashCode();
             return hashCode;
         }
 
-        public bool OverlapsWith(Range other) => Contains(other.Start) || Contains(other.End) || other.Contains(Start);
+        public bool OverlapsWith(LimitedRange other) => Contains(other.Start) || Contains(other.End) || other.Contains(Start);
 
         public override string ToString() => $"[{Start}{((End != Start) ? ("-" + End) : "")}]";
 
         internal ushort Count => (ushort)((End - Start) + 1);
 
-        private Range(ulong start, ulong end) {
+        private LimitedRange(ulong start, ulong end) {
             if (end < start)
                 throw new ArgumentOutOfRangeException(nameof(end));
             Start = start;
@@ -102,11 +102,11 @@ namespace InterlockLedger.Rest.Client
 
     public static class RangeExtensions
     {
-        public static bool AnyOverlapsWith(this IEnumerable<Range> first, IEnumerable<Range> second) => first.Any(f => second.Any(s => s.OverlapsWith(f)));
+        public static bool AnyOverlapsWith(this IEnumerable<LimitedRange> first, IEnumerable<LimitedRange> second) => first.Any(f => second.Any(s => s.OverlapsWith(f)));
 
-        public static bool Includes(this IEnumerable<Range> ranges, ulong value) => ranges.Any(r => r.Contains(value));
+        public static bool Includes(this IEnumerable<LimitedRange> ranges, ulong value) => ranges.Any(r => r.Contains(value));
 
-        public static bool IsSupersetOf(this IEnumerable<Range> first, IEnumerable<Range> second) => second.All(r => first.Any(fr => fr.Contains(r)));
+        public static bool IsSupersetOf(this IEnumerable<LimitedRange> first, IEnumerable<LimitedRange> second) => second.All(r => first.Any(fr => fr.Contains(r)));
     }
 
     public class RangeConverter : TypeConverter
@@ -123,7 +123,7 @@ namespace InterlockLedger.Rest.Client
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
             if (value is string text) {
                 text = text.Trim();
-                return Range.Resolve(text);
+                return LimitedRange.Resolve(text);
             }
             return base.ConvertFrom(context, culture, value);
         }
@@ -133,7 +133,7 @@ namespace InterlockLedger.Rest.Client
                 throw new ArgumentNullException(nameof(destinationType));
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
-            if (destinationType != typeof(string) || !(value is Range))
+            if (destinationType != typeof(string) || !(value is LimitedRange))
                 throw new InvalidOperationException("Can only convert Range to string!!!");
             return value.ToString();
         }

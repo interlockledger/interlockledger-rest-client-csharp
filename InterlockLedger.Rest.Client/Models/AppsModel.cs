@@ -61,7 +61,7 @@ namespace InterlockLedger.Rest.Client
 
             public string PublisherId { get; set; }
             public string PublisherName { get; set; }
-            public IEnumerable<Range> ReservedILTagIds { get; set; }
+            public IEnumerable<LimitedRange> ReservedILTagIds { get; set; }
             public DateTimeOffset Start { get; set; }
             public ushort Version { get; set; }
 

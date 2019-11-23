@@ -49,6 +49,6 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public string TargetChain { get; set; }
 
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm.GetValueOrDefault(HashAlgorithms.SHA256)}";
+        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
     }
 }

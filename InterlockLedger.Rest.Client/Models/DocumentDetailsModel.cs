@@ -101,14 +101,14 @@ namespace InterlockLedger.Rest.Client
         /// <summary>
         /// Document content type (mime-type)
         /// </summary>
-        public string ContentType { get; private set; }
+        public string ContentType { get; }
 
         public string ToQueryString() {
             var sb = new StringBuilder($"?cipher={Cipher}&name={Name}");
             if (!string.IsNullOrWhiteSpace(KeyId))
-                sb.Append($"&keyId={KeyId}");
+                sb.Append("&keyId=").Append(KeyId);
             if (!string.IsNullOrWhiteSpace(PreviousVersion))
-                sb.Append($"&previousVersion={PreviousVersion}");
+                sb.Append("&previousVersion=").Append(PreviousVersion);
             return sb.ToString();
         }
     }

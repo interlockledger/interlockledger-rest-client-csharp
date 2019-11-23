@@ -136,9 +136,8 @@ namespace InterlockLedger.Rest.Client
         private static string ReadAsString(HttpWebResponse resp) {
             if (resp == null)
                 return string.Empty;
-            using (var readStream = new StreamReader(resp.GetResponseStream())) {
-                return readStream.ReadToEnd();
-            }
+            using var readStream = new StreamReader(resp.GetResponseStream());
+            return readStream.ReadToEnd();
         }
 
         private string CallApi(string url, string method, string accept = "application/json")
@@ -146,17 +145,16 @@ namespace InterlockLedger.Rest.Client
 
         private RawDocumentModel GetRawResponse(HttpWebRequest req) {
             HttpWebResponse resp = GetResponse(req);
-            using (var readStream = resp.GetResponseStream()) {
-                var fullBuffer = new byte[0];
-                var buffer = new byte[0x80000];
-                do {
-                    var readCount = readStream.Read(buffer, 0, buffer.Length);
-                    if (readCount == 0)
-                        break;
-                    fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
-                } while (true);
-                return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
+            using var readStream = resp.GetResponseStream();
+            var fullBuffer = new byte[0];
+            var buffer = new byte[0x80000];
+            while (true) {
+                var readCount = readStream.Read(buffer, 0, buffer.Length);
+                if (readCount == 0)
+                    break;
+                fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
             }
+            return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
@@ -174,7 +172,7 @@ namespace InterlockLedger.Rest.Client
             request.ContentType = "application/json; charset=utf-8";
             using (var stream = request.GetRequestStream()) {
                 var json = JsonConvert.SerializeObject(body, _jsonSettings);
-                var writer = new StreamWriter(stream, _utf8WithoutBOM);
+                using var writer = new StreamWriter(stream, _utf8WithoutBOM);
                 writer.Write(json);
                 writer.Flush();
             }

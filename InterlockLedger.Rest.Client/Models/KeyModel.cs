@@ -72,18 +72,17 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public IEnumerable<string> Purposes { get; set; }
 
-        public override string ToString() =>
-$@"Key '{Name}' {Id} purposes: [{DisplayablePurposes}]  {ActionsFor.ToLowerInvariant()}";
+        public override string ToString() => $"Key '{Name}' {Id} purposes: [{DisplayablePurposes}]  {ActionsFor.ToLowerInvariant()}";
 
         private string ActionsFor => Actionable ? AppAndActions() : string.Empty;
         private string DisplayablePurposes => Purposes.OrderBy(p => p).WithCommas();
 
         private string AppAndActions() {
             var actions = AppActions?.ToArray() ?? new ulong[0];
-            if (App == 0 && !actions.Any())
+            if (App == 0 && actions.Length == 0)
                 return "All Apps & Actions";
             var plural = (actions.Length == 1 ? "" : "s");
-            return $"App #{App} {(actions.Any() ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
+            return $"App #{App} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
         }
     }
 }
