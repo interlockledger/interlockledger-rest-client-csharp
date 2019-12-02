@@ -30,9 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace InterlockLedger.Rest.Client
 {
@@ -47,33 +45,5 @@ namespace InterlockLedger.Rest.Client
         /// Currently valid apps for this network
         /// </summary>
         public IEnumerable<PublishedApp> ValidApps { get; set; }
-
-        public class PublishedApp : IComparable<PublishedApp>
-        {
-            public ulong? AlternativeId { get; set; }
-            public Version AppVersion { get; set; }
-            public string CompositeName => Safe($"{PublisherName}.{Name}#{AppVersion}");
-            public string Description { get; set; }
-            public ulong Id { get; set; }
-
-            // TODO: map public IEnumerable<DataModel> DataModels { get; set; }
-            public string Name { get; set; }
-
-            public string PublisherId { get; set; }
-            public string PublisherName { get; set; }
-            public IEnumerable<LimitedRange> ReservedILTagIds { get; set; }
-            public DateTimeOffset Start { get; set; }
-            public ushort Version { get; set; }
-
-            int IComparable<PublishedApp>.CompareTo(PublishedApp other) {
-                if (other == null) return 1;
-                var idCompare = Id.CompareTo(other.Id);
-                return idCompare == 0 ? AppVersion.CompareTo(other.AppVersion) : idCompare;
-            }
-
-            public override string ToString() => $"  #{Id} {CompositeName}   {Environment.NewLine}    {Description}";
-
-            private static string Safe(string name) => Regex.Replace(name, @"[\s\\/:""<>|\*\?]+", "_");
-        }
     }
 }

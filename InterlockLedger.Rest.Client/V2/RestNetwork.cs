@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V2
 {
     public class RestNetwork
     {

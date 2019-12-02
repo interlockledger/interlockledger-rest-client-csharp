@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -78,7 +79,7 @@ namespace InterlockLedger.Rest.Client
         private string DisplayablePurposes => Purposes.OrderBy(p => p).WithCommas();
 
         private string AppAndActions() {
-            var actions = AppActions?.ToArray() ?? new ulong[0];
+            var actions = AppActions?.ToArray() ?? Array.Empty<ulong>();
             if (App == 0 && actions.Length == 0)
                 return "All Apps & Actions";
             var plural = (actions.Length == 1 ? "" : "s");

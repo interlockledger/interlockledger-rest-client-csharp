@@ -34,41 +34,41 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V2
 {
     public class RestChain
     {
         public IEnumerable<ulong> ActiveApps => _rest.Get<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
-        public IEnumerable<DocumentDetailsModel> Documents => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/chain/{Id}/document");
+        public IEnumerable<DocumentDetailsModel> Documents => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/documents@{Id}");
         public string Id { get; }
-        public IEnumerable<InterlockingRecordModel> Interlocks => _rest.Get<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlock");
+        public IEnumerable<InterlockingRecordModel> Interlocks => _rest.Get<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
         public string Name { get; }
         public IEnumerable<KeyModel> PermittedKeys => _rest.Get<IEnumerable<KeyModel>>($"/chain/{Id}/key");
-        public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record");
-        public IEnumerable<RecordModelAsJson> RecordsAsJson => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json");
+        public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}");
+        public IEnumerable<RecordModelAsJson> RecordsAsJson => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson");
 
         public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
 
         public RecordModel AddRecord(NewRecordModel model)
-            => _rest.Post<RecordModel>($"/chain/{Id}/record", model);
+            => _rest.Post<RecordModel>($"records@{Id}", model);
 
         public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, byte[] bytes)
             => AddRecord(applicationId, payloadTagId, RecordType.Data, bytes);
 
         public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
-            => _rest.PostRaw<RecordModel>($"/chain/{Id}/record/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
+            => _rest.PostRaw<RecordModel>($"records@{Id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
 
         public RecordModelAsJson AddRecordAsJson(NewRecordModelAsJson model)
-                            => _rest.Post<RecordModelAsJson>($"/chain/{Id}/record.json", model);
+            => _rest.Post<RecordModelAsJson>($"records@{Id}/asJson", model);
 
         public string DocumentAsPlain(string fileId)
-            => _rest.CallApiPlainDoc($"/chain/{Id}/document/{fileId}", "GET");
+            => _rest.CallApiPlainDoc($"/documents@{Id}/{fileId}", "GET");
 
         public RawDocumentModel DocumentAsRaw(string fileId)
-            => _rest.CallApiRawDoc($"/chain/{Id}/document/{fileId}", "GET");
+            => _rest.CallApiRawDoc($"/documents@{Id}/{fileId}", "GET");
 
         public InterlockingRecordModel ForceInterlock(ForceInterlockModel model)
-            => _rest.Post<InterlockingRecordModel>($"/chain/{Id}/interlock", model);
+            => _rest.Post<InterlockingRecordModel>($"/chain/{Id}/interlockings", model);
 
         public IEnumerable<ulong> PermitApps(params ulong[] appsToPermit)
             => _rest.Post<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
@@ -77,16 +77,16 @@ namespace InterlockLedger.Rest.Client
             => _rest.Post<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
 
         public IEnumerable<RecordModel> RecordsFrom(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record?firstSerial={firstSerial}");
+            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
 
         public IEnumerable<RecordModelAsJson> RecordsFromAsJson(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json?firstSerial={firstSerial}");
+            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
 
         public IEnumerable<RecordModel> RecordsFromTo(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"/chain/{Id}/record?firstSerial={firstSerial}&lastSerial={lastSerial}");
+            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         public IEnumerable<RecordModelAsJson> RecordsFromToAsJson(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"/chain/{Id}/record.json?firstSerial={firstSerial}&lastSerial={lastSerial}");
+            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
             => PostDocument(bytes, new DocumentUploadModel(name, contentType));
@@ -123,7 +123,7 @@ namespace InterlockLedger.Rest.Client
         private DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
-            return _rest.PostRaw<DocumentDetailsModel>($"/chain/{Id}/document{model.ToQueryString()}", bytes, model.ContentType);
+            return _rest.PostRaw<DocumentDetailsModel>($"/documents@{Id}{model.ToQueryString()}", bytes, model.ContentType);
         }
     }
 }

@@ -42,7 +42,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V1
 {
     public class RestNode
     {
@@ -105,6 +105,20 @@ namespace InterlockLedger.Rest.Client
         private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
             => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
+        private static RawDocumentModel GetRawResponse(HttpWebRequest req) {
+            HttpWebResponse resp = GetResponse(req);
+            using var readStream = resp.GetResponseStream();
+            var fullBuffer = Array.Empty<byte>();
+            var buffer = new byte[0x80000];
+            while (true) {
+                var readCount = readStream.Read(buffer, 0, buffer.Length);
+                if (readCount == 0)
+                    break;
+                fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
+            }
+            return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
+        }
+
         private static HttpWebResponse GetResponse(HttpWebRequest req) {
             WebResponse GetInnerResponse() {
                 try {
@@ -142,20 +156,6 @@ namespace InterlockLedger.Rest.Client
 
         private string CallApi(string url, string method, string accept = "application/json")
             => GetStringResponse(PrepareRequest(url, method, accept));
-
-        private RawDocumentModel GetRawResponse(HttpWebRequest req) {
-            HttpWebResponse resp = GetResponse(req);
-            using var readStream = resp.GetResponseStream();
-            var fullBuffer = new byte[0];
-            var buffer = new byte[0x80000];
-            while (true) {
-                var readCount = readStream.Read(buffer, 0, buffer.Length);
-                if (readCount == 0)
-                    break;
-                fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
-            }
-            return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
-        }
 
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
             var request = PrepareRequest(url, "POST", accept);

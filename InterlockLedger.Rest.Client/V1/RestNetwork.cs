@@ -32,21 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 
-namespace rest_client
+namespace InterlockLedger.Rest.Client.V1
 {
-    public static class Program
+    public class RestNetwork
     {
-        public static void Main(string[] args) {
-            if (args.Length < 2) {
-                Console.WriteLine("You must provide at least 2 parameters!");
-                Console.WriteLine();
-                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port] [api-version:default=2]");
-            } else {
-                if (args.Length > 3 && args[3] == "1")
-                    UsingV1.DoIt(args);
-                else
-                    UsingV2.DoIt(args);
-            }
-        }
+        public AppsModel Apps => _rest.Get<AppsModel>("/apps");
+
+        internal RestNetwork(RestNode rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
+
+        private readonly RestNode _rest;
     }
 }

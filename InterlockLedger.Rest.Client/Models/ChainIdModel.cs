@@ -49,6 +49,18 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public string Name { get; set; }
 
+        public static bool operator !=(ChainIdModel left, ChainIdModel right) => !(left == right);
+
+        public static bool operator <(ChainIdModel left, ChainIdModel right) => left is null ? right is object : left.CompareTo(right) < 0;
+
+        public static bool operator <=(ChainIdModel left, ChainIdModel right) => left is null || left.CompareTo(right) <= 0;
+
+        public static bool operator ==(ChainIdModel left, ChainIdModel right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator >(ChainIdModel left, ChainIdModel right) => left is object && left.CompareTo(right) > 0;
+
+        public static bool operator >=(ChainIdModel left, ChainIdModel right) => left is null ? right is null : left.CompareTo(right) >= 0;
+
         /// <summary>Compares the current instance with another ChainIdModel instance and returns an integer that indicates whether the current instance precedes, follows, or occurs in the same position in the sort order as the other object.</summary>
         /// <param name="other">Another ChainIdModel instance to compare with this instance.</param>
         /// <returns>A value that indicates the relative order of the objects being compared. The return value has these meanings:
