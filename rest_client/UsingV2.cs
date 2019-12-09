@@ -30,11 +30,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client;
-using InterlockLedger.Rest.Client.V2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using InterlockLedger.Rest.Client;
+using InterlockLedger.Rest.Client.V2;
 
 namespace rest_client
 {
