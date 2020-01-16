@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>2.0.0</Version>
+        <Version>2.1.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2019 InterlockLedger Network</Copyright>
         <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.
@@ -16,7 +16,7 @@ BSD 3-Clause License
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>8</LangVersion>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Match to node 1.0.1 now</PackageReleaseNotes>
+        <PackageReleaseNotes>Match to node 3.2.3 now</PackageReleaseNotes>
         <PackageIcon>IL2.png</PackageIcon>
         <Authors>InterlockLedger Network</Authors>
         <Product>InterlockLedger</Product>
