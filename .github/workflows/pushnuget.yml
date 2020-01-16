@@ -20,11 +20,11 @@ jobs:
     - name: Setup nuget config
       run: sed 's/GITHUB_TOKEN/${{ secrets.RegistryToken }}/g' .nuget.config > nuget.config
 
-    - name: Test with dotnet
+    - name: Build with dotnet
       run: dotnet build --configuration Release -v:m | grep -v 'NAME_UNKNOWN:Package'
 
     - name: Pack nuget
       run: dotnet pack -o `pwd`/.nugets --configuration Release --no-build -v:m
 
     - name: Push nuget
-      run: dotnet nuget push `pwd`/.nugets/*.nupkg -s https://nuget.pkg.github.com/interlockledger/index.json --skip-duplicate
+      run: dotnet nuget push `pwd`/.nugets/*.nupkg -s GitHub --skip-duplicate
