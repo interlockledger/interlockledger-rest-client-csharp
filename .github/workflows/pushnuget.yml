@@ -21,7 +21,7 @@ jobs:
       run: sed 's/GITHUB_TOKEN/${{ secrets.RegistryToken }}/g' .nuget.config > nuget.config
 
     - name: Test with dotnet
-      run: dotnet test --configuration Release -v:m | grep -v 'NAME_UNKNOWN:Package'
+      run: dotnet build --configuration Release -v:m | grep -v 'NAME_UNKNOWN:Package'
 
     - name: Pack nuget
       run: dotnet pack -o `pwd`/.nugets --configuration Release --no-build -v:m
