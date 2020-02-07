@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -48,8 +48,12 @@ namespace rest_client
                 Console.WriteLine(e);
             }
         }
+
         private static RecordModel AddRecord(RestChain chain, ulong appId, params byte[] payload)
             => chain.AddRecord(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
+
+        private static RecordModelAsJson AddRecordAsJson(RestChain chain, ulong appId, ulong action, object json)
+            => chain.AddRecordAsJson(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
 
         private static void CreateChain(RestNode node) {
             Console.WriteLine("-- Create Chain:");
@@ -147,6 +151,7 @@ namespace rest_client
             if (transact) {
                 TryToAddNiceUnpackedRecord(chain);
                 TryToAddNiceRecord(chain);
+                TryToAddNiceJsonRecord(chain);
                 TryToAddBadlyEncodedUnpackedRecord(chain);
                 TryToAddBadRecord(chain);
                 TryToPermitApp4(chain);
@@ -173,6 +178,17 @@ namespace rest_client
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a bad record:");
                 RecordModel record = AddRecord(chain, 1, 0);
+                Console.WriteLine($"    {record}");
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+
+        private static void TryToAddNiceJsonRecord(RestChain chain) {
+            try {
+                Console.WriteLine();
+                Console.WriteLine("  Trying to add a nice JSON record:");
+                RecordModelAsJson record = AddRecordAsJson(chain, 1, 300, new { TagId = 300, Version = 1, Apps = new ulong[] { 1, 2, 3 } });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);

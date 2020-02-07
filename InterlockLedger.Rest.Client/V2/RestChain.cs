@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -59,7 +59,13 @@ namespace InterlockLedger.Rest.Client.V2
             => _rest.PostRaw<RecordModel>($"records@{Id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
 
         public RecordModelAsJson AddRecordAsJson(NewRecordModelAsJson model)
-            => _rest.Post<RecordModelAsJson>($"records@{Id}/asJson", model);
+            => AddRecordAsJson(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
+
+        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, object payload)
+            => AddRecordAsJson(applicationId, payloadTagId, RecordType.Data, payload);
+
+        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
+            => _rest.Post<RecordModelAsJson>($"records@{Id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
 
         public string DocumentAsPlain(string fileId)
             => _rest.CallApiPlainDoc($"/documents@{Id}/{fileId}", "GET");
