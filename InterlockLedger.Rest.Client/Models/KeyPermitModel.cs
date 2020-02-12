@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -36,7 +36,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V1
 {
     public class KeyPermitModel
     {
@@ -73,6 +73,54 @@ namespace InterlockLedger.Rest.Client
         /// Key name
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Key public key
+        /// </summary>
+        public string PublicKey { get; set; }
+
+        /// <summary>
+        /// Key valid purposes
+        /// </summary>
+        public KeyPurpose[] Purposes { get; set; }
+    }
+}
+
+namespace InterlockLedger.Rest.Client.V3
+{
+
+    public class KeyPermitModel
+    {
+        public KeyPermitModel(string id, string name, string publicKey, ulong app, IEnumerable<ulong> appActions, params KeyPurpose[] purposes)
+            : this(id, name, publicKey, new AppPermissions[] { new AppPermissions(app, appActions) }, purposes) {
+        }
+
+        public KeyPermitModel(string id, string name, string publicKey, IEnumerable<AppPermissions> permissions, params KeyPurpose[] purposes) {
+            Permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
+            if (!permissions.Any())
+                throw new InvalidDataException("This key doesn't have at least one action to be permitted");
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+            Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
+            if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
+                throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
+        }
+
+        /// <summary>
+        /// Unique key id
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Key name
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// List of Apps and Corresponding Actions to be permitted by numbers
+        /// </summary>
+        public IEnumerable<AppPermissions> Permissions { get; set; }
 
         /// <summary>
         /// Key public key

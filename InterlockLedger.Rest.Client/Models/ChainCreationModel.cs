@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V1
 {
     /// <summary>
     /// Chain created
@@ -79,6 +79,83 @@ namespace InterlockLedger.Rest.Client
         /// Key management strength of key (default: Strong)
         /// </summary>
         public KeyStrength KeyManagementKeyStrength { get; set; } = KeyStrength.Strong;
+
+        /// <summary>
+        /// Keys algorithm (default: RSA)
+        /// </summary>
+        public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
+
+        /// <summary>
+        /// Name [Required]
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Operating key strength of key (default: Normal)
+        /// </summary>
+        public KeyStrength OperatingKeyStrength { get; set; } = KeyStrength.Normal;
+
+        /// <summary>
+        /// Parent record Id [Optional]
+        /// </summary>
+        public string Parent { get; set; }
+    }
+
+    public class ExportedKeyFile
+    {
+        public byte[] KeyFileBytes { get; set; }
+        public string KeyFileName { get; set; }
+        public string KeyName { get; set; }
+    }
+}
+
+namespace InterlockLedger.Rest.Client.V3
+{
+    /// <summary>
+    /// Chain created
+    /// </summary>
+    public class ChainCreatedModel : ChainIdModel
+    {
+        /// <summary>
+        /// Emergency key file names
+        /// </summary>
+        public List<ExportedKeyFile> KeyFiles { get; set; }
+    }
+
+    /// <summary>
+    /// Chain creation parameters
+    /// </summary>
+    public class ChainCreationModel
+    {
+        /// <summary>
+        /// List of additional apps (only the numeric ids)
+        /// </summary>
+        public List<ulong> AdditionalApps { get; set; }
+
+        /// <summary>
+        /// Description (perhaps intended primary usage) [Optional]
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Emergency closing key password [Required]
+        /// </summary>
+        public string EmergencyClosingKeyPassword { get; set; }
+
+        /// <summary>
+        /// Emergency closing key strength of key (default: ExtraStrong)
+        /// </summary>
+        public KeyStrength EmergencyClosingKeyStrength { get; set; } = KeyStrength.ExtraStrong;
+
+        /// <summary>
+        /// App/Key management key password [Required]
+        /// </summary>
+        public string ManagementKeyPassword { get; set; }
+
+        /// <summary>
+        /// App/Key management strength of key (default: Strong)
+        /// </summary>
+        public KeyStrength ManagementKeyStrength { get; set; } = KeyStrength.Strong;
 
         /// <summary>
         /// Keys algorithm (default: RSA)

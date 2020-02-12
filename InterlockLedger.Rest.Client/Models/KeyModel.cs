@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -34,7 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V1
 {
     /// <summary>
     /// Key
@@ -73,10 +73,10 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public IEnumerable<string> Purposes { get; set; }
 
-        public override string ToString() => $"Key '{Name}' {Id} purposes: [{DisplayablePurposes}]  {ActionsFor.ToLowerInvariant()}";
+        public override string ToString() => $"Key '{Name}' {Id} purposes: [{_displayablePurposes}]  {_actionsFor.ToLowerInvariant()}";
 
-        private string ActionsFor => Actionable ? AppAndActions() : string.Empty;
-        private string DisplayablePurposes => Purposes.OrderBy(p => p).WithCommas();
+        private string _actionsFor => Actionable ? AppAndActions() : string.Empty;
+        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
 
         private string AppAndActions() {
             var actions = AppActions?.ToArray() ?? Array.Empty<ulong>();
@@ -85,5 +85,49 @@ namespace InterlockLedger.Rest.Client
             var plural = (actions.Length == 1 ? "" : "s");
             return $"App #{App} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
         }
+    }
+}
+
+namespace InterlockLedger.Rest.Client.V3
+{
+    /// <summary>
+    /// Key
+    /// </summary>
+    public class KeyModel
+    {
+        public bool Actionable => Purposes.Contains("Action");
+
+        /// <summary>
+        /// Unique key id
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Key name
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// List of Apps and Corresponding Actions to be permitted by numbers
+        /// </summary>
+        public IEnumerable<AppPermissions> Permissions { get; set; }
+
+        /// <summary>
+        /// Key public key
+        /// </summary>
+        public string PublicKey { get; set; }
+
+        /// <summary>
+        /// Key valid purposes
+        /// </summary>
+        public IEnumerable<string> Purposes { get; set; }
+
+        public override string ToString() => $"Key '{Name}' {Id}{_indent}Purposes: [{_displayablePurposes}]{_indent}{_actionsFor}";
+
+        private static readonly string _indent = Environment.NewLine + "\t";
+        private static readonly string _indent2 = _indent + "  ";
+
+        private string _actionsFor => Permissions is null ? "No actions permitted!" : $"Actions permitted:{_indent2}{Permissions.JoinedBy(_indent2)}";
+        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
     }
 }

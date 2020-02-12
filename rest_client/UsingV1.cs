@@ -43,6 +43,7 @@ namespace rest_client
         public static void DoIt(string[] args) {
             try {
                 var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
+                CreateChain(client);
                 Exercise(client);
             } catch (Exception e) {
                 Console.WriteLine(e);

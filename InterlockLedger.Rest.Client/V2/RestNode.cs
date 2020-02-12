@@ -42,7 +42,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace InterlockLedger.Rest.Client.V2
+namespace InterlockLedger.Rest.Client.V3
 {
     public class RestNode
     {

@@ -34,15 +34,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using InterlockLedger.Rest.Client;
-using InterlockLedger.Rest.Client.V2;
+using InterlockLedger.Rest.Client.V3;
 
 namespace rest_client
 {
-    public static class UsingV2
+    public static class UsingV3
     {
         public static void DoIt(string[] args) {
             try {
                 var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
+                CreateChain(client);
                 Exercise(client);
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -62,8 +63,8 @@ namespace rest_client
                     Name = "Rest Created Test Chain",
                     Description = "Just a test",
                     EmergencyClosingKeyPassword = "password",
-                    KeyManagementKeyPassword = "password",
-                    KeyManagementKeyStrength = KeyStrength.ExtraStrong,
+                    ManagementKeyPassword = "password",
+                    ManagementKeyStrength = KeyStrength.ExtraStrong,
                     KeysAlgorithm = Algorithms.RSA,
                     AdditionalApps = new List<ulong> { 4 }
                 });
@@ -243,10 +244,10 @@ namespace rest_client
                 Console.WriteLine();
                 Console.WriteLine("  Trying to permit some keys:");
                 foreach (var key in chain.PermitKeys(
-                        new KeyPermitModel(4, new ulong[] { 1000, 1001 },
-                        "Key!U0y4av1fQGnOkC_1RkZLd4gE8vVSGVGJO5o1pzprQHo", "InterlockLedger Documenter",
-                        "PubKey!KPkBERD5AQiuLtsWMFr3H6HtQVUMky1wFzL0TQF3VC-X24G4gjFqcrHHawNxNgDiw21YS8Fx6o1ornUOHqJPvIpYX1H2T2bqbIsIMNgyO4H234Ahken7SadTlnRPw92_sRpqprBobfuX9f9K6iM-SUJ2WY_6U4bAG4HdsFRV4yqfdDhrCAedBUs8O9qyne6vHFN8CiTEcapfQE7K-StPlW2wVmLdIXov2FdfYdJpFLXbbkgBCdkAZl2Oc86PRVzPkqD5dzl86QNZGZxhq2ngQ1UXASUQVh4tV5XqXQoe7xgeiE-1O82oWZWOvH6xdHjY9sMFyY3Mhjz8_MrI_0_DBEH7Pikmhp0LlyucyUA6dz4G_e13Xmyty2LDeqyYNhYORuZu2ev7zIEPvclpKeztC5gmJdCdcXZf_Omigb6I20HiggFBBrTGIjxJ_5xvpfb8DZCB6jqG5deTqybkjDJYPkA0TeoswKlwncT6mmZ3RdNNxoojUEX0TcBfSioKrnWRqGZ6Yc5wPFIvZ2REU6NP5gJv53FYe2yGAFygvWM1t2wBpWb6bx4h4BFKbfHPcCdmPqJHF0WQdMd7rtryENICHh9ozcVHtpHUtGdwoqV8gmeav836canWcXhKWQILiTiLpGAMa7FuUmPUr3K3q0c2rAy0IYXigjHvujTMz_0aGYqZoHD726gb4RADAQAB#RSA",
-                        KeyPurpose.Protocol, KeyPurpose.Action)))
+                        new KeyPermitModel("Key!U0y4av1fQGnOkC_1RkZLd4gE8vVSGVGJO5o1pzprQHo", "InterlockLedger Documenter",
+                            "PubKey!KPkBERD5AQiuLtsWMFr3H6HtQVUMky1wFzL0TQF3VC-X24G4gjFqcrHHawNxNgDiw21YS8Fx6o1ornUOHqJPvIpYX1H2T2bqbIsIMNgyO4H234Ahken7SadTlnRPw92_sRpqprBobfuX9f9K6iM-SUJ2WY_6U4bAG4HdsFRV4yqfdDhrCAedBUs8O9qyne6vHFN8CiTEcapfQE7K-StPlW2wVmLdIXov2FdfYdJpFLXbbkgBCdkAZl2Oc86PRVzPkqD5dzl86QNZGZxhq2ngQ1UXASUQVh4tV5XqXQoe7xgeiE-1O82oWZWOvH6xdHjY9sMFyY3Mhjz8_MrI_0_DBEH7Pikmhp0LlyucyUA6dz4G_e13Xmyty2LDeqyYNhYORuZu2ev7zIEPvclpKeztC5gmJdCdcXZf_Omigb6I20HiggFBBrTGIjxJ_5xvpfb8DZCB6jqG5deTqybkjDJYPkA0TeoswKlwncT6mmZ3RdNNxoojUEX0TcBfSioKrnWRqGZ6Yc5wPFIvZ2REU6NP5gJv53FYe2yGAFygvWM1t2wBpWb6bx4h4BFKbfHPcCdmPqJHF0WQdMd7rtryENICHh9ozcVHtpHUtGdwoqV8gmeav836canWcXhKWQILiTiLpGAMa7FuUmPUr3K3q0c2rAy0IYXigjHvujTMz_0aGYqZoHD726gb4RADAQAB#RSA", 4,
+                            new ulong[] { 1000, 1001 },
+                            KeyPurpose.Protocol, KeyPurpose.Action)))
                     Console.WriteLine($"    {key}");
             } catch (Exception e) {
                 Console.WriteLine(e);

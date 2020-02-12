@@ -31,22 +31,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
-namespace rest_client
+namespace InterlockLedger.Rest.Client.V3
 {
-    public static class Program
+    public class AppPermissions
     {
-        public static void Main(string[] args) {
-            if (args.Length < 2) {
-                Console.WriteLine("You must provide at least 2 parameters!");
-                Console.WriteLine();
-                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port] [api-version:default=3]");
-            } else {
-                if (args.Length > 3 && args[3] == "1")
-                    UsingV1.DoIt(args);
-                else
-                    UsingV3.DoIt(args);
-            }
+        public AppPermissions(ulong app, IEnumerable<ulong> appActions) {
+            AppId = app;
+            ActionIds = appActions ?? Array.Empty<ulong>();
+        }
+
+        /// <summary>
+        /// App actions to be permitted by number
+        /// </summary>
+        public IEnumerable<ulong> ActionIds { get; set; }
+
+        /// <summary>
+        /// App to be permitted (by number)
+        /// </summary>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include, Required = Required.Always)]
+        public ulong AppId { get; set; }
+
+        public override string ToString() {
+            var actions = ActionIds?.ToArray() ?? Array.Empty<ulong>();
+            var plural = (actions.Length == 1 ? "" : "s");
+            return $"App #{AppId} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
         }
     }
 }

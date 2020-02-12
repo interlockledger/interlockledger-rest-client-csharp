@@ -34,7 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace InterlockLedger.Rest.Client.V2
+namespace InterlockLedger.Rest.Client.V3
 {
     public class RestChain
     {
