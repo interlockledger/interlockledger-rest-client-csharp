@@ -82,7 +82,8 @@ namespace InterlockLedger.Rest.Client
         public Versions SoftwareVersions { get; set; }
 
         public override string ToString() => $@"Node '{Name}' {Id}
-Running il2 node#{SoftwareVersions?.Node} using [Message Envelope Wire Format #{SoftwareVersions?.MessageEnvelopeWireFormat}] with Peer2Peer#{SoftwareVersions?.Peer2peer}
+Running il2 node#{SoftwareVersions?.Node} using [Message Envelope Wire Format #{SoftwareVersions?.MessageEnvelopeWireFormat}]
+    with Peer2Peer#{SoftwareVersions?.Peer2peer} and CoreLibs#{SoftwareVersions?.CoreLibs}
 Network {Network}
 Color {Fancy(Color)}
 Owner {OwnerName} #{OwnerId}

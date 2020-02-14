@@ -34,60 +34,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace InterlockLedger.Rest.Client.V1
-{
-    /// <summary>
-    /// Key
-    /// </summary>
-    public class KeyModel
-    {
-        public bool Actionable => Purposes.Contains("Action");
-
-        /// <summary>
-        /// App to be permitted (by number)
-        /// </summary>
-        public ulong App { get; set; }
-
-        /// <summary>
-        /// App actions to be permitted by number
-        /// </summary>
-        public IEnumerable<ulong> AppActions { get; set; }
-
-        /// <summary>
-        /// Unique key id
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Key name
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Key public key
-        /// </summary>
-        public string PublicKey { get; set; }
-
-        /// <summary>
-        /// Key valid purposes
-        /// </summary>
-        public IEnumerable<string> Purposes { get; set; }
-
-        public override string ToString() => $"Key '{Name}' {Id} purposes: [{_displayablePurposes}]  {_actionsFor.ToLowerInvariant()}";
-
-        private string _actionsFor => Actionable ? AppAndActions() : string.Empty;
-        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
-
-        private string AppAndActions() {
-            var actions = AppActions?.ToArray() ?? Array.Empty<ulong>();
-            if (App == 0 && actions.Length == 0)
-                return "All Apps & Actions";
-            var plural = (actions.Length == 1 ? "" : "s");
-            return $"App #{App} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
-        }
-    }
-}
-
 namespace InterlockLedger.Rest.Client.V3
 {
     /// <summary>

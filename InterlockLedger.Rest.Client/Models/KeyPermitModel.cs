@@ -34,61 +34,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
-
-namespace InterlockLedger.Rest.Client.V1
-{
-    public class KeyPermitModel
-    {
-        public KeyPermitModel(ulong app, IEnumerable<ulong> appActions, string id, string name, string publicKey, params KeyPurpose[] purposes) {
-            App = app;
-            AppActions = appActions ?? throw new ArgumentNullException(nameof(appActions));
-            if (!AppActions.Any())
-                throw new InvalidDataException("This key doesn't have at least one action to be permitted");
-            Id = id ?? throw new ArgumentNullException(nameof(id));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
-            Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
-            if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
-                throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
-        }
-
-        /// <summary>
-        /// App to be permitted (by number)
-        /// </summary>
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include, Required = Required.Always)]
-        public ulong App { get; set; }
-
-        /// <summary>
-        /// App actions to be permitted by number
-        /// </summary>
-        public IEnumerable<ulong> AppActions { get; set; }
-
-        /// <summary>
-        /// Unique key id
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Key name
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Key public key
-        /// </summary>
-        public string PublicKey { get; set; }
-
-        /// <summary>
-        /// Key valid purposes
-        /// </summary>
-        public KeyPurpose[] Purposes { get; set; }
-    }
-}
 
 namespace InterlockLedger.Rest.Client.V3
 {
-
     public class KeyPermitModel
     {
         public KeyPermitModel(string id, string name, string publicKey, ulong app, IEnumerable<ulong> appActions, params KeyPurpose[] purposes)

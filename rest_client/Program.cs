@@ -40,12 +40,9 @@ namespace rest_client
             if (args.Length < 2) {
                 Console.WriteLine("You must provide at least 2 parameters!");
                 Console.WriteLine();
-                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port] [api-version:default=3]");
+                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port]");
             } else {
-                if (args.Length > 3 && args[3] == "1")
-                    UsingV1.DoIt(args);
-                else
-                    UsingV3.DoIt(args);
+                UsingV3.DoIt(args);
             }
         }
     }
