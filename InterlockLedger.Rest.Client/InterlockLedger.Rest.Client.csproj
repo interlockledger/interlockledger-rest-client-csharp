@@ -37,5 +37,13 @@ BSD 3-Clause License
             <PackagePath></PackagePath>
         </None>
     </ItemGroup>
+    
+    <Target Name="PublishLocally" AfterTargets="Pack" Condition="Exists('$(INTERLOCK_LOCAL_NUGETS_FOLDER)')">
+        <ItemGroup>
+            <NugetPackages Include="$(PackageOutputAbsolutePath)\*$(Version).nupkg" />
+        </ItemGroup>
+        <Message Importance="high" Text="Publish to Local Nugets Folder '$(INTERLOCK_LOCAL_NUGETS_FOLDER)'" />
+        <Copy DestinationFolder="$(INTERLOCK_LOCAL_NUGETS_FOLDER)" SourceFiles="@(NugetPackages)" ContinueOnError="true" SkipUnchangedFiles="false" />
+    </Target>
 
 </Project>
