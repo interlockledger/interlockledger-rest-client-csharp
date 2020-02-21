@@ -32,13 +32,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
 namespace InterlockLedger.Rest.Client.V3
 {
+    [JsonConverter(typeof(Converter))]
     public class AppPermissions
     {
+        public static readonly Regex Mask = new Regex("^#[0-9]+(,[0-9]+)*$");
+
+        public AppPermissions(ulong app, params ulong[] appActions) : this(app, (IEnumerable<ulong>)appActions) {
+        }
+
         public AppPermissions(ulong app, IEnumerable<ulong> appActions) {
             AppId = app;
             ActionIds = appActions ?? Array.Empty<ulong>();
@@ -55,10 +63,45 @@ namespace InterlockLedger.Rest.Client.V3
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include, Required = Required.Always)]
         public ulong AppId { get; set; }
 
+        public IEnumerable<AppPermissions> ToEnumerable() => new AppPermissions[] { this };
+
         public override string ToString() {
             var actions = ActionIds?.ToArray() ?? Array.Empty<ulong>();
             var plural = (actions.Length == 1 ? "" : "s");
             return $"App #{AppId} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
         }
+
+        public class Converter : JsonConverter<AppPermissions>
+        {
+            public override AppPermissions ReadJson(JsonReader reader, Type objectType, [AllowNull] AppPermissions existingValue, bool hasExistingValue, JsonSerializer serializer) {
+                if (reader.TokenType == JsonToken.Null)
+                    return null;
+                if (reader.TokenType == JsonToken.String)
+                    return new AppPermissions(reader.Value as string);
+                throw new InvalidCastException($"TokenType should be Null or String but is {reader.TokenType}");
+            }
+
+            public override void WriteJson(JsonWriter writer, [AllowNull] AppPermissions value, JsonSerializer serializer) {
+                if (value is null)
+                    writer.WriteNull();
+                else
+                    writer.WriteValue(value.TextualRepresentation);
+            }
+        }
+
+        internal AppPermissions(string textualRepresentation) {
+            if (string.IsNullOrWhiteSpace(textualRepresentation) || !Mask.IsMatch(textualRepresentation)) {
+                throw new ArgumentException("Invalid textual representation '" + textualRepresentation + "'", nameof(textualRepresentation));
+            }
+            var source = textualRepresentation.Substring(1).Split(',').Select(AsUlong);
+            AppId = source.First();
+            ActionIds = source.Skip(1).ToArray();
+        }
+
+        internal string TextualRepresentation => $"#{AppId}{_firstComma}{ActionIds.WithCommas(noSpaces: true)}";
+
+        private string _firstComma => ActionIds.Any() ? "," : string.Empty;
+
+        private static ulong AsUlong(string s) => ulong.TryParse(s?.Trim(), out ulong result) ? result : 0;
     }
 }

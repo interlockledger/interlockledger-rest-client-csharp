@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2019 InterlockLedger Network
 All rights reserved.
 
@@ -71,17 +71,14 @@ namespace InterlockLedger.Rest.Client
             return idCompare == 0 ? AppVersion.CompareTo(other.AppVersion) : idCompare;
         }
 
+        public override bool Equals(object obj) => Equals(obj as PublishedApp);
+
+        public bool Equals(PublishedApp other) => other != null && AppVersion.Equals(other.AppVersion) && Id == other.Id;
+
+        public override int GetHashCode() => HashCode.Combine(AppVersion, Id);
+
         public override string ToString() => $"  #{Id} {CompositeName}   {Environment.NewLine}    {Description}";
 
         private static string Safe(string name) => Regex.Replace(name, @"[\s\\/:""<>|\*\?]+", "_");
-        public override bool Equals(object obj) => Equals(obj as PublishedApp);
-        public bool Equals(PublishedApp other) => other != null && AppVersion.Equals(other.AppVersion) && Id == other.Id;
-
-        public override int GetHashCode() {
-            var hashCode = 251619616;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Version>.Default.GetHashCode(AppVersion);
-            hashCode = hashCode * -1521134295 + Id.GetHashCode();
-            return hashCode;
-        }
     }
 }

@@ -63,17 +63,22 @@ namespace InterlockLedger.Rest.Client
 
         /// <summary>Compares the current instance with another ChainIdModel instance and returns an integer that indicates whether the current instance precedes, follows, or occurs in the same position in the sort order as the other object.</summary>
         /// <param name="other">Another ChainIdModel instance to compare with this instance.</param>
-        /// <returns>A value that indicates the relative order of the objects being compared. The return value has these meanings:
+        /// <returns><para>
+        /// A value that indicates the relative order of the objects being compared. The return value has these meanings:
         ///   Value meaning :
-        ///
+        /// </para>
+        /// <para>
         ///   Less than zero
         ///         This instance precedes <paramref name="other">other</paramref> in the sort order.
-        ///
+        /// </para>
+        /// <para>
         ///   Zero
         ///         This instance occurs in the same position in the sort order as <paramref name="other">other</paramref>.
-        ///
+        /// </para>
+        /// <para>
         ///   Greater than zero
         ///         This instance follows <paramref name="other">other</paramref> in the sort order.
+        /// </para>
         ///  </returns>
         public int CompareTo(ChainIdModel other) => Id.CompareTo(other?.Id);
 
