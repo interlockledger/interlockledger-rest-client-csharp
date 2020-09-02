@@ -126,10 +126,10 @@ namespace InterlockLedger.Rest.Client.V3
 
         private readonly RestNode _rest;
 
-        private DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) {
-            if (model == null)
-                throw new ArgumentNullException(nameof(model));
-            return _rest.PostRaw<DocumentDetailsModel>($"/documents@{Id}{model.ToQueryString()}", bytes, model.ContentType);
-        }
+        private DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) => model switch
+        {
+            null => throw new ArgumentNullException(nameof(model)),
+            _ => _rest.PostRaw<DocumentDetailsModel>($"/documents@{Id}{model.ToQueryString()}", bytes, model.ContentType)
+        };
     }
 }

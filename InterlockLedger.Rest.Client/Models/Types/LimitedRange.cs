@@ -79,12 +79,7 @@ namespace InterlockLedger.Rest.Client
 
         public bool Equals(LimitedRange other) => End == other.End && Start == other.Start;
 
-        public override int GetHashCode() {
-            var hashCode = 945720665;
-            hashCode = (hashCode * -1521134295) + End.GetHashCode();
-            hashCode = (hashCode * -1521134295) + Start.GetHashCode();
-            return hashCode;
-        }
+        public override int GetHashCode() => HashCode.Combine(End, Start);
 
         public bool OverlapsWith(LimitedRange other) => Contains(other.Start) || Contains(other.End) || other.Contains(Start);
 
@@ -113,12 +108,8 @@ namespace InterlockLedger.Rest.Client
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType == typeof(string);
 
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) {
-            if (destinationType == typeof(InstanceDescriptor)) {
-                return true;
-            }
-            return destinationType == typeof(string);
-        }
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+            => destinationType == typeof(InstanceDescriptor) || destinationType == typeof(string);
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
             if (value is string text) {
@@ -128,14 +119,16 @@ namespace InterlockLedger.Rest.Client
             return base.ConvertFrom(context, culture, value);
         }
 
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-            if (destinationType == null)
-                throw new ArgumentNullException(nameof(destinationType));
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-            if (destinationType != typeof(string) || !(value is LimitedRange))
-                throw new InvalidOperationException("Can only convert Range to string!!!");
-            return value.ToString();
-        }
+        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+            => destinationType == typeof(string)
+                ? TryConvertToString(value)
+                : throw new InvalidOperationException("Can only convert to string!!!");
+
+        private static string TryConvertToString(object value) => value switch
+        {
+            null => throw new ArgumentNullException(nameof(value)),
+            LimitedRange lr => lr.ToString(),
+            _ => throw new InvalidOperationException("Can only convert Range to string!!!")
+        };
     }
 }

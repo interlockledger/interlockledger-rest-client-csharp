@@ -106,7 +106,7 @@ namespace InterlockLedger.Rest.Client.V3
             => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
         private static RawDocumentModel GetRawResponse(HttpWebRequest req) {
-            HttpWebResponse resp = GetResponse(req);
+            using var resp = GetResponse(req);
             using var readStream = resp.GetResponseStream();
             var fullBuffer = Array.Empty<byte>();
             var buffer = new byte[0x80000];
@@ -119,20 +119,21 @@ namespace InterlockLedger.Rest.Client.V3
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static HttpWebResponse GetResponse(HttpWebRequest req) {
-            WebResponse GetInnerResponse() {
-                try {
-                    return req.GetResponse();
-                } catch (WebException e) {
-                    return e.Response ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
-                }
+        private static HttpWebResponse GetResponse(HttpWebRequest req) => Validated(GetInnerResponse(req));
+
+        private static HttpWebResponse GetInnerResponse(HttpWebRequest req) {
+            try {
+                return (HttpWebResponse)req.GetResponse();
+            } catch (WebException e) {
+                return (HttpWebResponse)e.Response
+                    ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
             }
-            var resp = (HttpWebResponse)GetInnerResponse();
-            if (resp.StatusCode != HttpStatusCode.OK && resp.StatusCode != HttpStatusCode.Created)
-                throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}");
-            return resp;
         }
 
+        private static HttpWebResponse Validated(HttpWebResponse resp)
+            => resp.StatusCode is HttpStatusCode.OK or HttpStatusCode.Created
+                ? resp
+                : throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}");
         private static string GetStringResponse(HttpWebRequest req) => ReadAsString(GetResponse(req));
 
         private static string ParseFileName(HttpWebResponse resp) {
@@ -142,7 +143,7 @@ namespace InterlockLedger.Rest.Client.V3
             if (header.Parameters.ContainsKey("filename*")) {
                 filename = header.Parameters["filename*"];
                 if (filename.StartsWith("UTF-8''"))
-                    return WebUtility.UrlDecode(filename.Substring(7));
+                    return WebUtility.UrlDecode(filename[7..]);
             }
             return filename;
         }

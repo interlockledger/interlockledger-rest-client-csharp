@@ -46,14 +46,13 @@ namespace InterlockLedger.Rest.Client
         public string ContentType { get; }
         public string Name { get; }
 
-        public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{PartialContentAsBase64}";
+        public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{_partialContentAsBase64}";
 
-        private string PartialContentAsBase64 {
-            get {
-                if (Content is null)
-                    return "?";
-                return Content.Length > 256 ? Convert.ToBase64String(Content, 0, 256) + "..." : Convert.ToBase64String(Content);
-            }
-        }
+        private string _partialContentAsBase64 => (Content?.Length) switch
+        {
+            null => "?",
+            > 256 => Convert.ToBase64String(Content, 0, 256) + "...",
+            _ => Convert.ToBase64String(Content)
+        };
     }
 }

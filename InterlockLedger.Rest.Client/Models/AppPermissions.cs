@@ -73,13 +73,13 @@ namespace InterlockLedger.Rest.Client.V3
 
         public class Converter : JsonConverter<AppPermissions>
         {
-            public override AppPermissions ReadJson(JsonReader reader, Type objectType, [AllowNull] AppPermissions existingValue, bool hasExistingValue, JsonSerializer serializer) {
-                if (reader.TokenType == JsonToken.Null)
-                    return null;
-                if (reader.TokenType == JsonToken.String)
-                    return new AppPermissions(reader.Value as string);
-                throw new InvalidCastException($"TokenType should be Null or String but is {reader.TokenType}");
-            }
+            public override AppPermissions ReadJson(JsonReader reader, Type objectType, [AllowNull] AppPermissions existingValue, bool hasExistingValue, JsonSerializer serializer)
+                => reader.TokenType switch
+                {
+                    JsonToken.Null => null,
+                    JsonToken.String => new AppPermissions(reader.Value as string),
+                    _ => throw new InvalidCastException($"TokenType should be Null or String but is {reader.TokenType}")
+                };
 
             public override void WriteJson(JsonWriter writer, [AllowNull] AppPermissions value, JsonSerializer serializer) {
                 if (value is null)
@@ -93,7 +93,7 @@ namespace InterlockLedger.Rest.Client.V3
             if (string.IsNullOrWhiteSpace(textualRepresentation) || !Mask.IsMatch(textualRepresentation)) {
                 throw new ArgumentException("Invalid textual representation '" + textualRepresentation + "'", nameof(textualRepresentation));
             }
-            var source = textualRepresentation.Substring(1).Split(',').Select(AsUlong);
+            var source = textualRepresentation[1..].Split(',').Select(AsUlong);
             AppId = source.First();
             ActionIds = source.Skip(1).ToArray();
         }

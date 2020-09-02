@@ -74,11 +74,10 @@ namespace InterlockLedger.Rest.Client
 
         public static string Safe(this string s) => s.WithDefault(string.Empty);
 
-        public static string SimplifyAsFileName(this string name) {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException($"Name is empty or null");
-            return _nameFilter.Replace(name.Trim(), ".").ToLower();
-        }
+        public static string SimplifyAsFileName(this string name)
+            => string.IsNullOrWhiteSpace(name)
+                ? throw new ArgumentException($"Name is empty or null")
+                : _nameFilter.Replace(name.Trim(), ".").ToLower();
 
         public static string TrimToNull(this string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
@@ -91,11 +90,11 @@ namespace InterlockLedger.Rest.Client
 
         public static string WithDefault(this string s, string @default) => string.IsNullOrWhiteSpace(s) ? @default : s.Trim();
 
-        public static string WithDefault(this string s, Func<string> resolver) {
-            if (resolver == null)
-                throw new ArgumentNullException(nameof(resolver));
-            return string.IsNullOrWhiteSpace(s) ? resolver() : s.Trim();
-        }
+        public static string WithDefault(this string s, Func<string> resolver) => resolver switch
+        {
+            null => throw new ArgumentNullException(nameof(resolver)),
+            _ => string.IsNullOrWhiteSpace(s) ? resolver() : s.Trim()
+        };
 
         public static string WithoutWhiteSpace(this string s) => string.IsNullOrWhiteSpace(s) ? string.Empty : Regex.Replace(s, @"[\r\n\s]+", " ").Trim();
 
