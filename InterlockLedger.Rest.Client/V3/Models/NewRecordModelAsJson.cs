@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
-
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public class NewRecordModelAsJson : NewRecordModelBase
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// The payload data matching the metadata for PayloadTagId
+        /// </summary>
+        public object Json { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
-
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// The tag id for the payload, as registered for the application
+        /// </summary>
+        public ulong PayloadTagId { get; set; }
     }
 }

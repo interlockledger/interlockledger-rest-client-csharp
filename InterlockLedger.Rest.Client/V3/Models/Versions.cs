@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
-
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    /// <summary>
+    /// Versions for parts of the software
+    /// </summary>
+    public class Versions
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// Core libraries and il2apps version
+        /// </summary>
+        public string CoreLibs { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Message envelope wire format version
+        /// </summary>
+        public string MessageEnvelopeWireFormat { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// Interlockledger node daemon version
+        /// </summary>
+        public string Node { get; set; }
+
+        /// <summary>
+        /// Peer2Peer connectivity library version
+        /// </summary>
+        public string Peer2peer { get; set; }
     }
 }

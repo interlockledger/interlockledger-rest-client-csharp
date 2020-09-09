@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
-
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    /// <summary>
+    /// Generic message
+    /// </summary>
+    public class MessageModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// Application id this record is associated with
+        /// </summary>
+        public ulong ApplicationId { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Chain id
+        /// </summary>
+        public string ChainId { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// Message type
+        /// </summary>
+        public string MessageType { get; set; }
+
+        /// <summary>
+        /// Message payload
+        /// </summary>
+        public byte[] Payload { get; set; }
+
+        /// <summary>
+        /// Message payload as text (may not help much)
+        /// </summary>
+        public string PayloadAsText { get; set; }
+
+        public override string ToString() => $"Message {MessageType} Chain {ChainId} App {ApplicationId} : {PayloadAsText}";
     }
 }

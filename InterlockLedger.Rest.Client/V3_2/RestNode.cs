@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using InterlockLedger.Rest.Client.Abstractions;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client.V3_2
 {
     public class RestNode : RestAbstractNode<RestChain>
     {
@@ -41,6 +41,8 @@ namespace InterlockLedger.Rest.Client.V3
 
         public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
             base(certFile, certPassword, port, address) { }
+
+        public MultiDocumentUploadConfiguration MultiDocumentUploadConfiguration => Get<MultiDocumentUploadConfiguration>("/multiDocuments");
 
         protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
     }

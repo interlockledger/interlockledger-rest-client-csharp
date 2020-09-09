@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public sealed class ChainSummaryModel : ChainIdModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// List of active apps (only the numeric ids)
+        /// </summary>
+        public List<ulong> ActiveApps { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Description (perhaps intended primary usage) [Optional]
+        /// </summary>
+        public string Description { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// Is this record not able to accept new records?
+        /// </summary>
+        public bool IsClosedForNewTransactions { get; set; }
+
+        /// <summary>
+        /// Last record (serial number)
+        /// </summary>
+        public ulong LastRecord { get; set; }
     }
 }

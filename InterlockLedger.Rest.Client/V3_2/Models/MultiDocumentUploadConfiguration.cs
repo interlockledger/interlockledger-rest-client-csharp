@@ -30,18 +30,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client.V3_2
 {
-    public class RestNode : RestAbstractNode<RestChain>
+
+    public sealed class MultiDocumentUploadConfiguration
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public MultiDocumentUploadConfiguration() { }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
-
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        public string DefaultCompression { get; set; }
+        public string DefaultEncryption { get; set; }
+        public long FileSizeLimit { get; set; }
+        public int? Iterations { get; set; }
+        public IEnumerable<string> PermittedContentTypes { get; set; }
+        public ushort TimeOutInMinutes { get; set; }
     }
 }

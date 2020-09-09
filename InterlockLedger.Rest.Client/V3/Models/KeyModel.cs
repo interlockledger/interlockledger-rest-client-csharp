@@ -30,18 +30,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace InterlockLedger.Rest.Client.V3
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    /// <summary>
+    /// Key
+    /// </summary>
+    public class KeyModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public bool Actionable => Purposes.Contains("Action");
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Unique key id
+        /// </summary>
+        public string Id { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// Key name
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// List of Apps and Corresponding Actions to be permitted by numbers
+        /// </summary>
+        public IEnumerable<AppPermissions> Permissions { get; set; }
+
+        /// <summary>
+        /// Key public key
+        /// </summary>
+        public string PublicKey { get; set; }
+
+        /// <summary>
+        /// Key valid purposes
+        /// </summary>
+        public IEnumerable<string> Purposes { get; set; }
+
+        public override string ToString() => $"Key '{Name}' {Id}{_indent}Purposes: [{_displayablePurposes}]{_indent}{_actionsFor}";
+
+        private static readonly string _indent = Environment.NewLine + "\t";
+        private static readonly string _indent2 = _indent + "  ";
+
+        private string _actionsFor => Permissions is null ? "No actions permitted!" : $"Actions permitted:{_indent2}{Permissions.JoinedBy(_indent2)}";
+        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
     }
 }

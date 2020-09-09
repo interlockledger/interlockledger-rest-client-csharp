@@ -1,6 +1,6 @@
 /******************************************************************************************************************************
 
-Copyright (c) 2018-2019 InterlockLedger Network
+Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,77 +33,49 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using InterlockLedger.Rest.Client.Abstractions;
 
 namespace InterlockLedger.Rest.Client.V3
 {
-    public class RestChain
+    public interface IDocumentApp
     {
-        public IEnumerable<ulong> ActiveApps => _rest.Get<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
-        public IEnumerable<DocumentDetailsModel> Documents => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/documents@{Id}");
-        public string Id { get; }
-        public IEnumerable<InterlockingRecordModel> Interlocks => _rest.Get<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
-        public string Name { get; }
-        public IEnumerable<KeyModel> PermittedKeys => _rest.Get<IEnumerable<KeyModel>>($"/chain/{Id}/key");
-        public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}");
-        public IEnumerable<RecordModelAsJson> RecordsAsJson => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson");
+        IEnumerable<DocumentDetailsModel> Documents { get; }
 
-        public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
+        string DocumentAsPlain(string fileId);
 
-        public RecordModel AddRecord(NewRecordModel model)
-            => _rest.Post<RecordModel>($"records@{Id}", model);
+        RawDocumentModel DocumentAsRaw(string fileId);
 
-        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, byte[] bytes)
-            => AddRecord(applicationId, payloadTagId, RecordType.Data, bytes);
+        DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model);
 
-        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
-            => _rest.PostRaw<RecordModel>($"records@{Id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
+        DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType);
 
-        public RecordModelAsJson AddRecordAsJson(NewRecordModelAsJson model)
-            => AddRecordAsJson(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
-
-        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, object payload)
-            => AddRecordAsJson(applicationId, payloadTagId, RecordType.Data, payload);
-
-        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
-            => _rest.Post<RecordModelAsJson>($"records@{Id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
-
-        public string DocumentAsPlain(string fileId)
-            => _rest.CallApiPlainDoc($"/documents@{Id}/{fileId}", "GET");
-
-        public RawDocumentModel DocumentAsRaw(string fileId)
-            => _rest.CallApiRawDoc($"/documents@{Id}/{fileId}", "GET");
-
-        public InterlockingRecordModel ForceInterlock(ForceInterlockModel model)
-            => _rest.Post<InterlockingRecordModel>($"/chain/{Id}/interlockings", model);
-
-        public IEnumerable<ulong> PermitApps(params ulong[] appsToPermit)
-            => _rest.Post<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
-
-        public IEnumerable<KeyModel> PermitKeys(params KeyPermitModel[] keysToPermit)
-            => _rest.Post<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
-
-        public IEnumerable<RecordModel> RecordsFrom(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
-
-        public IEnumerable<RecordModelAsJson> RecordsFromAsJson(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
-
-        public IEnumerable<RecordModel> RecordsFromTo(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
-
-        public IEnumerable<RecordModelAsJson> RecordsFromToAsJson(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
-
-        public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
-            => PostDocument(bytes, new DocumentUploadModel(name, contentType));
-
-        public DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model)
-            => PostDocument(bytes, model);
-
-        public DocumentDetailsModel StoreDocumentFromFile(string filePath, string name, string contentType)
+        DocumentDetailsModel StoreDocumentFromFile(string filePath, string name, string contentType)
             => StoreDocumentFromFile(filePath, new DocumentUploadModel(name, contentType));
 
-        public DocumentDetailsModel StoreDocumentFromFile(string filePath, DocumentUploadModel model) {
+        DocumentDetailsModel StoreDocumentFromFile(string filePath, DocumentUploadModel model);
+
+        DocumentDetailsModel StoreDocumentFromText(string content, string name, string contentType = "plain/text")
+            => StoreDocumentFromBytes(content.UTF8Bytes(), name, contentType);
+    }
+
+    public class RestChain : RestAbstractChain, IDocumentApp
+    {
+        IEnumerable<DocumentDetailsModel> IDocumentApp.Documents
+            => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/documents@{Id}");
+
+        string IDocumentApp.DocumentAsPlain(string fileId)
+            => _rest.CallApiPlainDoc($"/documents@{Id}/{fileId}", "GET");
+
+        RawDocumentModel IDocumentApp.DocumentAsRaw(string fileId)
+            => _rest.CallApiRawDoc($"/documents@{Id}/{fileId}", "GET");
+
+        DocumentDetailsModel IDocumentApp.StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
+           => PostDocument(bytes, new DocumentUploadModel(name, contentType));
+
+        DocumentDetailsModel IDocumentApp.StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model)
+           => PostDocument(bytes, model);
+
+        DocumentDetailsModel IDocumentApp.StoreDocumentFromFile(string filePath, DocumentUploadModel model) {
             if (!File.Exists(filePath))
                 throw new ArgumentException($"No file '{filePath}' to store as a document!");
             if (model.Name == "?")
@@ -111,25 +83,7 @@ namespace InterlockLedger.Rest.Client.V3
             return PostDocument(File.ReadAllBytes(filePath), model);
         }
 
-        public DocumentDetailsModel StoreDocumentFromText(string content, string name, string contentType = "plain/text")
-            => StoreDocumentFromBytes(content.UTF8Bytes(), name, contentType);
-
-        public override string ToString() => $"Chain '{Name}' #{Id}";
-
-        internal RestChain(RestNode rest, ChainIdModel chainId) {
-            if (chainId == null)
-                throw new ArgumentNullException(nameof(chainId));
-            _rest = rest ?? throw new ArgumentNullException(nameof(rest));
-            Id = chainId.Id;
-            Name = chainId.Name;
+        internal RestChain(IRestNodeInternals rest, ChainIdModel chainId) : base(rest, chainId) {
         }
-
-        private readonly RestNode _rest;
-
-        private DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) => model switch
-        {
-            null => throw new ArgumentNullException(nameof(model)),
-            _ => _rest.PostRaw<DocumentDetailsModel>($"/documents@{Id}{model.ToQueryString()}", bytes, model.ContentType)
-        };
     }
 }

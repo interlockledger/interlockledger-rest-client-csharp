@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public class RestNetwork
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public AppsModel Apps => _rest.Get<AppsModel>("/apps");
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        internal RestNetwork(IRestNodeInternals rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        private readonly IRestNodeInternals _rest;
     }
 }

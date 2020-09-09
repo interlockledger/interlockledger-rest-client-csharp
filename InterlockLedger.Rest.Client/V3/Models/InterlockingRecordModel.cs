@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,18 +30,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    /// <summary>
+    /// Interlocking details
+    /// </summary>
+    public class InterlockingRecordModel : RecordModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// Interlocked Chain
+        /// </summary>
+        public string InterlockedChainId { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Interlock Record Hash
+        /// </summary>
+        public string InterlockedRecordHash { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// Interlocked Record Offset
+        /// </summary>
+        public ulong InterlockedRecordOffset { get; set; }
+
+        /// <summary>
+        /// Interlocked Record Serial
+        /// </summary>
+        public ulong InterlockedRecordSerial { get; set; }
+
+        public override string ToString() => $"Interlocked chain {InterlockedChainId} at record #{InterlockedRecordSerial} (offset: {InterlockedRecordOffset}) with hash {InterlockedRecordHash}{Environment.NewLine}{base.ToString()}";
     }
 }

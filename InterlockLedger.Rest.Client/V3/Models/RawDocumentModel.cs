@@ -30,18 +30,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public class RawDocumentModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public RawDocumentModel(string contentType, byte[] content, string name) {
+            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+            Content = content ?? throw new ArgumentNullException(nameof(content));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        public byte[] Content { get; }
+        public string ContentType { get; }
+        public string Name { get; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{_partialContentAsBase64}";
+
+        private string _partialContentAsBase64 => (Content?.Length) switch
+        {
+            null => "?",
+            > 256 => Convert.ToBase64String(Content, 0, 256) + "...",
+            _ => Convert.ToBase64String(Content)
+        };
     }
 }

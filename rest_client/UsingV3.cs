@@ -1,6 +1,6 @@
 /******************************************************************************************************************************
 
-Copyright (c) 2018-2019 InterlockLedger Network
+Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,242 +31,52 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using InterlockLedger.Rest.Client;
+using InterlockLedger.Rest.Client.Abstractions;
 using InterlockLedger.Rest.Client.V3;
 
 namespace rest_client
 {
-    public static class UsingV3
+
+    public class UsingV3 : AbstractUsing<RestChain>
     {
         public static void DoIt(string[] args) {
             try {
                 var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
-                Exercise(client);
+                new UsingV3(client).Exercise();
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        private const string _version = "3";
-
-        private static RecordModel AddRecord(RestChain chain, ulong appId, params byte[] payload)
-            => chain.AddRecord(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
-
-        private static RecordModelAsJson AddRecordAsJson(RestChain chain, ulong appId, ulong action, object json)
-            => chain.AddRecordAsJson(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
-
-        private static KeyPermitModel BuildKey()
-            => new KeyPermitModel(
-                id: "Key!U0y4av1fQGnOkC_1RkZLd4gE8vVSGVGJO5o1pzprQHo",
-                name: "InterlockLedger Documenter",
-                publicKey: "PubKey!KPkBERD5AQiuLtsWMFr3H6HtQVUMky1wFzL0TQF3VC-X24G4gjFqcrHHawNxNgDiw21YS8Fx6o1ornUOHqJPvIpYX1H2T2bqbIsIMNgyO4H234Ahken7SadTlnRPw92_sRpqprBobfuX9f9K6iM-SUJ2WY_6U4bAG4HdsFRV4yqfdDhrCAedBUs8O9qyne6vHFN8CiTEcapfQE7K-StPlW2wVmLdIXov2FdfYdJpFLXbbkgBCdkAZl2Oc86PRVzPkqD5dzl86QNZGZxhq2ngQ1UXASUQVh4tV5XqXQoe7xgeiE-1O82oWZWOvH6xdHjY9sMFyY3Mhjz8_MrI_0_DBEH7Pikmhp0LlyucyUA6dz4G_e13Xmyty2LDeqyYNhYORuZu2ev7zIEPvclpKeztC5gmJdCdcXZf_Omigb6I20HiggFBBrTGIjxJ_5xvpfb8DZCB6jqG5deTqybkjDJYPkA0TeoswKlwncT6mmZ3RdNNxoojUEX0TcBfSioKrnWRqGZ6Yc5wPFIvZ2REU6NP5gJv53FYe2yGAFygvWM1t2wBpWb6bx4h4BFKbfHPcCdmPqJHF0WQdMd7rtryENICHh9ozcVHtpHUtGdwoqV8gmeav836canWcXhKWQILiTiLpGAMa7FuUmPUr3K3q0c2rAy0IYXigjHvujTMz_0aGYqZoHD726gb4RADAQAB#RSA",
-                new AppPermissions(4, 1000, 1001).ToEnumerable(),
-                KeyPurpose.Protocol,
-                KeyPurpose.Action);
-
-        private static void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
-
-        private static void Exercise(RestNode node) {
-            Console.WriteLine($"Client connected to {node.BaseUri} using certificate {node.CertificateName} using API version {_version}");
-            Console.WriteLine("-- Create Chain:");
-            try {
-                var chain = node.CreateChain(new ChainCreationModel {
-                    Name = "Rest Created Test Chain",
-                    Description = "Just a test",
-                    EmergencyClosingKeyPassword = "password",
-                    ManagementKeyPassword = "password",
-                    ManagementKeyStrength = KeyStrength.ExtraStrong,
-                    KeysAlgorithm = Algorithms.RSA,
-                    AdditionalApps = new List<ulong> { 4 }
-                });
-                Console.WriteLine(chain);
-            } catch (InvalidOperationException) {
-                throw;
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-            Console.WriteLine();
-            Console.WriteLine(node.Details);
-            var apps = node.Network.Apps;
-            Console.WriteLine($"-- Valid apps for network {apps.Network}:");
-            foreach (var app in apps.ValidApps.OrderBy(a => a))
-                Console.WriteLine(app);
-            Console.WriteLine();
-            var peers = node.Peers;
-            Console.WriteLine($"-- Known peers:");
-            foreach (var peer in peers.OrderBy(a => a.Name))
-                Console.WriteLine(peer);
-            Console.WriteLine();
-            Console.WriteLine("-- Chains:");
-            foreach (var chain in node.Chains)
-                ExerciseChain(node, chain, transact: true);
-            Console.WriteLine();
-            Console.WriteLine("-- Mirrors:");
-            foreach (var chain in node.Mirrors)
-                ExerciseChain(node, chain);
-            Console.WriteLine();
-            Console.WriteLine("-- Create Mirror:");
-            try {
-                foreach (var chain in node.AddMirrorsOf(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
-                    Console.WriteLine(chain);
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-            Console.WriteLine();
+        protected UsingV3(RestAbstractNode<RestChain> node) : base(node) {
         }
 
-        private static void ExerciseChain(RestNode node, RestChain chain, bool transact = false) {
-            Console.WriteLine(chain);
+        protected override string Version => "3";
 
-            var summary = chain.Summary;
-            Console.WriteLine($"  Summary.ActiveApps: {string.Join(", ", summary.ActiveApps)}");
-            Console.WriteLine($"  Summary.Description: {summary.Description}");
-            Console.WriteLine($"  Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}");
-            Console.WriteLine($"  Summary.LastRecord: {summary.LastRecord}");
-            Console.WriteLine();
-            Console.WriteLine($"  Active apps: {string.Join(", ", chain.ActiveApps)}");
-            Console.WriteLine();
-            Console.WriteLine("  Keys:");
-            foreach (var key in chain.PermittedKeys)
-                Console.WriteLine($"    {key}");
-            Console.WriteLine();
-            Console.WriteLine("  Documents:");
+        protected override void ExerciseDocApp(RestChain chain) {
             bool first = true;
-            foreach (var doc in chain.Documents) {
-                Console.WriteLine($"    {doc}");
-                if (first && doc.IsPlainText) {
-                    Dump(chain.DocumentAsPlain(doc.FileId));
-                    Dump(chain.DocumentAsRaw(doc.FileId).ToString());
-                    first = false;
+            // using old document API
+            if (chain is IDocumentApp chainDocApp)
+                foreach (var doc in chainDocApp.Documents) {
+                    Console.WriteLine($"    {doc}");
+                    if (first && doc.IsPlainText) {
+                        Dump(chainDocApp.DocumentAsPlain(doc.FileId));
+                        Dump(chainDocApp.DocumentAsRaw(doc.FileId).ToString());
+                        first = false;
+                    }
                 }
-            }
-            Console.WriteLine();
-            Console.WriteLine("  Interlocks stored here:");
-            foreach (var interlock in chain.Interlocks)
-                Console.WriteLine($"    {interlock}");
-            Console.WriteLine();
-            Console.WriteLine("  Interlocks of this chain:");
-            foreach (var interlock in node.InterlocksOf(chain.Id))
-                Console.WriteLine($"    {interlock}");
-            Console.WriteLine();
-            Console.WriteLine("  Records:");
-            foreach (var record in chain.RecordsFromTo(0, 1))
-                Console.WriteLine($"    {record}");
-            Console.WriteLine("  RecordsAsJson:");
-            foreach (var record in chain.RecordsFromToAsJson(0, 2))
-                Console.WriteLine($"    {record}");
-            if (transact) {
-                TryToAddNiceUnpackedRecord(chain);
-                TryToAddNiceRecord(chain);
-                TryToAddNiceJsonRecord(chain);
-                TryToAddBadlyEncodedUnpackedRecord(chain);
-                TryToAddBadRecord(chain);
-                TryToPermitApp4(chain);
-                TryToStoreNiceDocument(chain);
-                TryToForceInterlock(chain);
-                TryToPermitKey(chain);
-            }
-            Console.WriteLine();
         }
 
-        private static void TryToAddBadlyEncodedUnpackedRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a badly encoded unpacked record:");
-                var record = chain.AddRecord(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToAddBadRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a bad record:");
-                var record = AddRecord(chain, 1, 0);
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToAddNiceJsonRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a nice JSON record:");
-                var record = AddRecordAsJson(chain, 1, 300, new { TagId = 300, Version = 1, Apps = new ulong[] { 1, 2, 3 } });
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToAddNiceRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a nice record:");
-                var record = AddRecord(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToAddNiceUnpackedRecord(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to add a nice unpacked record:");
-                var record = chain.AddRecord(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
-                Console.WriteLine($"    {record}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToForceInterlock(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to force an interlock:");
-                var interlock = chain.ForceInterlock(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
-                Console.WriteLine($"    {interlock}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToPermitApp4(RestChain chain) {
-            try {
-                var apps = chain.PermitApps(4);
-                Console.WriteLine($"  Permit app 4: {string.Join(", ", apps)}");
-                Console.WriteLine();
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToPermitKey(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to permit some keys:");
-                foreach (var key in chain.PermitKeys(BuildKey()))
-                    Console.WriteLine($"    {key}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-
-        private static void TryToStoreNiceDocument(RestChain chain) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to store a nice document:");
-                var document = chain.StoreDocumentFromText("Simple test document", "TestDocument");
-                Console.WriteLine($"    {document}");
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
+        protected override void TryToStoreNiceDocuments(RestChain chain) {
+            if (chain is IDocumentApp chainDocApp)
+                try {
+                    Console.WriteLine();
+                    Console.WriteLine("  Trying to store a nice document:");
+                    var document = chainDocApp.StoreDocumentFromText("Simple test document", "TestDocument");
+                    Console.WriteLine($"    {document}");
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
         }
     }
 }

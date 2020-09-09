@@ -30,18 +30,53 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System;
 using InterlockLedger.Rest.Client.Abstractions;
+using InterlockLedger.Rest.Client.V3;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace rest_client
 {
-    public class RestNode : RestAbstractNode<RestChain>
+
+    public class UsingV3_2 : AbstractUsing<RestChain>
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public static void DoIt(string[] args) {
+            try {
+                var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
+                new UsingV3_2(client).Exercise();
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        protected UsingV3_2(RestAbstractNode<RestChain> node) : base(node) {
+        }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        protected override string Version => "3.2";
+
+        protected override void ExerciseDocApp(RestChain chain) {
+            bool first = true;
+            // using old document API
+            if (chain is IDocumentApp chainDocApp)
+                foreach (var doc in chainDocApp.Documents) {
+                    Console.WriteLine($"    {doc}");
+                    if (first && doc.IsPlainText) {
+                        Dump(chainDocApp.DocumentAsPlain(doc.FileId));
+                        Dump(chainDocApp.DocumentAsRaw(doc.FileId).ToString());
+                        first = false;
+                    }
+                }
+        }
+
+        protected override void TryToStoreNiceDocuments(RestChain chain) {
+            if (chain is IDocumentApp chainDocApp)
+                try {
+                    Console.WriteLine();
+                    Console.WriteLine("  Trying to store a nice document:");
+                    var document = chainDocApp.StoreDocumentFromText("Simple test document", "TestDocument");
+                    Console.WriteLine($"    {document}");
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
+        }
     }
 }
