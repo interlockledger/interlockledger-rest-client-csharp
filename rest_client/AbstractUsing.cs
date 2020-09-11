@@ -1,4 +1,4 @@
-﻿/******************************************************************************************************************************
+/******************************************************************************************************************************
 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
@@ -41,6 +41,8 @@ namespace rest_client
 {
     public abstract class AbstractUsing<T> where T : RestAbstractChain
     {
+        protected readonly RestAbstractNode<T> _node;
+
         protected AbstractUsing(RestAbstractNode<T> node) => _node = node ?? throw new ArgumentNullException(nameof(node));
 
         protected abstract string Version { get; }
@@ -59,6 +61,8 @@ namespace rest_client
                 new AppPermissions(4, 1000, 1001).ToEnumerable(),
                 KeyPurpose.Protocol,
                 KeyPurpose.Action);
+
+        protected abstract void DisplayOtherNodeInfo(RestAbstractNode<T> node);
 
         protected void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 
@@ -83,6 +87,7 @@ namespace rest_client
             }
             Console.WriteLine();
             Console.WriteLine(_node.Details);
+            DisplayOtherNodeInfo(_node);
             var apps = _node.Network.Apps;
             Console.WriteLine($"-- Valid apps for network {apps.Network}:");
             foreach (var app in apps.ValidApps.OrderBy(a => a))
@@ -247,7 +252,5 @@ namespace rest_client
         }
 
         protected abstract void TryToStoreNiceDocuments(T chain);
-
-        private readonly RestAbstractNode<T> _node;
     }
 }

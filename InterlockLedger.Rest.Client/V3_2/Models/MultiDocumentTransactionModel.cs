@@ -1,4 +1,4 @@
-﻿/******************************************************************************************************************************
+/******************************************************************************************************************************
 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
@@ -40,11 +40,11 @@ namespace InterlockLedger.Rest.Client.V3_2
         /// The transaction will be aborted if not completed until this timeout
         /// </summary>
         // TODO move to service layer the definition/use of this value
-        public DateTimeOffset TimeOutLimit { get; set;  }
+        public DateTimeOffset TimeOutLimit { get; set; }
 
         /// <summary>
         /// Id of the transaction to use when uploading each file and committing the transaction
         /// </summary>
-        public string TransactionId { get; set;  }
+        public string TransactionId { get; set; }
     }
 }

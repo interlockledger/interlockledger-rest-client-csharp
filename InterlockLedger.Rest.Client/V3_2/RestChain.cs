@@ -1,4 +1,5 @@
 using System.IO;
+using System.Web;
 using InterlockLedger.Rest.Client.Abstractions;
 
 namespace InterlockLedger.Rest.Client.V3_2
@@ -23,30 +24,25 @@ namespace InterlockLedger.Rest.Client.V3_2
 
     public class RestChain : RestAbstractChain, IMultiDocumentApp
     {
-        internal RestChain(RestNode rest, ChainIdModel chainId) : base(rest, chainId) {
-        }
+        bool IMultiDocumentApp.AddItem(string transactionId, string name, string comment, string contentType, Stream source)
+            => _rest.PostStream($"/multiDocuments/add/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
 
-        bool IMultiDocumentApp.AddItem(string transactionId, string name, string comment, string contentType, Stream source) {
-            throw new System.NotImplementedException();
-        }
-
-        MultiDocumentTransactionModel IMultiDocumentApp.BeginTransaction(MultiDocumentBeginTransactionModel transactionStart) {
-            return _rest.Get<MultiDocumentTransactionModel>();
-        }
+        MultiDocumentTransactionModel IMultiDocumentApp.BeginTransaction(MultiDocumentBeginTransactionModel transactionStart)
+            => _rest.Post<MultiDocumentTransactionModel>("/multiDocuments/begin", transactionStart);
 
         string IMultiDocumentApp.CommitTransaction(string transactionId)
-            => _rest.Get<string>($"/commit/{transactionId}");
+            => _rest.Get<string>($"/multiDocuments/commit/{transactionId}");
 
-        FileInfo IMultiDocumentApp.RetrieveBlob(string multiDocumentStorageLocator, DirectoryInfo folderToStore) {
-            return _rest.GetFile(folderToStore, null/* How to build the request properly */);
-        }
+        FileInfo IMultiDocumentApp.RetrieveBlob(string multiDocumentStorageLocator, DirectoryInfo folderToStore)
+            => _rest.GetFile(folderToStore, $"/multiDocuments/{multiDocumentStorageLocator}/zip", "application/zip");
 
-        MultiDocumentMetadataModel IMultiDocumentApp.RetrieveMetadata(string multiDocumentStorageLocator) {
-            throw new System.NotImplementedException();
-        }
+        MultiDocumentMetadataModel IMultiDocumentApp.RetrieveMetadata(string multiDocumentStorageLocator)
+            => _rest.Get<MultiDocumentMetadataModel>($"/multiDocuments/{multiDocumentStorageLocator}");
 
-        FileInfo IMultiDocumentApp.RetrieveSingle(string multiDocumentStorageLocator, int index, DirectoryInfo folderToStore) {
-            throw new System.NotImplementedException();
+        FileInfo IMultiDocumentApp.RetrieveSingle(string multiDocumentStorageLocator, int index, DirectoryInfo folderToStore)
+            => _rest.GetFile(folderToStore, $"/multiDocuments/{multiDocumentStorageLocator}/{index}", " */*");
+
+        internal RestChain(RestNode rest, ChainIdModel chainId) : base(rest, chainId) {
         }
     }
 }

@@ -68,7 +68,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
             => Post<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
         string IRestNodeInternals.CallApiPlainDoc(string url, string method, string accept)
-                                                                                            => CallApiPlainDoc(url, method, accept);
+            => CallApiPlainDoc(url, method, accept);
 
         RawDocumentModel IRestNodeInternals.CallApiRawDoc(string url, string method, string accept)
             => CallApiRawDoc(url, method, accept);
@@ -78,18 +78,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         TR IRestNodeInternals.Get<TR>(string url) => Get<TR>(url);
 
-        public FileInfo GetFile(DirectoryInfo folderToStore, HttpWebRequest req) {
-            if (!folderToStore.Exists)
-                throw new InvalidOperationException("Folder to store file doesn't exist");
-            using var resp = GetResponse(req);
-            using var readStream = resp.GetResponseStream();
-            var name = ParseFileName(resp).AsSpan();
-            var fi = GetUniqueFileName(folderToStore, name);
-            using var fs = fi.OpenWrite();
-            readStream.CopyTo(fs);
-            fs.Flush();
-            return fi;
-        }
+        FileInfo IRestNodeInternals.GetFile(DirectoryInfo folderToStore, string url, string accept, string method)
+            => GetFile(folderToStore, url, accept, method);
 
         public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain)
             => Get<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
@@ -99,18 +89,24 @@ namespace InterlockLedger.Rest.Client.Abstractions
         TR IRestNodeInternals.PostRaw<TR>(string url, byte[] body, string contentType)
             => PostRaw<TR>(url, body, contentType);
 
+        bool IRestNodeInternals.PostStream(string url, Stream body, string contentType)
+           => PostStream(url, body, contentType);
+
         protected readonly X509Certificate2 _certificate;
 
-        protected static HttpWebResponse GetInnerResponse(HttpWebRequest req) {
-            try {
-                return (HttpWebResponse)req.GetResponse();
-            } catch (WebException e) {
-                return (HttpWebResponse)e.Response
-                    ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
+        protected static HttpWebResponse GetResponse(HttpWebRequest req) {
+            return Validated(GetInnerResponse(req));
+
+            static HttpWebResponse Validated(HttpWebResponse resp) => IfOkOrCreatedReturn(resp, resp);
+            static HttpWebResponse GetInnerResponse(HttpWebRequest req) {
+                try {
+                    return (HttpWebResponse)req.GetResponse();
+                } catch (WebException e) {
+                    return (HttpWebResponse)e.Response
+                        ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
+                }
             }
         }
-
-        protected static HttpWebResponse GetResponse(HttpWebRequest req) => Validated(GetInnerResponse(req));
 
         protected static string GetStringResponse(HttpWebRequest req) => ReadAsString(GetResponse(req));
 
@@ -120,11 +116,6 @@ namespace InterlockLedger.Rest.Client.Abstractions
             using var readStream = new StreamReader(resp.GetResponseStream());
             return readStream.ReadToEnd();
         }
-
-        protected static HttpWebResponse Validated(HttpWebResponse resp)
-            => resp.StatusCode is HttpStatusCode.OK or HttpStatusCode.Created
-                ? resp
-                : throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}");
 
         protected abstract T BuildChain(ChainIdModel c);
 
@@ -139,9 +130,36 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         protected TR Get<TR>(string url) => Deserialize<TR>(CallApi(url, "GET"));
 
-        protected TR Post<TR>(string url, object body) => Deserialize<TR>(GetStringResponse(PreparePostRequest(url, body, "application/json")));
+        protected FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET") {
+            if (folderToStore is null)
+                throw new ArgumentNullException(nameof(folderToStore));
+            if (!folderToStore.Exists)
+                throw new InvalidOperationException("Folder to store file doesn't exist");
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
+            if (string.IsNullOrWhiteSpace(accept))
+                throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
+            if (string.IsNullOrWhiteSpace(method))
+                throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
+            using var resp = GetResponse(PrepareRequest(url, method.WithDefault("GET"), accept));
+            using var readStream = resp.GetResponseStream();
+            var name = ParseFileName(resp).AsSpan();
+            var fileInfo = GetUniquelyNamedFile(folderToStore, name);
+            using (var fileStream = fileInfo.OpenWrite()) {
+                readStream.CopyTo(fileStream);
+                fileStream.Flush();
+            }
+            return fileInfo;
+        }
 
-        protected TR PostRaw<TR>(string url, byte[] body, string contentType) => Deserialize<TR>(GetStringResponse(PreparePostRawRequest(url, body, "application/json", contentType)));
+        protected TR Post<TR>(string url, object body)
+            => Deserialize<TR>(GetStringResponse(PreparePostRequest(url, body, accept: "application/json")));
+
+        protected TR PostRaw<TR>(string url, byte[] body, string contentType)
+            => Deserialize<TR>(GetStringResponse(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
+
+        protected bool PostStream(string url, Stream body, string contentType)
+            => IfOkOrCreatedReturn(GetResponse(PreparePostStreamRequest(url, body, accept: "*/*", contentType)), true);
 
         protected HttpWebRequest PrepareRequest(string url, string method, string accept) {
             var req = (HttpWebRequest)WebRequest.Create(new Uri(BaseUri, url));
@@ -190,7 +208,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static FileInfo GetUniqueFileName(DirectoryInfo folderToStore, ReadOnlySpan<char> name) {
+        private static FileInfo GetUniquelyNamedFile(DirectoryInfo folderToStore, ReadOnlySpan<char> name) {
             var extension = Path.GetExtension(name);
             var baseName = Path.GetFileNameWithoutExtension(name);
             int i = 0;
@@ -205,6 +223,12 @@ namespace InterlockLedger.Rest.Client.Abstractions
             } while (fi.Exists);
             return fi;
         }
+
+        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch
+        {
+            HttpStatusCode.OK or HttpStatusCode.Created => result,
+            _ => throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}")
+        };
 
         private static string ParseFileName(HttpWebResponse resp) {
             var disposition = resp.GetResponseHeader("Content-Disposition");
@@ -239,20 +263,32 @@ namespace InterlockLedger.Rest.Client.Abstractions
             }
             return request;
         }
+
+        private HttpWebRequest PreparePostStreamRequest(string url, Stream body, string accept, string contentType) {
+            var request = PrepareRequest(url, "POST", accept);
+            request.ContentType = contentType;
+            using (var stream = request.GetRequestStream()) {
+                body.CopyTo(stream);
+                stream.Flush();
+            }
+            return request;
+        }
     }
 
     internal interface IRestNodeInternals
     {
-        string CallApiPlainDoc(string url, string method, string accept = "plain/text");
+        string CallApiPlainDoc(string url, string method, string accept = "text/plain");
 
-        RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*");
+        RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*/*");
 
         TR Get<TR>(string url);
 
-        FileInfo GetFile(DirectoryInfo folderToStore, HttpWebRequest req);
+        FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET");
 
         TR Post<TR>(string url, object body);
 
         TR PostRaw<TR>(string url, byte[] body, string contentType);
+
+        bool PostStream(string url, Stream body, string contentType);
     }
 }

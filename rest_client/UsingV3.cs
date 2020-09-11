@@ -78,5 +78,8 @@ namespace rest_client
                     Console.WriteLine(e);
                 }
         }
+
+        protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
+        }
     }
 }

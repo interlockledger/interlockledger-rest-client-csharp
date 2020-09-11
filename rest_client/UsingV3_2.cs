@@ -31,8 +31,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.IO;
+using System.Text;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V3;
+using InterlockLedger.Rest.Client.V3_2;
 
 namespace rest_client
 {
@@ -41,7 +43,12 @@ namespace rest_client
     {
         public static void DoIt(string[] args) {
             try {
-                var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
+                var client =
+                    args.Length > 3
+                    ? new RestNode(args[0], args[1], ushort.Parse(args[2]), args[3])
+                    : args.Length > 2
+                        ? new RestNode(args[0], args[1], ushort.Parse(args[2]))
+                        : new RestNode(args[0], args[1]);
                 new UsingV3_2(client).Exercise();
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -53,30 +60,33 @@ namespace rest_client
 
         protected override string Version => "3.2";
 
-        protected override void ExerciseDocApp(RestChain chain) {
-            bool first = true;
-            // using old document API
-            if (chain is IDocumentApp chainDocApp)
-                foreach (var doc in chainDocApp.Documents) {
-                    Console.WriteLine($"    {doc}");
-                    if (first && doc.IsPlainText) {
-                        Dump(chainDocApp.DocumentAsPlain(doc.FileId));
-                        Dump(chainDocApp.DocumentAsRaw(doc.FileId).ToString());
-                        first = false;
-                    }
-                }
-        }
+        protected override void ExerciseDocApp(RestChain chain) { }
 
         protected override void TryToStoreNiceDocuments(RestChain chain) {
-            if (chain is IDocumentApp chainDocApp)
+            if (chain is IMultiDocumentApp chainDocApp)
                 try {
                     Console.WriteLine();
+                    Console.WriteLine("  Trying to begin a transaction:");
+                    var trx = chainDocApp.BeginTransaction(new MultiDocumentBeginTransactionModel {
+                        Chain = chain.Id,
+                        Comment = "C# client testing"
+                    });
+                    Console.WriteLine(trx);
                     Console.WriteLine("  Trying to store a nice document:");
-                    var document = chainDocApp.StoreDocumentFromText("Simple test document", "TestDocument");
-                    Console.WriteLine($"    {document}");
+                    chainDocApp.AddItem(trx.TransactionId, "Simple Test.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
+                    var locator = chainDocApp.CommitTransaction(trx.TransactionId);
+                    Console.WriteLine($"    {locator}");
+                    Console.WriteLine($"    {chainDocApp.RetrieveMetadata(locator)}");
                 } catch (Exception e) {
                     Console.WriteLine(e);
                 }
+        }
+
+        public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
+
+        protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
+            if (_node is RestNode nodeV3_2)
+                Console.WriteLine($" {nodeV3_2.MultiDocumentUploadConfiguration}");
         }
     }
 }

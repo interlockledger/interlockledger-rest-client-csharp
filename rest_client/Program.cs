@@ -42,7 +42,7 @@ namespace rest_client
                 Console.WriteLine();
                 Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port]");
             } else {
-                UsingV3.DoIt(args);
+                UsingV3_2.DoIt(args);
             }
         }
     }
