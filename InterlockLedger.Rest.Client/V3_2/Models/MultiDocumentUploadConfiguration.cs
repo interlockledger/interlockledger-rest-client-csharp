@@ -34,18 +34,17 @@ using System.Collections.Generic;
 
 namespace InterlockLedger.Rest.Client.V3_2
 {
-    public sealed record MultiDocumentUploadConfiguration
-    {
+    public sealed record MultiDocumentUploadConfiguration {
         public MultiDocumentUploadConfiguration() { }
 
-        public string DefaultCompression { get; set; }
-        public string DefaultEncryption { get; set; }
-        public long FileSizeLimit { get; set; }
-        public int? Iterations { get; set; }
-        public IEnumerable<string> PermittedContentTypes { get; set; }
-        public ushort TimeOutInMinutes { get; set; }
+    public string DefaultCompression { get; set; }
+    public string DefaultEncryption { get; set; }
+    public long FileSizeLimit { get; set; }
+    public int? Iterations { get; set; }
+    public IEnumerable<string> PermittedContentTypes { get; set; }
+    public ushort TimeOutInMinutes { get; set; }
 
-        public override string ToString() => $@"{nameof(MultiDocumentUploadConfiguration)}
+    public override string ToString() => $@"{nameof(MultiDocumentUploadConfiguration)}
     {nameof(DefaultCompression)} : {DefaultCompression}
     {nameof(DefaultEncryption)} : {DefaultEncryption}
     {nameof(FileSizeLimit)} : {FileSizeLimit}
@@ -53,5 +52,5 @@ namespace InterlockLedger.Rest.Client.V3_2
     {nameof(PermittedContentTypes)} : {PermittedContentTypes.JoinedBy(" + ")}
     {nameof(TimeOutInMinutes)} : {TimeOutInMinutes}
 ";
-    }
+}
 }
