@@ -31,7 +31,7 @@ namespace InterlockLedger.Rest.Client.V3_2
             => _rest.Post<MultiDocumentTransactionModel>("/multiDocuments/begin", transactionStart);
 
         string IMultiDocumentApp.CommitTransaction(string transactionId)
-            => _rest.Get<string>($"/multiDocuments/commit/{transactionId}");
+            => _rest.Post<string>($"/multiDocuments/commit/{transactionId}", null);
 
         FileInfo IMultiDocumentApp.RetrieveBlob(string multiDocumentStorageLocator, DirectoryInfo folderToStore)
             => _rest.GetFile(folderToStore, $"/multiDocuments/{multiDocumentStorageLocator}/zip", "application/zip");

@@ -72,5 +72,11 @@ namespace InterlockLedger.Rest.Client.V3_2
         /// Override for the number of PBE iterations to generate the key
         /// </summary>
         public int? Iterations { get; set; }
+
+        /// <summary>
+        /// Password as bytes if Encryption is not null
+        /// </summary>
+        public byte[] Password { get; set; }
+
     }
 }

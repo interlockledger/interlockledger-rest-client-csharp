@@ -38,9 +38,10 @@ using InterlockLedger.Rest.Client.V3_2;
 
 namespace rest_client
 {
-
     public class UsingV3_2 : AbstractUsing<RestChain>
     {
+        public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
+
         public static void DoIt(string[] args) {
             try {
                 var client =
@@ -60,6 +61,11 @@ namespace rest_client
 
         protected override string Version => "3.2";
 
+        protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
+            if (_node is RestNode nodeV3_2)
+                Console.WriteLine($" {nodeV3_2.MultiDocumentUploadConfiguration}");
+        }
+
         protected override void ExerciseDocApp(RestChain chain) { }
 
         protected override void TryToStoreNiceDocuments(RestChain chain) {
@@ -69,7 +75,8 @@ namespace rest_client
                     Console.WriteLine("  Trying to begin a transaction:");
                     var trx = chainDocApp.BeginTransaction(new MultiDocumentBeginTransactionModel {
                         Chain = chain.Id,
-                        Comment = "C# client testing"
+                        Comment = "C# client testing",
+                        Password = _password
                     });
                     Console.WriteLine(trx);
                     Console.WriteLine("  Trying to store a nice document:");
@@ -82,11 +89,6 @@ namespace rest_client
                 }
         }
 
-        public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
-
-        protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
-            if (_node is RestNode nodeV3_2)
-                Console.WriteLine($" {nodeV3_2.MultiDocumentUploadConfiguration}");
-        }
+        private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
     }
 }
