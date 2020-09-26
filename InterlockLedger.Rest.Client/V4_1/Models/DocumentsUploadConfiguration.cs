@@ -32,10 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V3_2
+namespace InterlockLedger.Rest.Client.V4_1
 {
-    public sealed record MultiDocumentUploadConfiguration {
-        public MultiDocumentUploadConfiguration() { }
+    public sealed record DocumentsUploadConfiguration {
+        public DocumentsUploadConfiguration() { }
 
     public string DefaultCompression { get; set; }
     public string DefaultEncryption { get; set; }
@@ -44,7 +44,7 @@ namespace InterlockLedger.Rest.Client.V3_2
     public IEnumerable<string> PermittedContentTypes { get; set; }
     public ushort TimeOutInMinutes { get; set; }
 
-    public override string ToString() => $@"{nameof(MultiDocumentUploadConfiguration)}
+    public override string ToString() => $@"{nameof(DocumentsUploadConfiguration)}
     {nameof(DefaultCompression)} : {DefaultCompression}
     {nameof(DefaultEncryption)} : {DefaultEncryption}
     {nameof(FileSizeLimit)} : {FileSizeLimit}

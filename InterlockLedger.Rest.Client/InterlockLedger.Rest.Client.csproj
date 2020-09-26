@@ -2,10 +2,10 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <Version>3.2.0</Version>
+        <Version>4.1.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2020 InterlockLedger Network</Copyright>
-        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API.
+        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API. 
 
 BSD 3-Clause License
 </Description>
@@ -16,7 +16,7 @@ BSD 3-Clause License
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>9</LangVersion>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Covering new version 3.2 of IL2 Node REST API</PackageReleaseNotes>
+        <PackageReleaseNotes>Covering new version 4.1 of IL2 Node REST API</PackageReleaseNotes>
         <PackageIcon>IL2.png</PackageIcon>
         <Authors>InterlockLedger Network</Authors>
         <Product>InterlockLedger</Product>

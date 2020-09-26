@@ -78,7 +78,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         TR IRestNodeInternals.Get<TR>(string url) => Get<TR>(url);
 
-        FileInfo IRestNodeInternals.GetFile(DirectoryInfo folderToStore, string url, string accept, string method)
+        FileInfo IRestNodeInternals.GetFile(string url, string accept, DirectoryInfo folderToStore, string method)
             => GetFile(folderToStore, url, accept, method);
 
         public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain)
@@ -149,6 +149,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
                 readStream.CopyTo(fileStream);
                 fileStream.Flush();
             }
+            fileInfo.Refresh();
             return fileInfo;
         }
 
@@ -283,7 +284,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         TR Get<TR>(string url);
 
-        FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET");
+        FileInfo GetFile(string url, string accept, DirectoryInfo folderToStore, string method = "GET");
 
         TR Post<TR>(string url, object body);
 

@@ -30,21 +30,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using InterlockLedger.Rest.Client.Abstractions;
 
-namespace InterlockLedger.Rest.Client.V3_2
+namespace InterlockLedger.Rest.Client.V4_1
 {
-    public class MultiDocumentTransactionModel
+    public class RestNode : RestAbstractNode<RestChain>
     {
-        /// <summary>
-        /// The transaction will be aborted if not completed until this timeout
-        /// </summary>
-        // TODO move to service layer the definition/use of this value
-        public DateTimeOffset TimeOutLimit { get; set; }
+        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
+            : base(certFile, certPassword, networkId, address) { }
 
-        /// <summary>
-        /// Id of the transaction to use when uploading each file and committing the transaction
-        /// </summary>
-        public string TransactionId { get; set; }
+        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
+            base(certFile, certPassword, port, address) { }
+
+        public DocumentsUploadConfiguration DocumentsUploadConfiguration => Get<DocumentsUploadConfiguration>("/documents/configuration");
+
+        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
     }
 }

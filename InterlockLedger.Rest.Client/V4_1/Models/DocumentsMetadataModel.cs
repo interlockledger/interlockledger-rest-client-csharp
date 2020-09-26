@@ -30,14 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System;
 using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V3_2
+namespace InterlockLedger.Rest.Client.V4_1
 {
     /// <summary>
     /// Model for metadata associated to a Multi-Document Storage Locator
     /// </summary>
-    public class MultiDocumentMetadataModel
+    public class DocumentsMetadataModel
     {
         /// <summary>
         /// Any additional information about this set of documents
@@ -70,6 +71,14 @@ namespace InterlockLedger.Rest.Client.V3_2
         /// </summary>
         public IEnumerable<DirectoryEntry> PublicDirectory { get; set; }
 
+        public override string ToString() => $@"{nameof(DocumentsMetadataModel)}
+    {nameof(Comment)} : {Comment}
+    {nameof(Compression)} : {Compression}
+    {nameof(Encryption)} : {Encryption}
+    {nameof(EncryptionParameters)} : {EncryptionParameters}
+    {nameof(PublicDirectory)} : [{_joiner}{PublicDirectory.JoinedBy(_joiner)}
+    ]";
+
         /// <summary>
         /// Entry for each stored document in this MultiDocument set
         /// </summary>
@@ -89,6 +98,9 @@ namespace InterlockLedger.Rest.Client.V3_2
             /// Document (file) name
             /// </summary>
             public string Name { get; set; }
+
+            public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}}}
+";
         }
 
         /// <summary>
@@ -105,6 +117,11 @@ namespace InterlockLedger.Rest.Client.V3_2
             /// Salt value to feed the cypher engine
             /// </summary>
             public byte[] Salt { get; set; }
+
+            public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt)}'{_joiner}}}
+";
         }
+
+        private static readonly string _joiner = Environment.NewLine + "      ";
     }
 }

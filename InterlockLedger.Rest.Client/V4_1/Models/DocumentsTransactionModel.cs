@@ -30,53 +30,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-namespace InterlockLedger.Rest.Client.V3_2
+using System;
+
+namespace InterlockLedger.Rest.Client.V4_1
 {
-    /// <summary>
-    /// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
-    /// </summary>
-    public sealed class MultiDocumentBeginTransactionModel
+    public class DocumentsTransactionModel
     {
         /// <summary>
-        /// Id of the chain where the set of documents should be stored.
+        /// If no files/documents are still uploading
+        /// </summary>
+        public bool CanCommitNow { get; set; }
+
+        /// <summary>
+        /// Id of chain where the transaction data will be stored
         /// </summary>
         public string Chain { get; set; }
 
         /// <summary>
-        /// Any additional information about the set of documents to be stored
+        /// Total count of uploaded documents for this transaction
         /// </summary>
-        public string Comment { get; set; }
+        public int CountOfUploadedDocuments { get; set; }
 
         /// <summary>
-        /// Compression algorithm can be:
-        ///     <list type="table">
-        ///        <item><br/><code>NONE</code><description><para>No compression. Simply store the bytes</para></description></item>
-        ///        <item><br/><code>GZIP</code><description><para>Compression of the data using the gzip standard</para></description></item>
-        ///        <item><br/><code>BROTLI</code><description><para>Compression of the data using the brotli standard</para></description></item>
-        ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
-        ///     </list>
+        /// The transaction will be aborted if not completed until this timeout
         /// </summary>
-        public string Compression { get; set; }
+        public DateTimeOffset TimeOutLimit { get; set; }
 
         /// <summary>
-        /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
+        /// Id of the transaction to use when uploading each file and committing the transaction
         /// </summary>
-        public string Encryption { get; set; }
+        public string TransactionId { get; set; }
 
-        /// <summary>
-        /// If the publically viewable PublicDirectory field should be created
-        /// </summary>
-        public bool? GeneratePublicDirectory { get; set; } = true;
-
-        /// <summary>
-        /// Override for the number of PBE iterations to generate the key
-        /// </summary>
-        public int? Iterations { get; set; }
-
-        /// <summary>
-        /// Password as bytes if Encryption is not null
-        /// </summary>
-        public byte[] Password { get; set; }
-
+        public override string ToString() => $@"{nameof(DocumentsTransactionModel)}
+    {nameof(CanCommitNow)} : {CanCommitNow}
+    {nameof(Chain)} : {Chain}
+    {nameof(CountOfUploadedDocuments)} : {CountOfUploadedDocuments}
+    {nameof(TimeOutLimit)} : {TimeOutLimit}
+    {nameof(TransactionId)} : {TransactionId}
+";
     }
 }

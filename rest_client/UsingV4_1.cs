@@ -32,13 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V3_2;
+using InterlockLedger.Rest.Client.V4_1;
 
 namespace rest_client
 {
-    public class UsingV3_2 : AbstractUsing<RestChain>
+    public class UsingV4_1 : AbstractUsing<RestChain>
     {
         public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
 
@@ -50,45 +51,64 @@ namespace rest_client
                     : args.Length > 2
                         ? new RestNode(args[0], args[1], ushort.Parse(args[2]))
                         : new RestNode(args[0], args[1]);
-                new UsingV3_2(client).Exercise();
+                new UsingV4_1(client).Exercise();
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected UsingV3_2(RestAbstractNode<RestChain> node) : base(node) {
+        protected UsingV4_1(RestAbstractNode<RestChain> node) : base(node) {
         }
 
-        protected override string Version => "3.2";
+        protected override string Version => "4.1";
 
         protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
-            if (_node is RestNode nodeV3_2)
-                Console.WriteLine($" {nodeV3_2.MultiDocumentUploadConfiguration}");
+            if (_node is RestNode nodeV4_1)
+                Console.WriteLine($" {nodeV4_1.DocumentsUploadConfiguration}");
         }
 
         protected override void ExerciseDocApp(RestChain chain) { }
 
         protected override void TryToStoreNiceDocuments(RestChain chain) {
-            if (chain is IMultiDocumentApp chainDocApp)
+            if (chain is IDocumentsApp chainDocsApp)
                 try {
                     Console.WriteLine();
                     Console.WriteLine("  Trying to begin a transaction:");
-                    var trx = chainDocApp.BeginTransaction(new MultiDocumentBeginTransactionModel {
+                    var trx = chainDocsApp.TransactionBegin(new DocumentsBeginTransactionModel {
                         Chain = chain.Id,
-                        Comment = "C# client testing",
+                        Comment = "C# REST client testing",
+                        Compression = "BROTLI",
+                        Encryption = "PBKDF2-SHA256-AES256-LOW",
                         Password = _password
                     });
                     Console.WriteLine(trx);
                     Console.WriteLine("  Trying to store a nice document:");
-                    chainDocApp.AddItem(trx.TransactionId, "Simple Test.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
-                    var locator = chainDocApp.CommitTransaction(trx.TransactionId);
-                    Console.WriteLine($"    {locator}");
-                    Console.WriteLine($"    {chainDocApp.RetrieveMetadata(locator)}");
+                    chainDocsApp.TransactionAddItem(trx.TransactionId, "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
+                    Console.WriteLine(chainDocsApp.TransactionStatus(trx.TransactionId));
+                    chainDocsApp.TransactionAddItem(trx.TransactionId, "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(Content, writable: false));
+                    Console.WriteLine(chainDocsApp.TransactionStatus(trx.TransactionId));
+                    var locator = chainDocsApp.TransactionCommit(trx.TransactionId);
+                    Console.WriteLine($"    Documents locator: '{locator}'");
+                    Console.WriteLine($"    {chainDocsApp.RetrieveMetadata(locator)}");
+                    var secondFile = chainDocsApp.RetrieveSingle(locator, 1, _folderToStore);
+                    try {
+                        using var streamReader = secondFile.OpenText();
+                        Console.WriteLine($"    Retrieved second file {secondFile.FullName} : '{streamReader.ReadToEnd()}'");
+                        var blobFile = chainDocsApp.RetrieveBlob(locator, _folderToStore);
+                        try {
+                            using var stream = blobFile.OpenRead();
+                            var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
+                            Console.WriteLine($"    Blob file '{blobFile.FullName}' contains {zip.Entries.Count} entries.");
+                            foreach (var entry in zip.Entries)
+                                Console.WriteLine($"    - {entry.FullName}");
+                        } finally { if (blobFile.Exists) blobFile.Delete(); }
+                    } finally { if (secondFile.Exists) secondFile.Delete(); }
                 } catch (Exception e) {
                     Console.WriteLine(e);
                 }
         }
 
+        private static readonly DirectoryInfo _folderToStore = new DirectoryInfo(Path.GetTempPath());
         private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
     }
 }
