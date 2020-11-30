@@ -34,7 +34,6 @@ namespace InterlockLedger.Rest.Client
 {
     public enum NetworkPredefinedPorts : ushort
     {
-        TestNet_Liber = 32018,
         TestNet_Apollo = 32020,
         TestNet_Janus = 32022,
         TestNet_Minerva = 32024,
@@ -42,6 +41,11 @@ namespace InterlockLedger.Rest.Client
         TestNet_Saturn = 32028,
         TestNet_Jupiter = 32030,
         MainNet = 32032,
-        MetaNet = 32036
+        MetaNet = 32036,
+        Paperless = 29721,
+        // CustomNets
+        Alteatec = 27001,
+        Eloquence = 5125,
+        TilliT = 32064,
     }
 }
