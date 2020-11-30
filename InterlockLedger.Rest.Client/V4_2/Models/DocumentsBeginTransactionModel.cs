@@ -30,18 +30,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-
-namespace InterlockLedger.Rest.Client.V4_1
+namespace InterlockLedger.Rest.Client.V4_2
 {
     /// <summary>
-    /// Model for metadata associated to a Multi-Document Storage Locator
+    /// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
     /// </summary>
-    public class DocumentsMetadataModel
+    public sealed class DocumentsBeginTransactionModel
     {
         /// <summary>
-        /// Any additional information about this set of documents
+        /// Id of the chain where the set of documents should be stored.
+        /// </summary>
+        public string Chain { get; set; }
+
+        /// <summary>
+        /// Any additional information about the set of documents to be stored
         /// </summary>
         public string Comment { get; set; }
 
@@ -62,66 +64,19 @@ namespace InterlockLedger.Rest.Client.V4_1
         public string Encryption { get; set; }
 
         /// <summary>
-        /// Parameters used to do the encryption
+        /// If the publically viewable PublicDirectory field should be created
         /// </summary>
-        public Parameters EncryptionParameters { get; set; }
+        public bool? GeneratePublicDirectory { get; set; } = true;
 
         /// <summary>
-        /// List of stored documents
+        /// Override for the number of PBE iterations to generate the key
         /// </summary>
-        public IEnumerable<DirectoryEntry> PublicDirectory { get; set; }
-
-        public override string ToString() => $@"{nameof(DocumentsMetadataModel)}
-    {nameof(Comment)} : {Comment}
-    {nameof(Compression)} : {Compression}
-    {nameof(Encryption)} : {Encryption}
-    {nameof(EncryptionParameters)} : {EncryptionParameters}
-    {nameof(PublicDirectory)} : [{_joiner}{PublicDirectory.JoinedBy(_joiner)}
-    ]";
+        public int? Iterations { get; set; }
 
         /// <summary>
-        /// Entry for each stored document in this MultiDocument set
+        /// Password as bytes if Encryption is not null
         /// </summary>
-        public class DirectoryEntry
-        {
-            /// <summary>
-            /// Any provided additional information about the document file
-            /// </summary>
-            public string Comment { get; set; }
+        public byte[] Password { get; set; }
 
-            /// <summary>
-            /// Mime Type for the document content
-            /// </summary>
-            public string MimeType { get; set; }
-
-            /// <summary>
-            /// Document (file) name
-            /// </summary>
-            public string Name { get; set; }
-
-            public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}}}
-";
-        }
-
-        /// <summary>
-        /// The parameters used to make the encryption of the set of documents
-        /// </summary>
-        public class Parameters
-        {
-            /// <summary>
-            /// Number of iterations to generate the key
-            /// </summary>
-            public int Iterations { get; set; }
-
-            /// <summary>
-            /// Salt value to feed the cypher engine
-            /// </summary>
-            public byte[] Salt { get; set; }
-
-            public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt)}'{_joiner}}}
-";
-        }
-
-        private static readonly string _joiner = Environment.NewLine + "      ";
     }
 }

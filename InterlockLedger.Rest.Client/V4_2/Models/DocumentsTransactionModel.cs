@@ -30,20 +30,43 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
 
-namespace InterlockLedger.Rest.Client.V4_1
+namespace InterlockLedger.Rest.Client.V4_2
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public class DocumentsTransactionModel
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        /// <summary>
+        /// If no files/documents are still uploading
+        /// </summary>
+        public bool CanCommitNow { get; set; }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        /// <summary>
+        /// Id of chain where the transaction data will be stored
+        /// </summary>
+        public string Chain { get; set; }
 
-        public DocumentsUploadConfiguration DocumentsUploadConfiguration => Get<DocumentsUploadConfiguration>("/documents/configuration");
+        /// <summary>
+        /// Total count of uploaded documents for this transaction
+        /// </summary>
+        public int CountOfUploadedDocuments { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        /// <summary>
+        /// The transaction will be aborted if not completed until this timeout
+        /// </summary>
+        public DateTimeOffset TimeOutLimit { get; set; }
+
+        /// <summary>
+        /// Id of the transaction to use when uploading each file and committing the transaction
+        /// </summary>
+        public string TransactionId { get; set; }
+
+        public override string ToString() => $@"{nameof(DocumentsTransactionModel)}
+    {nameof(CanCommitNow)} : {CanCommitNow}
+    {nameof(Chain)} : {Chain}
+    {nameof(CountOfUploadedDocuments)} : {CountOfUploadedDocuments}
+    {nameof(TimeOutLimit)} : {TimeOutLimit}
+    {nameof(TransactionId)} : {TransactionId}
+";
     }
 }

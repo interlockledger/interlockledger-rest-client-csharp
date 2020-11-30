@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V4_1
+namespace InterlockLedger.Rest.Client.V4_2
 {
     public sealed record DocumentsUploadConfiguration {
         public DocumentsUploadConfiguration() { }

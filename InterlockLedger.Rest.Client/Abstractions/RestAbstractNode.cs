@@ -47,14 +47,20 @@ namespace InterlockLedger.Rest.Client.Abstractions
 {
     public abstract class RestAbstractNode<T> : IRestNodeInternals where T : RestAbstractChain
     {
+        public RestAbstractNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
+            : this(x509Certificate, (ushort)networkId, address) { }
+
+        public RestAbstractNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost") {
+            _certificate = x509Certificate;
+            BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
+            Network = new RestNetwork(this);
+        }
+
         public RestAbstractNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
             : this(certFile, certPassword, (ushort)networkId, address) { }
 
-        public RestAbstractNode(string certFile, string certPassword, ushort port, string address = "localhost") {
-            BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
-            _certificate = GetCertFromFile(certFile, certPassword);
-            Network = new RestNetwork(this);
-        }
+        public RestAbstractNode(string certFile, string certPassword, ushort port, string address = "localhost")
+            : this(GetCertFromFile(certFile, certPassword), port, address) { }
 
         public Uri BaseUri { get; }
         public string CertificateName => _certificate.FriendlyName;
@@ -128,30 +134,27 @@ namespace InterlockLedger.Rest.Client.Abstractions
         protected RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*")
             => GetRawResponse(PrepareRequest(url, method, accept));
 
+        protected void CopyFileTo(Func<string, Stream> getWritingStreamWithName, string url, string accept, string method = "GET") {
+            if (getWritingStreamWithName is null)
+                throw new ArgumentNullException(nameof(getWritingStreamWithName));
+            using var readStream = GetFileReadStream(url, accept, method, out string name);
+            var fileStream = getWritingStreamWithName(name);
+            if (fileStream is null)
+                throw new ArgumentNullException(nameof(fileStream));
+            if (!fileStream.CanWrite)
+                throw new InvalidOperationException("Can't write in the desired stream");
+            readStream.CopyTo(fileStream);
+            fileStream.Flush();
+        }
+
         protected TR Get<TR>(string url) => Deserialize<TR>(CallApi(url, "GET"));
 
-        protected FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET") {
-            if (folderToStore is null)
-                throw new ArgumentNullException(nameof(folderToStore));
-            if (!folderToStore.Exists)
-                throw new InvalidOperationException("Folder to store file doesn't exist");
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
-            if (string.IsNullOrWhiteSpace(accept))
-                throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
-            if (string.IsNullOrWhiteSpace(method))
-                throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
-            using var resp = GetResponse(PrepareRequest(url, method.WithDefault("GET"), accept));
-            using var readStream = resp.GetResponseStream();
-            var name = ParseFileName(resp).AsSpan();
-            var fileInfo = GetUniquelyNamedFile(folderToStore, name);
-            using (var fileStream = fileInfo.OpenWrite()) {
-                readStream.CopyTo(fileStream);
-                fileStream.Flush();
-            }
-            fileInfo.Refresh();
-            return fileInfo;
-        }
+        protected FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET")
+            => folderToStore is null
+                ? throw new ArgumentNullException(nameof(folderToStore))
+                : !folderToStore.Exists
+                    ? throw new InvalidOperationException("Folder to store file doesn't exist")
+                    : CopyFileToFolder(folderToStore, url, accept, method) ?? throw new InvalidOperationException("File details not set");
 
         protected TR Post<TR>(string url, object body)
             => Deserialize<TR>(GetStringResponse(PreparePostRequest(url, body, accept: "application/json")));
@@ -209,24 +212,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static FileInfo GetUniquelyNamedFile(DirectoryInfo folderToStore, ReadOnlySpan<char> name) {
-            var extension = Path.GetExtension(name);
-            var baseName = Path.GetFileNameWithoutExtension(name);
-            int i = 0;
-            string suffix = string.Empty;
-            FileInfo fi;
-            do {
-                if (i > 100)
-                    throw new InvalidOperationException("There are already a hundred numbered files with the same name");
-                var filename = new StringBuilder().Append(baseName).Append(suffix).Append(extension).ToString();
-                fi = new FileInfo(Path.Combine(folderToStore.FullName, filename));
-                suffix = $"({++i})";
-            } while (fi.Exists);
-            return fi;
-        }
-
-        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch
-        {
+        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch {
             HttpStatusCode.OK or HttpStatusCode.Created => result,
             _ => throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}")
         };
@@ -241,6 +227,41 @@ namespace InterlockLedger.Rest.Client.Abstractions
                     return WebUtility.UrlDecode(filename[7..]);
             }
             return filename;
+        }
+
+        private FileInfo CopyFileToFolder(DirectoryInfo folderToStore, string url, string accept, string method) {
+            FileInfo fileInfo = null;
+            CopyFileTo((name) => (fileInfo = GetUniquelyNamedFile(folderToStore, name)).OpenWrite(), url, accept, method);
+            fileInfo?.Refresh();
+            return fileInfo;
+
+            static FileInfo GetUniquelyNamedFile(DirectoryInfo folderToStore, ReadOnlySpan<char> name) {
+                var extension = Path.GetExtension(name);
+                var baseName = Path.GetFileNameWithoutExtension(name);
+                int i = 0;
+                string suffix = string.Empty;
+                FileInfo fi;
+                do {
+                    if (i > 100)
+                        throw new InvalidOperationException("There are already a hundred numbered files with the same name");
+                    var filename = new StringBuilder().Append(baseName).Append(suffix).Append(extension).ToString();
+                    fi = new FileInfo(Path.Combine(folderToStore.FullName, filename));
+                    suffix = $"({++i})";
+                } while (fi.Exists);
+                return fi;
+            }
+        }
+
+        private Stream GetFileReadStream(string url, string accept, string method, out string name) {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
+            if (string.IsNullOrWhiteSpace(accept))
+                throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
+            if (string.IsNullOrWhiteSpace(method))
+                throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
+            var resp = GetResponse(PrepareRequest(url, method, accept));
+            name = ParseFileName(resp);
+            return resp.GetResponseStream();
         }
 
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {

@@ -35,7 +35,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V4_1;
+using InterlockLedger.Rest.Client.V4_2;
 
 namespace rest_client
 {
@@ -60,11 +60,11 @@ namespace rest_client
         protected UsingV4_1(RestAbstractNode<RestChain> node) : base(node) {
         }
 
-        protected override string Version => "4.1";
+        protected override string Version => "4.2";
 
         protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
-            if (_node is RestNode nodeV4_1)
-                Console.WriteLine($" {nodeV4_1.DocumentsUploadConfiguration}");
+            if (_node is RestNode nodeV4_2)
+                Console.WriteLine($" {nodeV4_2.DocumentsUploadConfiguration}");
         }
 
         protected override void ExerciseDocApp(RestChain chain) { }
