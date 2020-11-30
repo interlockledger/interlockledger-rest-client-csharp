@@ -42,10 +42,10 @@ namespace InterlockLedger.Rest.Client
         TestNet_Jupiter = 32030,
         MainNet = 32032,
         MetaNet = 32036,
-        Paperless = 29721,
+        Paperless = 29720,
         // CustomNets
-        Alteatec = 27001,
-        Eloquence = 5125,
-        TilliT = 32064,
+        Alteatec = 27000,
+        Eloquence = 5124,
+        TilliT = 32063,
     }
 }
