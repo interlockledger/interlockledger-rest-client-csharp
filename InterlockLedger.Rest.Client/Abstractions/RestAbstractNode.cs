@@ -37,6 +37,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
+using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using InterlockLedger.Rest.Client.V3;
@@ -199,7 +200,10 @@ namespace InterlockLedger.Rest.Client.Abstractions
             => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
         private static RawDocumentModel GetRawResponse(HttpWebRequest req) {
-            using var resp = GetResponse(req);
+            var response = GetResponse(req);
+            if (response is null)
+                return null;
+            using var resp = response;
             using var readStream = resp.GetResponseStream();
             var fullBuffer = Array.Empty<byte>();
             var buffer = new byte[0x80000];
@@ -214,6 +218,9 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch {
             HttpStatusCode.OK or HttpStatusCode.Created => result,
+            HttpStatusCode.NotFound => default,
+            HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
+            HttpStatusCode.Forbidden => throw new SecurityException(nameof(HttpStatusCode.Forbidden)),
             _ => throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}")
         };
 
