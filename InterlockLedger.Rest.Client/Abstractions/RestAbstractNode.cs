@@ -221,8 +221,16 @@ namespace InterlockLedger.Rest.Client.Abstractions
             HttpStatusCode.NotFound => default,
             HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
             HttpStatusCode.Forbidden => throw new SecurityException(nameof(HttpStatusCode.Forbidden)),
-            _ => throw new InvalidDataException($"API error: {resp.StatusCode} {resp.StatusDescription}{Environment.NewLine}{ReadAsString(resp)}")
+            _ => CheckMessage<TR>(resp)
         };
+        private static TR CheckMessage<TR>(HttpWebResponse resp) {
+            {
+                string content = ReadAsString(resp);
+                return content.Contains("outstanding", StringComparison.OrdinalIgnoreCase)
+                    ? default(TR)
+                    : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
+            }
+        }
 
         private static string ParseFileName(HttpWebResponse resp) {
             var disposition = resp.GetResponseHeader("Content-Disposition");
