@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
@@ -45,10 +46,25 @@ namespace InterlockLedger.Rest.Client.V4_2
 
         FileInfo RetrieveSingle(string locator, int index, DirectoryInfo folderToStore);
 
-        bool TransactionAddItem(string transactionId, string name, string comment, string contentType, Stream source);
+        bool TransactionAddItem(string transactionId, string path, string name, string comment, string contentType, Stream source);
 
-        bool TransactionAddItem(string transactionId, FileInfo file, string comment, string contentType)
-            => TransactionAddItem(transactionId, file.Name, comment, contentType, file.OpenRead());
+        bool TransactionAddItem(string transactionId, DirectoryInfo baseDirectory, FileInfo file, string comment, string contentType)
+            => string.IsNullOrWhiteSpace(transactionId)
+                ? throw new ArgumentNullException(nameof(transactionId))
+                : baseDirectory is null
+                    ? throw new ArgumentNullException(nameof(baseDirectory))
+                    : file is null
+                        ? throw new ArgumentNullException(nameof(file))
+                        : string.IsNullOrWhiteSpace(contentType)
+                            ? throw new ArgumentNullException(nameof(contentType))
+                            : !file.FullName.StartsWith(baseDirectory.FullName, StringComparison.InvariantCultureIgnoreCase)
+                                ? throw new ArgumentException($"File ´{file.FullName}´ is not inside directory '{baseDirectory.FullName}' ")
+                                : TransactionAddItem(transactionId,
+                                                     Path.GetRelativePath(baseDirectory.FullName, file.DirectoryName),
+                                                     file.Name,
+                                                     comment,
+                                                     contentType,
+                                                     file.OpenRead());
 
         DocumentsTransactionModel TransactionBegin(DocumentsBeginTransactionModel transactionStart);
 
@@ -82,7 +98,7 @@ namespace InterlockLedger.Rest.Client.V4_2
         FileInfo IDocumentsApp.RetrieveSingle(string locator, int index, DirectoryInfo folderToStore)
             => ((IRestNodeInternals)this).GetFile(FromLocator(locator, index), accept: "*/*", folderToStore: folderToStore);
 
-        bool IDocumentsApp.TransactionAddItem(string transactionId, string name, string comment, string contentType, Stream source)
+        bool IDocumentsApp.TransactionAddItem(string transactionId, string path, string name, string comment, string contentType, Stream source)
             => PostStream($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
 
         DocumentsTransactionModel IDocumentsApp.TransactionBegin(DocumentsBeginTransactionModel transactionStart)

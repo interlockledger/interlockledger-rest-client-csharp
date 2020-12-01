@@ -99,7 +99,12 @@ namespace InterlockLedger.Rest.Client.V4_2
             /// </summary>
             public string Name { get; set; }
 
-            public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}}}
+            /// <summary>
+            /// Document (file) path (without the name)
+            /// </summary>
+            public string Path { get; set; }
+
+            public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}    {nameof(Path)} : {Path}{_joiner}}}
 ";
         }
 

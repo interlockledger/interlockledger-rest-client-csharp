@@ -83,9 +83,9 @@ namespace rest_client
                     });
                     Console.WriteLine(trx);
                     Console.WriteLine("  Trying to store a nice document:");
-                    chainDocsApp.TransactionAddItem(trx.TransactionId, "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
+                    chainDocsApp.TransactionAddItem(trx.TransactionId, "/", "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
                     Console.WriteLine(chainDocsApp.TransactionStatus(trx.TransactionId));
-                    chainDocsApp.TransactionAddItem(trx.TransactionId, "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(Content, writable: false));
+                    chainDocsApp.TransactionAddItem(trx.TransactionId, "/", "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(Content, writable: false));
                     Console.WriteLine(chainDocsApp.TransactionStatus(trx.TransactionId));
                     var locator = chainDocsApp.TransactionCommit(trx.TransactionId);
                     Console.WriteLine($"    Documents locator: '{locator}'");

@@ -78,5 +78,11 @@ namespace InterlockLedger.Rest.Client.V4_2
         /// </summary>
         public byte[] Password { get; set; }
 
+
+        /// <summary>
+        /// Locator for the previous version of this set
+        /// </summary>
+        public string Previous { get; set; }
+
     }
 }
