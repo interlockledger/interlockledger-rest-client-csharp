@@ -216,7 +216,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch {
+        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch
+        {
             HttpStatusCode.OK or HttpStatusCode.Created => result,
             HttpStatusCode.NotFound => default,
             HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
