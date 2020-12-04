@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using InterlockLedger.Rest.Client.V3;
 
 namespace InterlockLedger.Rest.Client.Abstractions
@@ -47,62 +48,56 @@ namespace InterlockLedger.Rest.Client.Abstractions
             Id = chainId.Id;
             Name = chainId.Name;
         }
-        public IEnumerable<ulong> ActiveApps => _rest.Get<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
+
+        public Task<IEnumerable<ulong>> GetActiveAppsAsync() => _rest.GetAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
         public string Id { get; }
-        public IEnumerable<InterlockingRecordModel> Interlocks => _rest.Get<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
+
+        public Task<IEnumerable<InterlockingRecordModel>> GetInterlocksAsync() => _rest.GetAsync<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
         public string Name { get; }
-        public IEnumerable<KeyModel> PermittedKeys => _rest.Get<IEnumerable<KeyModel>>($"/chain/{Id}/key");
-        public IEnumerable<RecordModel> Records => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}");
-        public IEnumerable<RecordModelAsJson> RecordsAsJson => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson");
 
-        public ChainSummaryModel Summary => _rest.Get<ChainSummaryModel>($"/chain/{Id}");
+        public Task<IEnumerable<KeyModel>> GetPermittedKeysAsync() => _rest.GetAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key");
+        public Task<ChainSummaryModel> GetSummaryAsync() => _rest.GetAsync<ChainSummaryModel>($"/chain/{Id}");
 
-        public RecordModel AddRecord(NewRecordModel model)
-            => _rest.Post<RecordModel>($"records@{Id}", model);
+        public Task<RecordModel> AddRecordAsync(NewRecordModel model)
+            => _rest.PostAsync<RecordModel>($"records@{Id}", model);
 
-        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, byte[] bytes)
-            => AddRecord(applicationId, payloadTagId, RecordType.Data, bytes);
+        public Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes)
+            => AddRecordAsync(applicationId, payloadTagId, RecordType.Data, bytes);
 
-        public RecordModel AddRecord(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
-            => _rest.PostRaw<RecordModel>($"records@{Id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
+        public Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
+            => _rest.PostRawAsync<RecordModel>($"records@{Id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
 
-        public RecordModelAsJson AddRecordAsJson(NewRecordModelAsJson model)
-            => AddRecordAsJson(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
+        public Task<RecordModelAsJson> AddRecordAsJsonAsync(NewRecordModelAsJson model)
+            => AddRecordAsJsonAsync(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
 
-        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, object payload)
-            => AddRecordAsJson(applicationId, payloadTagId, RecordType.Data, payload);
+        public Task<RecordModelAsJson> AddRecordAsJsonAsync(ulong applicationId, ulong payloadTagId, object payload)
+            => AddRecordAsJsonAsync(applicationId, payloadTagId, RecordType.Data, payload);
 
-        public RecordModelAsJson AddRecordAsJson(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
-            => _rest.Post<RecordModelAsJson>($"records@{Id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
+        public Task<RecordModelAsJson> AddRecordAsJsonAsync(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
+            => _rest.PostAsync<RecordModelAsJson>($"records@{Id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
 
-        public InterlockingRecordModel ForceInterlock(ForceInterlockModel model)
-            => _rest.Post<InterlockingRecordModel>($"/chain/{Id}/interlockings", model);
+        public Task<InterlockingRecordModel> ForceInterlockAsync(ForceInterlockModel model)
+            => _rest.PostAsync<InterlockingRecordModel>($"/chain/{Id}/interlockings", model);
 
-        public IEnumerable<ulong> PermitApps(params ulong[] appsToPermit)
-            => _rest.Post<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
+        public Task<IEnumerable<ulong>> PermitAppsAsync(params ulong[] appsToPermit)
+            => _rest.PostAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
 
-        public IEnumerable<KeyModel> PermitKeys(params KeyPermitModel[] keysToPermit)
-            => _rest.Post<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
+        public Task<IEnumerable<KeyModel>> PermitKeysAsync(params KeyPermitModel[] keysToPermit)
+            => _rest.PostAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
 
-        public IEnumerable<RecordModel> RecordsFrom(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
+        public Task<IEnumerable<RecordModel>> RecordsFromAsync(ulong firstSerial)
+            => _rest.GetAsync<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
 
-        public IEnumerable<RecordModelAsJson> RecordsFromAsJson(ulong firstSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
+        public Task<IEnumerable<RecordModelAsJson>> RecordsFromAsJsonAsync(ulong firstSerial)
+            => _rest.GetAsync<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
 
-        public IEnumerable<RecordModel> RecordsFromTo(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
+        public Task<IEnumerable<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial)
+            => _rest.GetAsync<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
-        public IEnumerable<RecordModelAsJson> RecordsFromToAsJson(ulong firstSerial, ulong lastSerial)
-            => _rest.Get<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
+        public Task<IEnumerable<RecordModelAsJson>> RecordsFromToAsJsonAsync(ulong firstSerial, ulong lastSerial)
+            => _rest.GetAsync<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         public override string ToString() => $"Chain '{Name}' #{Id}";
-
-        internal DocumentDetailsModel PostDocument(byte[] bytes, DocumentUploadModel model) => model switch
-        {
-            null => throw new ArgumentNullException(nameof(model)),
-            _ => _rest.PostRaw<DocumentDetailsModel>($"/documents@{Id}{model.ToQueryString()}", bytes, model.ContentType)
-        };
 
     }
 }

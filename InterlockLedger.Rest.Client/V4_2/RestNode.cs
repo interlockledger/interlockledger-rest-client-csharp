@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using System.Web;
 using InterlockLedger.Rest.Client.Abstractions;
 
@@ -40,15 +41,16 @@ namespace InterlockLedger.Rest.Client.V4_2
 {
     public interface IDocumentsApp
     {
-        FileInfo RetrieveBlob(string locator, DirectoryInfo folderToStore);
+        Task<DocumentsUploadConfiguration> GetDocumentsUploadConfigurationAsync();
+        Task<FileInfo> RetrieveBlobAsync(string locator, DirectoryInfo folderToStore);
 
-        DocumentsMetadataModel RetrieveMetadata(string locator);
+        Task<DocumentsMetadataModel> RetrieveMetadataAsync(string locator);
 
-        FileInfo RetrieveSingle(string locator, int index, DirectoryInfo folderToStore);
+        Task<FileInfo> RetrieveSingleAsync(string locator, int index, DirectoryInfo folderToStore);
 
-        bool TransactionAddItem(string transactionId, string path, string name, string comment, string contentType, Stream source);
+        Task<DocumentsTransactionModel> TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source);
 
-        bool TransactionAddItem(string transactionId, DirectoryInfo baseDirectory, FileInfo file, string comment, string contentType)
+        Task<DocumentsTransactionModel> TransactionAddItemAsync(string transactionId, DirectoryInfo baseDirectory, FileInfo file, string comment, string contentType)
             => string.IsNullOrWhiteSpace(transactionId)
                 ? throw new ArgumentNullException(nameof(transactionId))
                 : baseDirectory is null
@@ -59,18 +61,18 @@ namespace InterlockLedger.Rest.Client.V4_2
                             ? throw new ArgumentNullException(nameof(contentType))
                             : !file.FullName.StartsWith(baseDirectory.FullName, StringComparison.InvariantCultureIgnoreCase)
                                 ? throw new ArgumentException($"File ´{file.FullName}´ is not inside directory '{baseDirectory.FullName}' ")
-                                : TransactionAddItem(transactionId,
+                                : TransactionAddItemAsync(transactionId,
                                                      Path.GetRelativePath(baseDirectory.FullName, file.DirectoryName),
                                                      file.Name,
                                                      comment,
                                                      contentType,
                                                      file.OpenRead());
 
-        DocumentsTransactionModel TransactionBegin(DocumentsBeginTransactionModel transactionStart);
+        Task<DocumentsTransactionModel> TransactionBeginAsync(DocumentsBeginTransactionModel transactionStart);
 
-        string TransactionCommit(string transactionId);
+        Task<string> TransactionCommitAsync(string transactionId);
 
-        DocumentsTransactionModel TransactionStatus(string transactionId);
+        Task<DocumentsTransactionModel> TransactionStatusAsync(string transactionId);
     }
 
     public class RestNode : RestAbstractNode<RestChain>, IDocumentsApp
@@ -87,28 +89,29 @@ namespace InterlockLedger.Rest.Client.V4_2
         public RestNode(string certFile, string certPassword, ushort port, string address = "localhost")
             : base(certFile, certPassword, port, address) { }
 
-        public DocumentsUploadConfiguration DocumentsUploadConfiguration => Get<DocumentsUploadConfiguration>("/documents/configuration");
+        Task<DocumentsUploadConfiguration> IDocumentsApp.GetDocumentsUploadConfigurationAsync()
+            => GetAsync<DocumentsUploadConfiguration>("/documents/configuration");
 
-        FileInfo IDocumentsApp.RetrieveBlob(string locator, DirectoryInfo folderToStore)
-            => ((IRestNodeInternals)this).GetFile(FromLocator(locator, "zip"), accept: "application/zip", folderToStore: folderToStore);
+        Task<FileInfo> IDocumentsApp.RetrieveBlobAsync(string locator, DirectoryInfo folderToStore)
+            => GetFileAsync(folderToStore, FromLocator(locator, "zip"), accept: "application/zip");
 
-        DocumentsMetadataModel IDocumentsApp.RetrieveMetadata(string locator)
-            => Get<DocumentsMetadataModel>(FromLocator(locator, "metadata"));
+        Task<DocumentsMetadataModel> IDocumentsApp.RetrieveMetadataAsync(string locator)
+            => GetAsync<DocumentsMetadataModel>(FromLocator(locator, "metadata"));
 
-        FileInfo IDocumentsApp.RetrieveSingle(string locator, int index, DirectoryInfo folderToStore)
-            => ((IRestNodeInternals)this).GetFile(FromLocator(locator, index), accept: "*/*", folderToStore: folderToStore);
+        Task<FileInfo> IDocumentsApp.RetrieveSingleAsync(string locator, int index, DirectoryInfo folderToStore)
+            => GetFileAsync(folderToStore, FromLocator(locator, index), accept: "*/*");
 
-        bool IDocumentsApp.TransactionAddItem(string transactionId, string path, string name, string comment, string contentType, Stream source)
-            => PostStream($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
+        Task<DocumentsTransactionModel> IDocumentsApp.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
+            => PostStreamAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
 
-        DocumentsTransactionModel IDocumentsApp.TransactionBegin(DocumentsBeginTransactionModel transactionStart)
-            => Post<DocumentsTransactionModel>("/documents/transaction", transactionStart);
+        Task<DocumentsTransactionModel> IDocumentsApp.TransactionBeginAsync(DocumentsBeginTransactionModel transactionStart)
+            => PostAsync<DocumentsTransactionModel>("/documents/transaction", transactionStart);
 
-        string IDocumentsApp.TransactionCommit(string transactionId)
-            => Post<string>($"/documents/transaction/{transactionId}/commit", null);
+        Task<string> IDocumentsApp.TransactionCommitAsync(string transactionId)
+            => PostAsync<string>($"/documents/transaction/{transactionId}/commit", null);
 
-        DocumentsTransactionModel IDocumentsApp.TransactionStatus(string transactionId)
-            => Get<DocumentsTransactionModel>($"/documents/transaction/{transactionId}");
+        Task<DocumentsTransactionModel> IDocumentsApp.TransactionStatusAsync(string transactionId)
+            => GetAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}");
 
         protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
 

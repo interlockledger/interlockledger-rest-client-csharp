@@ -32,26 +32,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using InterlockLedger.Rest.Client;
 using InterlockLedger.Rest.Client.Abstractions;
 using InterlockLedger.Rest.Client.V3;
+using InterlockLedger.Rest.Client.V4_2;
 
 namespace rest_client
 {
     public abstract class AbstractUsing<T> where T : RestAbstractChain
     {
+        public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
         protected readonly RestAbstractNode<T> _node;
 
         protected AbstractUsing(RestAbstractNode<T> node) => _node = node ?? throw new ArgumentNullException(nameof(node));
 
         protected abstract string Version { get; }
 
-        protected RecordModel AddRecord(T chain, ulong appId, params byte[] payload)
-            => chain.AddRecord(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
+        protected Task<RecordModelAsJson> AddRecordAsJsonAsync(T chain, ulong appId, ulong action, object json)
+            => chain.AddRecordAsJsonAsync(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
 
-        protected RecordModelAsJson AddRecordAsJson(T chain, ulong appId, ulong action, object json)
-            => chain.AddRecordAsJson(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
+        protected Task<RecordModel> AddRecordAsync(T chain, ulong appId, params byte[] payload)
+            => chain.AddRecordAsync(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
 
         protected KeyPermitModel BuildKey()
             => new KeyPermitModel(
@@ -62,15 +68,18 @@ namespace rest_client
                 KeyPurpose.Protocol,
                 KeyPurpose.Action);
 
-        protected abstract void DisplayOtherNodeInfo(RestAbstractNode<T> node);
+        protected  void DisplayOtherNodeInfo() {
+            if (_node is IDocumentsApp nodeV4_2)
+                Console.WriteLine($" {nodeV4_2.GetDocumentsUploadConfigurationAsync().Result}");
+        }
 
         protected void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 
-        protected void Exercise() {
+        protected async Task ExerciseAsync() {
             Console.WriteLine($"Client connected to {_node.BaseUri} using certificate {_node.CertificateName} using API version {Version}");
             Console.WriteLine("-- Create Chain:");
             try {
-                var chain = _node.CreateChain(new ChainCreationModel {
+                var chain = await _node.CreateChainAsync(new ChainCreationModel {
                     Name = "Rest Created Test Chain",
                     Description = "Just a test",
                     EmergencyClosingKeyPassword = "password",
@@ -86,29 +95,29 @@ namespace rest_client
                 Console.WriteLine(e);
             }
             Console.WriteLine();
-            Console.WriteLine(_node.Details);
-            DisplayOtherNodeInfo(_node);
-            var apps = _node.Network.Apps;
+            Console.WriteLine(await _node.GetDetailsAsync());
+            DisplayOtherNodeInfo();
+            var apps = await _node.Network.GetAppsAsync();
             Console.WriteLine($"-- Valid apps for network {apps.Network}:");
             foreach (var app in apps.ValidApps.OrderBy(a => a))
                 Console.WriteLine(app);
             Console.WriteLine();
-            var peers = _node.Peers;
+            var peers = await _node.GetPeersAsync();
             Console.WriteLine($"-- Known peers:");
             foreach (var peer in peers.OrderBy(a => a.Name))
                 Console.WriteLine(peer);
             Console.WriteLine();
             Console.WriteLine("-- Chains:");
-            foreach (var chain in _node.Chains)
-                ExerciseChain(_node, chain, transact: true);
+            foreach (var chain in await _node.GetChainsAsync())
+                await ExerciseChainAsync(_node, chain, transact: true);
             Console.WriteLine();
             Console.WriteLine("-- Mirrors:");
-            foreach (var chain in _node.Mirrors)
-                ExerciseChain(_node, chain);
+            foreach (var chain in await _node.GetMirrorsAsync())
+                await ExerciseChainAsync(_node, chain);
             Console.WriteLine();
             Console.WriteLine("-- Create Mirror:");
             try {
-                foreach (var chain in _node.AddMirrorsOf(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
+                foreach (var chain in await _node.AddMirrorsOfAsync(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
                     Console.WriteLine(chain);
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -116,123 +125,118 @@ namespace rest_client
             Console.WriteLine();
         }
 
-        protected void ExerciseChain(RestAbstractNode<T> node, T chain, bool transact = false) {
+        protected async Task ExerciseChainAsync(RestAbstractNode<T> node, T chain, bool transact = false) {
             Console.WriteLine(chain);
 
-            var summary = chain.Summary;
+            var summary = await chain.GetSummaryAsync();
             Console.WriteLine($"  Summary.ActiveApps: {string.Join(", ", summary.ActiveApps)}");
             Console.WriteLine($"  Summary.Description: {summary.Description}");
             Console.WriteLine($"  Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}");
             Console.WriteLine($"  Summary.LastRecord: {summary.LastRecord}");
             Console.WriteLine();
-            Console.WriteLine($"  Active apps: {string.Join(", ", chain.ActiveApps)}");
+            Console.WriteLine($"  Active apps: {string.Join(", ", chain.GetActiveAppsAsync())}");
             Console.WriteLine();
             Console.WriteLine("  Keys:");
-            foreach (var key in chain.PermittedKeys)
+            foreach (var key in await chain.GetPermittedKeysAsync())
                 Console.WriteLine($"    {key}");
             Console.WriteLine();
-            Console.WriteLine("  Documents:");
-            ExerciseDocApp(chain);
-            Console.WriteLine();
             Console.WriteLine("  Interlocks stored here:");
-            foreach (var interlock in chain.Interlocks)
+            foreach (var interlock in await chain.GetInterlocksAsync())
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Interlocks of this chain:");
-            foreach (var interlock in node.InterlocksOf(chain.Id))
+            foreach (var interlock in await node.InterlocksOfAsync(chain.Id))
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Records:");
-            foreach (var record in chain.RecordsFromTo(0, 1))
+            foreach (var record in await chain.RecordsFromToAsync(0, 1))
                 Console.WriteLine($"    {record}");
             Console.WriteLine("  RecordsAsJson:");
-            foreach (var record in chain.RecordsFromToAsJson(0, 2))
+            foreach (var record in await chain.RecordsFromToAsJsonAsync(0, 2))
                 Console.WriteLine($"    {record}");
             if (transact) {
-                TryToAddNiceUnpackedRecord(chain);
-                TryToAddNiceRecord(chain);
-                TryToAddNiceJsonRecord(chain);
-                TryToAddBadlyEncodedUnpackedRecord(chain);
-                TryToAddBadRecord(chain);
-                TryToPermitApp4(chain);
-                TryToStoreNiceDocuments(chain);
-                TryToForceInterlock(chain);
-                TryToPermitKey(chain);
+                await TryToAddNiceUnpackedRecordAsync(chain);
+                await TryToAddNiceRecordAsync(chain);
+                await TryToAddNiceJsonRecordAsync(chain);
+                await TryToAddBadlyEncodedUnpackedRecordAsync(chain);
+                await TryToAddBadRecordAsync(chain);
+                await TryToPermitApp4Async(chain);
+                await TryToStoreNiceDocumentsAsync(chain);
+                await TryToForceInterlockAsync(chain);
+                await TryToPermitKeyAsync(chain);
             }
             Console.WriteLine();
         }
 
-        protected abstract void ExerciseDocApp(T chain);
-
-        protected void TryToAddBadlyEncodedUnpackedRecord(T chain) {
+        protected async Task TryToAddBadlyEncodedUnpackedRecordAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a badly encoded unpacked record:");
-                var record = chain.AddRecord(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                var record = await chain.AddRecordAsync(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToAddBadRecord(T chain) {
+        protected async Task TryToAddBadRecordAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a bad record:");
-                var record = AddRecord(chain, 1, 0);
+                var record = await AddRecordAsync(chain, 1, 0);
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToAddNiceJsonRecord(T chain) {
+        protected async Task TryToAddNiceJsonRecordAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice JSON record:");
-                var record = AddRecordAsJson(chain, 1, 300, new { TagId = 300, Version = 1, Apps = new ulong[] { 1, 2, 3 } });
+                var record = await AddRecordAsJsonAsync(chain, 1, 300, new { TagId = 300, Version = 1, Apps = new ulong[] { 1, 2, 3 } });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToAddNiceRecord(T chain) {
+        protected async Task TryToAddNiceRecordAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice record:");
-                var record = AddRecord(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
+                var record = await AddRecordAsync(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToAddNiceUnpackedRecord(T chain) {
+        protected async Task TryToAddNiceUnpackedRecordAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice unpacked record:");
-                var record = chain.AddRecord(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                var record = await chain.AddRecordAsync(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToForceInterlock(T chain) {
+        protected async Task TryToForceInterlockAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to force an interlock:");
-                var interlock = chain.ForceInterlock(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
+                var interlock = await chain.ForceInterlockAsync(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
                 Console.WriteLine($"    {interlock}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected void TryToPermitApp4(T chain) {
+        protected async Task TryToPermitApp4Async(T chain) {
             try {
-                var apps = chain.PermitApps(4);
+                var apps = await chain.PermitAppsAsync(4);
                 Console.WriteLine($"  Permit app 4: {string.Join(", ", apps)}");
                 Console.WriteLine();
             } catch (Exception e) {
@@ -240,17 +244,57 @@ namespace rest_client
             }
         }
 
-        protected void TryToPermitKey(T chain) {
+        protected async Task TryToPermitKeyAsync(T chain) {
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to permit some keys:");
-                foreach (var key in chain.PermitKeys(BuildKey()))
+                foreach (var key in await chain.PermitKeysAsync(BuildKey()))
                     Console.WriteLine($"    {key}");
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected abstract void TryToStoreNiceDocuments(T chain);
+        protected async Task TryToStoreNiceDocumentsAsync(T chain) {
+            if (_node is IDocumentsApp docsApp)
+                try {
+                    Console.WriteLine();
+                    Console.WriteLine("  Trying to begin a transaction:");
+                    var trx = await docsApp.TransactionBeginAsync(new DocumentsBeginTransactionModel {
+                        Chain = chain.Id,
+                        Comment = "C# REST client testing",
+                        Compression = "BROTLI",
+                        Encryption = "PBKDF2-SHA256-AES256-LOW",
+                        Password = _password
+                    });
+                    Console.WriteLine(trx);
+                    Console.WriteLine("  Trying to store a nice document:");
+                    await docsApp.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
+                    Console.WriteLine(await docsApp.TransactionStatusAsync(trx.TransactionId));
+                    await docsApp.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(Content, writable: false));
+                    Console.WriteLine(await docsApp.TransactionStatusAsync(trx.TransactionId));
+                    var locator = await docsApp.TransactionCommitAsync(trx.TransactionId);
+                    Console.WriteLine($"    Documents locator: '{locator}'");
+                    Console.WriteLine($"    {docsApp.RetrieveMetadataAsync(locator)}");
+                    var secondFile = await docsApp.RetrieveSingleAsync(locator, 1, _folderToStore);
+                    try {
+                        using var streamReader = secondFile.OpenText();
+                        Console.WriteLine($"    Retrieved second file {secondFile.FullName} : '{streamReader.ReadToEnd()}'");
+                        var blobFile = await docsApp.RetrieveBlobAsync(locator, _folderToStore);
+                        try {
+                            using var stream = blobFile.OpenRead();
+                            var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
+                            Console.WriteLine($"    Blob file '{blobFile.FullName}' contains {zip.Entries.Count} entries.");
+                            foreach (var entry in zip.Entries)
+                                Console.WriteLine($"    - {entry.FullName}");
+                        } finally { if (blobFile.Exists) blobFile.Delete(); }
+                    } finally { if (secondFile.Exists) secondFile.Delete(); }
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
+        }
+
+        private static readonly DirectoryInfo _folderToStore = new DirectoryInfo(Path.GetTempPath());
+        private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
     }
 }

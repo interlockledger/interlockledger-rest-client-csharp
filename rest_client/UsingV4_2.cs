@@ -32,54 +32,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V3;
+using InterlockLedger.Rest.Client.V4_2;
 
 namespace rest_client
 {
-
-    public class UsingV3 : AbstractUsing<RestChain>
+    public class UsingV4_2 : AbstractUsing<RestChain>
     {
         public static void DoIt(string[] args) {
             try {
-                var client = args.Length > 2 ? new RestNode(args[0], args[1], ushort.Parse(args[2])) : new RestNode(args[0], args[1]);
-                new UsingV3(client).Exercise();
+                var client =
+                    args.Length > 3
+                    ? new RestNode(args[0], args[1], ushort.Parse(args[2]), args[3])
+                    : args.Length > 2
+                        ? new RestNode(args[0], args[1], ushort.Parse(args[2]))
+                        : new RestNode(args[0], args[1]);
+                new UsingV4_2(client).ExerciseAsync().Wait();
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
         }
 
-        protected UsingV3(RestAbstractNode<RestChain> node) : base(node) {
+        protected UsingV4_2(RestAbstractNode<RestChain> node) : base(node) {
         }
 
-        protected override string Version => "3";
-
-        protected override void ExerciseDocApp(RestChain chain) {
-            bool first = true;
-            // using old document API
-            if (chain is IDocumentApp chainDocApp)
-                foreach (var doc in chainDocApp.Documents) {
-                    Console.WriteLine($"    {doc}");
-                    if (first && doc.IsPlainText) {
-                        Dump(chainDocApp.DocumentAsPlain(doc.FileId));
-                        Dump(chainDocApp.DocumentAsRaw(doc.FileId).ToString());
-                        first = false;
-                    }
-                }
-        }
-
-        protected override void TryToStoreNiceDocuments(RestChain chain) {
-            if (chain is IDocumentApp chainDocApp)
-                try {
-                    Console.WriteLine();
-                    Console.WriteLine("  Trying to store a nice document:");
-                    var document = chainDocApp.StoreDocumentFromText("Simple test document", "TestDocument");
-                    Console.WriteLine($"    {document}");
-                } catch (Exception e) {
-                    Console.WriteLine(e);
-                }
-        }
-
-        protected override void DisplayOtherNodeInfo(RestAbstractNode<RestChain> node) {
-        }
+        protected override string Version => "4.2";
     }
 }

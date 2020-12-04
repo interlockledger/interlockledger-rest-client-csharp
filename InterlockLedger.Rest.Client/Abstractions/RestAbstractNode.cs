@@ -40,6 +40,8 @@ using System.Net.Security;
 using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using InterlockLedger.Rest.Client.V3;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -65,49 +67,54 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         public Uri BaseUri { get; }
         public string CertificateName => _certificate.FriendlyName;
-        public IEnumerable<T> Chains => Get<IEnumerable<ChainIdModel>>("/chain").Select(c => BuildChain(c));
-        public NodeDetailsModel Details => Get<NodeDetailsModel>("/");
-        public IEnumerable<T> Mirrors => Get<IEnumerable<ChainIdModel>>("/mirrors").Select(c => BuildChain(c));
+
         public RestNetwork Network { get; }
-        public IEnumerable<PeerModel> Peers => Get<IEnumerable<PeerModel>>("/peers");
 
-        public IEnumerable<ChainIdModel> AddMirrorsOf(IEnumerable<string> newMirrors)
-            => Post<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
+        public Task<IEnumerable<ChainIdModel>> AddMirrorsOfAsync(IEnumerable<string> newMirrors)
+            => PostAsync<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
-        string IRestNodeInternals.CallApiPlainDoc(string url, string method, string accept)
-            => CallApiPlainDoc(url, method, accept);
+        Task<string> IRestNodeInternals.CallApiPlainDocAsync(string url, string method, string accept)
+            => CallApiPlainDocAsync(url, method, accept);
 
-        RawDocumentModel IRestNodeInternals.CallApiRawDoc(string url, string method, string accept)
-            => CallApiRawDoc(url, method, accept);
+        Task<RawDocumentModel> IRestNodeInternals.CallApiRawDocAsync(string url, string method, string accept)
+            => CallApiRawDocAsync(url, method, accept);
 
-        public ChainCreatedModel CreateChain(ChainCreationModel model)
-            => Post<ChainCreatedModel>($"/chain", model);
+        public Task<ChainCreatedModel> CreateChainAsync(ChainCreationModel model)
+            => PostAsync<ChainCreatedModel>($"/chain", model);
 
-        TR IRestNodeInternals.Get<TR>(string url) => Get<TR>(url);
+        Task<TR> IRestNodeInternals.GetAsync<TR>(string url) => GetAsync<TR>(url);
 
-        FileInfo IRestNodeInternals.GetFile(string url, string accept, DirectoryInfo folderToStore, string method)
-            => GetFile(folderToStore, url, accept, method);
+        public async Task<IEnumerable<T>> GetChainsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/chain")).Select(c => BuildChain(c));
 
-        public IEnumerable<InterlockingRecordModel> InterlocksOf(string chain)
-            => Get<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
+        public Task<NodeDetailsModel> GetDetailsAsync() => GetAsync<NodeDetailsModel>("/");
 
-        TR IRestNodeInternals.Post<TR>(string url, object body) => Post<TR>(url, body);
+        Task<FileInfo> IRestNodeInternals.GetFileAsync(string url, string accept, DirectoryInfo folderToStore, string method)
+            => GetFileAsync(folderToStore, url, accept, method);
 
-        TR IRestNodeInternals.PostRaw<TR>(string url, byte[] body, string contentType)
-            => PostRaw<TR>(url, body, contentType);
+        public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors")).Select(c => BuildChain(c));
 
-        bool IRestNodeInternals.PostStream(string url, Stream body, string contentType)
-           => PostStream(url, body, contentType);
+        public Task<IEnumerable<PeerModel>> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
+
+        public async Task<IEnumerable<InterlockingRecordModel>> InterlocksOfAsync(string chain)
+            => await GetAsync<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
+
+        Task<TR> IRestNodeInternals.PostAsync<TR>(string url, object body) => PostAsync<TR>(url, body);
+
+        Task<TR> IRestNodeInternals.PostRawAsync<TR>(string url, byte[] body, string contentType)
+            => PostRawAsync<TR>(url, body, contentType);
+
+        Task<bool> IRestNodeInternals.PostStreamAsync(string url, Stream body, string contentType)
+            => PostStreamAsync<bool>(url, body, contentType);
 
         protected readonly X509Certificate2 _certificate;
 
-        protected static HttpWebResponse GetResponse(HttpWebRequest req) {
-            return Validated(GetInnerResponse(req));
+        protected static async Task<HttpWebResponse> GetResponseAsync(HttpWebRequest req) {
+            return await ValidatedAsync(await GetInnerResponseAsync(req).ConfigureAwait(false));
 
-            static HttpWebResponse Validated(HttpWebResponse resp) => IfOkOrCreatedReturn(resp, resp);
-            static HttpWebResponse GetInnerResponse(HttpWebRequest req) {
+            static async Task<HttpWebResponse> ValidatedAsync(HttpWebResponse resp) => await IfOkOrCreatedReturnAsync(resp, () => Task.FromResult(resp));
+            static async Task<HttpWebResponse> GetInnerResponseAsync(HttpWebRequest req) {
                 try {
-                    return (HttpWebResponse)req.GetResponse();
+                    return (HttpWebResponse)await req.GetResponseAsync().ConfigureAwait(false);
                 } catch (WebException e) {
                     return (HttpWebResponse)e.Response
                         ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
@@ -115,56 +122,59 @@ namespace InterlockLedger.Rest.Client.Abstractions
             }
         }
 
-        protected static string GetStringResponse(HttpWebRequest req) => ReadAsString(GetResponse(req));
+        protected static async Task<string> GetStringResponseAsync(HttpWebRequest req) => await ReadAsStringAsync(await GetResponseAsync(req));
 
-        protected static string ReadAsString(HttpWebResponse resp) {
+        protected static async Task<string> ReadAsStringAsync(HttpWebResponse resp) {
             if (resp == null)
                 return string.Empty;
             using var readStream = new StreamReader(resp.GetResponseStream());
-            return readStream.ReadToEnd();
+            return await readStream.ReadToEndAsync();
         }
 
         protected abstract T BuildChain(ChainIdModel c);
 
-        protected string CallApi(string url, string method, string accept = "application/json")
-            => GetStringResponse(PrepareRequest(url, method, accept));
+        protected async Task<string> CallApiAsync(string url, string method, string accept = "application/json")
+            => await GetStringResponseAsync(PrepareRequest(url, method, accept));
 
-        protected string CallApiPlainDoc(string url, string method, string accept = "plain/text")
-            => GetStringResponse(PrepareRequest(url, method, accept));
+        protected async Task<string> CallApiPlainDocAsync(string url, string method, string accept = "plain/text")
+            => await GetStringResponseAsync(PrepareRequest(url, method, accept));
 
-        protected RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*")
-            => GetRawResponse(PrepareRequest(url, method, accept));
+        protected async Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*")
+            => await GetRawResponseAsync(PrepareRequest(url, method, accept));
 
-        protected void CopyFileTo(Func<string, Stream> getWritingStreamWithName, string url, string accept, string method = "GET") {
+        protected async Task CopyFileToAsync(Func<string, Stream> getWritingStreamWithName, string url, string accept, string method = "GET") {
             if (getWritingStreamWithName is null)
                 throw new ArgumentNullException(nameof(getWritingStreamWithName));
-            using var readStream = GetFileReadStream(url, accept, method, out string name);
-            var fileStream = getWritingStreamWithName(name);
-            if (fileStream is null)
-                throw new ArgumentNullException(nameof(fileStream));
-            if (!fileStream.CanWrite)
+            var result = await GetFileReadStreamAsync(url, accept, method).ConfigureAwait(false);
+            using var readStream = result.s;
+            var s = getWritingStreamWithName(result.name);
+            if (s is null)
+                throw new InvalidOperationException($"Could not obtain a stream from '{url}'");
+            if (!s.CanWrite)
                 throw new InvalidOperationException("Can't write in the desired stream");
-            readStream.CopyTo(fileStream);
-            fileStream.Flush();
+            readStream.CopyTo(s);
+            s.Flush();
         }
 
-        protected TR Get<TR>(string url) => Deserialize<TR>(CallApi(url, "GET"));
+        protected async Task<TR> GetAsync<TR>(string url) => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
 
-        protected FileInfo GetFile(DirectoryInfo folderToStore, string url, string accept, string method = "GET")
+        protected async Task<FileInfo> GetFileAsync(DirectoryInfo folderToStore, string url, string accept, string method = "GET")
             => folderToStore is null
                 ? throw new ArgumentNullException(nameof(folderToStore))
                 : !folderToStore.Exists
                     ? throw new InvalidOperationException("Folder to store file doesn't exist")
-                    : CopyFileToFolder(folderToStore, url, accept, method) ?? throw new InvalidOperationException("File details not set");
+                    : await CopyFileToFolderAsync(folderToStore, url, accept, method) ?? throw new InvalidOperationException("File details not set");
 
-        protected TR Post<TR>(string url, object body)
-            => Deserialize<TR>(GetStringResponse(PreparePostRequest(url, body, accept: "application/json")));
+        protected async Task<TR> PostAsync<TR>(string url, object body)
+            => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
 
-        protected TR PostRaw<TR>(string url, byte[] body, string contentType)
-            => Deserialize<TR>(GetStringResponse(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
+        protected async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
+            => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
 
-        protected bool PostStream(string url, Stream body, string contentType)
-            => IfOkOrCreatedReturn(GetResponse(PreparePostStreamRequest(url, body, accept: "*/*", contentType)), true);
+        protected async Task<TR> PostStreamAsync<TR>(string url, Stream body, string contentType) {
+            var resp = await GetResponseAsync(PreparePostStreamRequest(url, body, accept: "*/*", contentType));
+            return await IfOkOrCreatedReturnAsync(resp, async () => Deserialize<TR>(await ReadAsStringAsync(resp)));
+        }
 
         protected HttpWebRequest PrepareRequest(string url, string method, string accept) {
             var req = (HttpWebRequest)WebRequest.Create(new Uri(BaseUri, url));
@@ -187,11 +197,18 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
 
-        private static byte[] ArrayConcat(byte[] firstBuffer, byte[] secondBuffer, int count) {
+        private static byte[] ArrayConcat(byte[] firstBuffer, Memory<byte> secondBuffer, int count) {
             var concatBuffer = new byte[firstBuffer.Length + count];
             Array.Copy(firstBuffer, concatBuffer, firstBuffer.Length);
-            Array.ConstrainedCopy(secondBuffer, 0, concatBuffer, firstBuffer.Length, count);
+            secondBuffer.Slice(0, count).CopyTo(concatBuffer.AsMemory(firstBuffer.Length));
             return concatBuffer;
+        }
+
+        private static async Task<TR> CheckMessageAsync<TR>(HttpWebResponse resp) {
+            string content = await ReadAsStringAsync(resp).ConfigureAwait(false);
+            return content.Contains("outstanding", StringComparison.OrdinalIgnoreCase)
+                ? default(TR)
+                : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
         }
 
         private static TR Deserialize<TR>(string s) => JsonConvert.DeserializeObject<TR>(s);
@@ -199,16 +216,16 @@ namespace InterlockLedger.Rest.Client.Abstractions
         private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
             => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
-        private static RawDocumentModel GetRawResponse(HttpWebRequest req) {
-            var response = GetResponse(req);
+        private static async Task<RawDocumentModel> GetRawResponseAsync(HttpWebRequest req) {
+            var response = await GetResponseAsync(req);
             if (response is null)
                 return null;
             using var resp = response;
             using var readStream = resp.GetResponseStream();
             var fullBuffer = Array.Empty<byte>();
-            var buffer = new byte[0x80000];
+            var buffer = new byte[0x80000].AsMemory();
             while (true) {
-                var readCount = readStream.Read(buffer, 0, buffer.Length);
+                var readCount = await readStream.ReadAsync(buffer, cancellationToken: CancellationToken.None);
                 if (readCount == 0)
                     break;
                 fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
@@ -216,22 +233,14 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static TR IfOkOrCreatedReturn<TR>(HttpWebResponse resp, TR result) => resp.StatusCode switch
+        private static async Task<TR> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<Task<TR>> buildResult) => resp.StatusCode switch
         {
-            HttpStatusCode.OK or HttpStatusCode.Created => result,
+            HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(),
             HttpStatusCode.NotFound => default,
             HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
             HttpStatusCode.Forbidden => throw new SecurityException(nameof(HttpStatusCode.Forbidden)),
-            _ => CheckMessage<TR>(resp)
+            _ => await CheckMessageAsync<TR>(resp)
         };
-        private static TR CheckMessage<TR>(HttpWebResponse resp) {
-            {
-                string content = ReadAsString(resp);
-                return content.Contains("outstanding", StringComparison.OrdinalIgnoreCase)
-                    ? default(TR)
-                    : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
-            }
-        }
 
         private static string ParseFileName(HttpWebResponse resp) {
             var disposition = resp.GetResponseHeader("Content-Disposition");
@@ -245,9 +254,9 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return filename;
         }
 
-        private FileInfo CopyFileToFolder(DirectoryInfo folderToStore, string url, string accept, string method) {
+        private async Task<FileInfo> CopyFileToFolderAsync(DirectoryInfo folderToStore, string url, string accept, string method) {
             FileInfo fileInfo = null;
-            CopyFileTo((name) => (fileInfo = GetUniquelyNamedFile(folderToStore, name)).OpenWrite(), url, accept, method);
+            await CopyFileToAsync((name) => (fileInfo = GetUniquelyNamedFile(folderToStore, name)).OpenWrite(), url, accept, method);
             fileInfo?.Refresh();
             return fileInfo;
 
@@ -268,16 +277,15 @@ namespace InterlockLedger.Rest.Client.Abstractions
             }
         }
 
-        private Stream GetFileReadStream(string url, string accept, string method, out string name) {
+        private async Task<(Stream s, string name)> GetFileReadStreamAsync(string url, string accept, string method) {
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
             if (string.IsNullOrWhiteSpace(accept))
                 throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
-            var resp = GetResponse(PrepareRequest(url, method, accept));
-            name = ParseFileName(resp);
-            return resp.GetResponseStream();
+            var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
+            return (resp.GetResponseStream(), ParseFileName(resp));
         }
 
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
@@ -315,18 +323,18 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
     internal interface IRestNodeInternals
     {
-        string CallApiPlainDoc(string url, string method, string accept = "text/plain");
+        Task<string> CallApiPlainDocAsync(string url, string method, string accept = "text/plain");
 
-        RawDocumentModel CallApiRawDoc(string url, string method, string accept = "*/*");
+        Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*/*");
 
-        TR Get<TR>(string url);
+        Task<TR> GetAsync<TR>(string url);
 
-        FileInfo GetFile(string url, string accept, DirectoryInfo folderToStore, string method = "GET");
+        Task<FileInfo> GetFileAsync(string url, string accept, DirectoryInfo folderToStore, string method = "GET");
 
-        TR Post<TR>(string url, object body);
+        Task<TR> PostAsync<TR>(string url, object body);
 
-        TR PostRaw<TR>(string url, byte[] body, string contentType);
+        Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType);
 
-        bool PostStream(string url, Stream body, string contentType);
+        Task<bool> PostStreamAsync(string url, Stream body, string contentType);
     }
 }

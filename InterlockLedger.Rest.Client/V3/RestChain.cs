@@ -37,52 +37,8 @@ using InterlockLedger.Rest.Client.Abstractions;
 
 namespace InterlockLedger.Rest.Client.V3
 {
-    public interface IDocumentApp
+    public class RestChain : RestAbstractChain
     {
-        IEnumerable<DocumentDetailsModel> Documents { get; }
-
-        string DocumentAsPlain(string fileId);
-
-        RawDocumentModel DocumentAsRaw(string fileId);
-
-        DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model);
-
-        DocumentDetailsModel StoreDocumentFromBytes(byte[] bytes, string name, string contentType);
-
-        DocumentDetailsModel StoreDocumentFromFile(string filePath, string name, string contentType)
-            => StoreDocumentFromFile(filePath, new DocumentUploadModel(name, contentType));
-
-        DocumentDetailsModel StoreDocumentFromFile(string filePath, DocumentUploadModel model);
-
-        DocumentDetailsModel StoreDocumentFromText(string content, string name, string contentType = "plain/text")
-            => StoreDocumentFromBytes(content.UTF8Bytes(), name, contentType);
-    }
-
-    public class RestChain : RestAbstractChain, IDocumentApp
-    {
-        IEnumerable<DocumentDetailsModel> IDocumentApp.Documents
-            => _rest.Get<IEnumerable<DocumentDetailsModel>>($"/documents@{Id}");
-
-        string IDocumentApp.DocumentAsPlain(string fileId)
-            => _rest.CallApiPlainDoc($"/documents@{Id}/{fileId}", "GET");
-
-        RawDocumentModel IDocumentApp.DocumentAsRaw(string fileId)
-            => _rest.CallApiRawDoc($"/documents@{Id}/{fileId}", "GET");
-
-        DocumentDetailsModel IDocumentApp.StoreDocumentFromBytes(byte[] bytes, string name, string contentType)
-           => PostDocument(bytes, new DocumentUploadModel(name, contentType));
-
-        DocumentDetailsModel IDocumentApp.StoreDocumentFromBytes(byte[] bytes, DocumentUploadModel model)
-           => PostDocument(bytes, model);
-
-        DocumentDetailsModel IDocumentApp.StoreDocumentFromFile(string filePath, DocumentUploadModel model) {
-            if (!File.Exists(filePath))
-                throw new ArgumentException($"No file '{filePath}' to store as a document!");
-            if (model.Name == "?")
-                model.Name = Path.GetFileName(filePath);
-            return PostDocument(File.ReadAllBytes(filePath), model);
-        }
-
         internal RestChain(IRestNodeInternals rest, ChainIdModel chainId) : base(rest, chainId) {
         }
     }

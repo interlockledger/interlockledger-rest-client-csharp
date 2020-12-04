@@ -31,12 +31,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Threading.Tasks;
 
 namespace InterlockLedger.Rest.Client.Abstractions
 {
     public class RestNetwork
     {
-        public AppsModel Apps => _rest.Get<AppsModel>("/apps");
+        public Task<AppsModel> GetAppsAsync() => _rest.GetAsync<AppsModel>("/apps");
 
         internal RestNetwork(IRestNodeInternals rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
 
