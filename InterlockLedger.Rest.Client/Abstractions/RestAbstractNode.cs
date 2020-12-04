@@ -88,9 +88,6 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         public Task<NodeDetailsModel> GetDetailsAsync() => GetAsync<NodeDetailsModel>("/");
 
-        Task<FileInfo> IRestNodeInternals.GetFileAsync(string url, string accept, DirectoryInfo folderToStore, string method)
-            => GetFileAsync(folderToStore, url, accept, method);
-
         public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors")).Select(c => BuildChain(c));
 
         public Task<IEnumerable<PeerModel>> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
@@ -142,31 +139,21 @@ namespace InterlockLedger.Rest.Client.Abstractions
         protected async Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*")
             => await GetRawResponseAsync(PrepareRequest(url, method, accept));
 
-        protected async Task CopyFileToAsync(Func<string, Stream> getWritingStreamWithName, string url, string accept, string method = "GET") {
-            if (getWritingStreamWithName is null)
-                throw new ArgumentNullException(nameof(getWritingStreamWithName));
-            var result = await GetFileReadStreamAsync(url, accept, method).ConfigureAwait(false);
-            using var readStream = result.s;
-            var s = getWritingStreamWithName(result.name);
-            if (s is null)
-                throw new InvalidOperationException($"Could not obtain a stream from '{url}'");
-            if (!s.CanWrite)
-                throw new InvalidOperationException("Can't write in the desired stream");
-            readStream.CopyTo(s);
-            s.Flush();
-        }
-
         protected async Task<TR> GetAsync<TR>(string url) => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
 
-        protected async Task<FileInfo> GetFileAsync(DirectoryInfo folderToStore, string url, string accept, string method = "GET")
-            => folderToStore is null
-                ? throw new ArgumentNullException(nameof(folderToStore))
-                : !folderToStore.Exists
-                    ? throw new InvalidOperationException("Folder to store file doesn't exist")
-                    : await CopyFileToFolderAsync(folderToStore, url, accept, method) ?? throw new InvalidOperationException("File details not set");
+        protected async Task<(string Name, string ContentType, Stream Content)> GetFileReadStreamAsync(string url, string accept = "*/*", string method = "GET") {
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
+            if (string.IsNullOrWhiteSpace(accept))
+                throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
+            if (string.IsNullOrWhiteSpace(method))
+                throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
+            var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
+            return (ParseFileName(resp), resp.ContentType, resp.GetResponseStream());
+        }
 
         protected async Task<TR> PostAsync<TR>(string url, object body)
-            => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
+                    => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
 
         protected async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
             => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
@@ -254,40 +241,6 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return filename;
         }
 
-        private async Task<FileInfo> CopyFileToFolderAsync(DirectoryInfo folderToStore, string url, string accept, string method) {
-            FileInfo fileInfo = null;
-            await CopyFileToAsync((name) => (fileInfo = GetUniquelyNamedFile(folderToStore, name)).OpenWrite(), url, accept, method);
-            fileInfo?.Refresh();
-            return fileInfo;
-
-            static FileInfo GetUniquelyNamedFile(DirectoryInfo folderToStore, ReadOnlySpan<char> name) {
-                var extension = Path.GetExtension(name);
-                var baseName = Path.GetFileNameWithoutExtension(name);
-                int i = 0;
-                string suffix = string.Empty;
-                FileInfo fi;
-                do {
-                    if (i > 100)
-                        throw new InvalidOperationException("There are already a hundred numbered files with the same name");
-                    var filename = new StringBuilder().Append(baseName).Append(suffix).Append(extension).ToString();
-                    fi = new FileInfo(Path.Combine(folderToStore.FullName, filename));
-                    suffix = $"({++i})";
-                } while (fi.Exists);
-                return fi;
-            }
-        }
-
-        private async Task<(Stream s, string name)> GetFileReadStreamAsync(string url, string accept, string method) {
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
-            if (string.IsNullOrWhiteSpace(accept))
-                throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
-            if (string.IsNullOrWhiteSpace(method))
-                throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
-            var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
-            return (resp.GetResponseStream(), ParseFileName(resp));
-        }
-
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
             var request = PrepareRequest(url, "POST", accept);
             request.ContentType = contentType;
@@ -328,8 +281,6 @@ namespace InterlockLedger.Rest.Client.Abstractions
         Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*/*");
 
         Task<TR> GetAsync<TR>(string url);
-
-        Task<FileInfo> GetFileAsync(string url, string accept, DirectoryInfo folderToStore, string method = "GET");
 
         Task<TR> PostAsync<TR>(string url, object body);
 

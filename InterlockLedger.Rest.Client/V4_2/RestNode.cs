@@ -42,11 +42,12 @@ namespace InterlockLedger.Rest.Client.V4_2
     public interface IDocumentsApp
     {
         Task<DocumentsUploadConfiguration> GetDocumentsUploadConfigurationAsync();
-        Task<FileInfo> RetrieveBlobAsync(string locator, DirectoryInfo folderToStore);
 
         Task<DocumentsMetadataModel> RetrieveMetadataAsync(string locator);
 
-        Task<FileInfo> RetrieveSingleAsync(string locator, int index, DirectoryInfo folderToStore);
+        Task<(string Name, string ContentType, Stream Content)> RetrieveSingleAsync(string locator, int index);
+
+        Task<(string Name, string ContentType, Stream Content)> RetrieveZipAsync(string locator);
 
         Task<DocumentsTransactionModel> TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source);
 
@@ -92,14 +93,14 @@ namespace InterlockLedger.Rest.Client.V4_2
         Task<DocumentsUploadConfiguration> IDocumentsApp.GetDocumentsUploadConfigurationAsync()
             => GetAsync<DocumentsUploadConfiguration>("/documents/configuration");
 
-        Task<FileInfo> IDocumentsApp.RetrieveBlobAsync(string locator, DirectoryInfo folderToStore)
-            => GetFileAsync(folderToStore, FromLocator(locator, "zip"), accept: "application/zip");
-
         Task<DocumentsMetadataModel> IDocumentsApp.RetrieveMetadataAsync(string locator)
             => GetAsync<DocumentsMetadataModel>(FromLocator(locator, "metadata"));
 
-        Task<FileInfo> IDocumentsApp.RetrieveSingleAsync(string locator, int index, DirectoryInfo folderToStore)
-            => GetFileAsync(folderToStore, FromLocator(locator, index), accept: "*/*");
+        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveSingleAsync(string locator, int index)
+            => GetFileReadStreamAsync(FromLocator(locator, index));
+
+        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveZipAsync(string locator)
+                            => GetFileReadStreamAsync(FromLocator(locator, "zip"), accept: "application/zip");
 
         Task<DocumentsTransactionModel> IDocumentsApp.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
             => PostStreamAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);

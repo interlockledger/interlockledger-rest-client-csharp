@@ -68,7 +68,7 @@ namespace rest_client
                 KeyPurpose.Protocol,
                 KeyPurpose.Action);
 
-        protected  void DisplayOtherNodeInfo() {
+        protected void DisplayOtherNodeInfo() {
             if (_node is IDocumentsApp nodeV4_2)
                 Console.WriteLine($" {nodeV4_2.GetDocumentsUploadConfigurationAsync().Result}");
         }
@@ -276,25 +276,20 @@ namespace rest_client
                     var locator = await docsApp.TransactionCommitAsync(trx.TransactionId);
                     Console.WriteLine($"    Documents locator: '{locator}'");
                     Console.WriteLine($"    {docsApp.RetrieveMetadataAsync(locator)}");
-                    var secondFile = await docsApp.RetrieveSingleAsync(locator, 1, _folderToStore);
-                    try {
-                        using var streamReader = secondFile.OpenText();
-                        Console.WriteLine($"    Retrieved second file {secondFile.FullName} : '{streamReader.ReadToEnd()}'");
-                        var blobFile = await docsApp.RetrieveBlobAsync(locator, _folderToStore);
-                        try {
-                            using var stream = blobFile.OpenRead();
-                            var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
-                            Console.WriteLine($"    Blob file '{blobFile.FullName}' contains {zip.Entries.Count} entries.");
-                            foreach (var entry in zip.Entries)
-                                Console.WriteLine($"    - {entry.FullName}");
-                        } finally { if (blobFile.Exists) blobFile.Delete(); }
-                    } finally { if (secondFile.Exists) secondFile.Delete(); }
+                    var secondFile = await docsApp.RetrieveSingleAsync(locator, 1);
+                    using var streamReader = new StreamReader(secondFile.Content);
+                    Console.WriteLine($"    Retrieved second file {secondFile.Name} : '{streamReader.ReadToEnd()}'");
+                    var blobFile = await docsApp.RetrieveZipAsync(locator);
+                    using var stream = blobFile.Content;
+                    var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
+                    Console.WriteLine($"    Blob file '{blobFile.Name}' contains {zip.Entries.Count} entries.");
+                    foreach (var entry in zip.Entries)
+                        Console.WriteLine($"    - {entry.FullName}");
                 } catch (Exception e) {
                     Console.WriteLine(e);
                 }
         }
 
-        private static readonly DirectoryInfo _folderToStore = new DirectoryInfo(Path.GetTempPath());
         private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
     }
 }
