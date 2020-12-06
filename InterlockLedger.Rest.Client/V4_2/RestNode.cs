@@ -41,6 +41,8 @@ namespace InterlockLedger.Rest.Client.V4_2
 {
     public interface IDocumentsApp
     {
+        Uri BaseUri { get; }
+
         Task<DocumentsUploadConfiguration> GetDocumentsUploadConfigurationAsync();
 
         Task<DocumentsMetadataModel> RetrieveMetadataAsync(string locator);
