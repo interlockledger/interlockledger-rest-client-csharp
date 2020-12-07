@@ -220,7 +220,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
         }
 
-        private static async Task<TR> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<Task<TR>> buildResult) => resp.StatusCode switch {
+        private static async Task<TR> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<Task<TR>> buildResult) => resp.StatusCode switch
+        {
             HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(),
             HttpStatusCode.NotFound => default,
             HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
