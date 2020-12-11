@@ -2,7 +2,7 @@
   "profiles": {
     "rest_client": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\clients\\janus-elo\\certificates\\elo.api.pfx  qLS8xsBmELjdrys9U4DAkRUZtczatcqK 32060 node.il2"
+      "commandLineArgs": "D:\\clients\\minerva-examples\\certificates\\examples.api.pfx  restClientPassword 32024 node.il2"
     }
   }
 }

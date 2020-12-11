@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V4_2;
+using InterlockLedger.Rest.Client.V4_3;
 
 namespace rest_client
 {

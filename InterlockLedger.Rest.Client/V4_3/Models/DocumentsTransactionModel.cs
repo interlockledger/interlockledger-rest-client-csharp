@@ -31,8 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V4_2
+namespace InterlockLedger.Rest.Client.V4_3
 {
     public class DocumentsTransactionModel
     {
@@ -47,9 +48,45 @@ namespace InterlockLedger.Rest.Client.V4_2
         public string Chain { get; set; }
 
         /// <summary>
+        /// Any additional information about the set of documents to be stored
+        /// </summary>
+        public string Comment { get; set; }
+
+        /// <summary>
+        /// Compression algorithm can be:
+        ///     <list type="table">
+        ///        <item><br/><code>NONE</code><description><para>No compression. Simply store the bytes</para></description></item>
+        ///        <item><br/><code>GZIP</code><description><para>Compression of the data using the gzip standard</para></description></item>
+        ///        <item><br/><code>BROTLI</code><description><para>Compression of the data using the brotli standard</para></description></item>
+        ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
+        ///     </list>
+        /// </summary>
+        public string Compression { get; set; }
+
+        /// <summary>
         /// Total count of uploaded documents for this transaction
         /// </summary>
         public int CountOfUploadedDocuments { get; set; }
+
+        /// <summary>
+        /// Names of documents already uploaded
+        /// </summary>
+        public IEnumerable<string> DocumentNames { get; set; }
+
+        /// <summary>
+        /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
+        /// </summary>
+        public string Encryption { get; set; }
+
+        /// <summary>
+        /// If the publically viewable PublicDirectory field should be created
+        /// </summary>
+        public bool GeneratePublicDirectory { get; set; }
+
+        /// <summary>
+        /// Locator for the previous version of this set
+        /// </summary>
+        public string Previous { get; set; }
 
         /// <summary>
         /// The transaction will be aborted if not completed until this timeout
@@ -60,13 +97,5 @@ namespace InterlockLedger.Rest.Client.V4_2
         /// Id of the transaction to use when uploading each file and committing the transaction
         /// </summary>
         public string TransactionId { get; set; }
-
-        public override string ToString() => $@"{nameof(DocumentsTransactionModel)}
-    {nameof(CanCommitNow)} : {CanCommitNow}
-    {nameof(Chain)} : {Chain}
-    {nameof(CountOfUploadedDocuments)} : {CountOfUploadedDocuments}
-    {nameof(TimeOutLimit)} : {TimeOutLimit}
-    {nameof(TransactionId)} : {TransactionId}
-";
     }
 }

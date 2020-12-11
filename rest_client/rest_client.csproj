@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Publish">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Publish">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>

@@ -40,7 +40,7 @@ using System.Threading.Tasks;
 using InterlockLedger.Rest.Client;
 using InterlockLedger.Rest.Client.Abstractions;
 using InterlockLedger.Rest.Client.V3;
-using InterlockLedger.Rest.Client.V4_2;
+using InterlockLedger.Rest.Client.V4_3;
 
 namespace rest_client
 {

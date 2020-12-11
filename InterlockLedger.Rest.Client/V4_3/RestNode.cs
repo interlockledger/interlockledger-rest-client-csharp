@@ -37,7 +37,7 @@ using System.Threading.Tasks;
 using System.Web;
 using InterlockLedger.Rest.Client.Abstractions;
 
-namespace InterlockLedger.Rest.Client.V4_2
+namespace InterlockLedger.Rest.Client.V4_3
 {
     public interface IDocumentsApp
     {
@@ -102,7 +102,7 @@ namespace InterlockLedger.Rest.Client.V4_2
             => GetFileReadStreamAsync(FromLocator(locator, index));
 
         Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveZipAsync(string locator)
-                            => GetFileReadStreamAsync(FromLocator(locator, "zip"), accept: "application/zip");
+            => GetFileReadStreamAsync(FromLocator(locator, "zip"), accept: "application/zip");
 
         Task<DocumentsTransactionModel> IDocumentsApp.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
             => PostStreamAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
