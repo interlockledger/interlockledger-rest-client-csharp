@@ -9,8 +9,10 @@
 *.userosscache
 *.sln.docstates
 
-# build-l2 test build dump
+# build-il2 test/build dumps
 *.testbuild
+*.build
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
