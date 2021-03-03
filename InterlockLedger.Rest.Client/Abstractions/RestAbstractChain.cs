@@ -33,10 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using InterlockLedger.Rest.Client.V3;
 
 namespace InterlockLedger.Rest.Client.Abstractions
 {
+
+
     public abstract class RestAbstractChain
     {
         internal readonly IRestNodeInternals _rest;
@@ -52,7 +53,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
         public Task<IEnumerable<ulong>> GetActiveAppsAsync() => _rest.GetAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
         public string Id { get; }
 
-        public Task<IEnumerable<InterlockingRecordModel>> GetInterlocksAsync() => _rest.GetAsync<IEnumerable<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
+        public Task<PageOf<InterlockingRecordModel>> GetInterlocksAsync() => _rest.GetAsync<PageOf<InterlockingRecordModel>>($"/chain/{Id}/interlockings");
         public string Name { get; }
 
         public Task<IEnumerable<KeyModel>> GetPermittedKeysAsync() => _rest.GetAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key");
@@ -85,17 +86,17 @@ namespace InterlockLedger.Rest.Client.Abstractions
         public Task<IEnumerable<KeyModel>> PermitKeysAsync(params KeyPermitModel[] keysToPermit)
             => _rest.PostAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
 
-        public Task<IEnumerable<RecordModel>> RecordsFromAsync(ulong firstSerial)
-            => _rest.GetAsync<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
+        public Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial)
+            => _rest.GetAsync<PageOf<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
 
-        public Task<IEnumerable<RecordModelAsJson>> RecordsFromAsJsonAsync(ulong firstSerial)
-            => _rest.GetAsync<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
+        public Task<PageOf<RecordModelAsJson>> RecordsFromAsJsonAsync(ulong firstSerial)
+            => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}");
 
-        public Task<IEnumerable<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial)
-            => _rest.GetAsync<IEnumerable<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
+        public Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial)
+            => _rest.GetAsync<PageOf<RecordModel>>($"records@{Id}?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
-        public Task<IEnumerable<RecordModelAsJson>> RecordsFromToAsJsonAsync(ulong firstSerial, ulong lastSerial)
-            => _rest.GetAsync<IEnumerable<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
+        public Task<PageOf<RecordModelAsJson>> RecordsFromToAsJsonAsync(ulong firstSerial, ulong lastSerial)
+            => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{Id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}");
 
         public override string ToString() => $"Chain '{Name}' #{Id}";
 

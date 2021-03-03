@@ -32,52 +32,66 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    public class KeyPermitModel
+    public sealed class ChainSummaryModel : ChainIdModel
     {
-        public KeyPermitModel(string id, string name, string publicKey, ulong app, IEnumerable<ulong> appActions, params KeyPurpose[] purposes)
-            : this(id, name, publicKey, new AppPermissions[] { new AppPermissions(app, appActions) }, purposes) {
+        /// <summary>
+        /// List of active apps (only the numeric ids)
+        /// </summary>
+        public List<ulong> ActiveApps { get; set; }
+
+        /// <summary>
+        /// Description (perhaps intended primary usage) [Optional]
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Is this record not able to accept new records?
+        /// </summary>
+        public bool IsClosedForNewTransactions { get; set; }
+
+        /// <summary>
+        /// Last record (serial number)
+        /// </summary>
+        public ulong LastRecord { get; set; }
+
+        public DateTimeOffset? LastUpdate { get; set; }
+
+        /// <summary>
+        /// Chain has a license
+        /// </summary>
+        public bool Licensed => !LicensingStatus.Safe().StartsWith("Unlicensed:", StringComparison.OrdinalIgnoreCase);
+
+        public ulong[] LicensedApps {
+            get {
+                var match = Regex.Match(LicensingStatus.Safe(), @"Apps: \[([\d,]+)\]");
+                if (match.Success)
+                    if (match.Groups.Count > 1) {
+                        string[] values = match.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        return values.Select(s => ulong.Parse(s)).ToArray();
+                    }
+
+                return Array.Empty<ulong>();
+            }
         }
 
-        public KeyPermitModel(string id, string name, string publicKey, IEnumerable<AppPermissions> permissions, params KeyPurpose[] purposes) {
-            Permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
-            if (!permissions.Any())
-                throw new InvalidDataException("This key doesn't have at least one action to be permitted");
-            Id = id ?? throw new ArgumentNullException(nameof(id));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
-            Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
-            if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
-                throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
-        }
+        /// <summary>
+        /// If license (or default trial period) is expired
+        /// </summary>
+        public bool LicenseIsExpired => LicensingStatus.Safe().Contains("Expired since", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Unique key id
+        ///  Composite licensing status
         /// </summary>
-        public string Id { get; set; }
+        public string LicensingStatus { get; set; }
 
         /// <summary>
-        /// Key name
+        /// Size in bytes the chain occupies in storage
         /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// List of Apps and Corresponding Actions to be permitted by numbers
-        /// </summary>
-        public IEnumerable<AppPermissions> Permissions { get; set; }
-
-        /// <summary>
-        /// Key public key
-        /// </summary>
-        public string PublicKey { get; set; }
-
-        /// <summary>
-        /// Key valid purposes
-        /// </summary>
-        public KeyPurpose[] Purposes { get; set; }
+        public ulong? SizeInBytes { get; set; }
     }
 }

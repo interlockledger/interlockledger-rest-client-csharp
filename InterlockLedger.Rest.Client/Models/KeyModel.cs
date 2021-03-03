@@ -30,59 +30,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-namespace InterlockLedger.Rest.Client.V4_3
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace InterlockLedger.Rest.Client
 {
     /// <summary>
-    /// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
+    /// Key
     /// </summary>
-    public sealed class DocumentsBeginTransactionModel
+    public class KeyModel
     {
-        /// <summary>
-        /// Id of the chain where the set of documents should be stored.
-        /// </summary>
-        public string Chain { get; set; }
+        public bool Actionable => Purposes.Contains("Action");
 
         /// <summary>
-        /// Any additional information about the set of documents to be stored
+        /// Unique key id
         /// </summary>
-        public string Comment { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Compression algorithm can be:
-        ///     <list type="table">
-        ///        <item><br/><code>NONE</code><description><para>No compression. Simply store the bytes</para></description></item>
-        ///        <item><br/><code>GZIP</code><description><para>Compression of the data using the gzip standard</para></description></item>
-        ///        <item><br/><code>BROTLI</code><description><para>Compression of the data using the brotli standard</para></description></item>
-        ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
-        ///     </list>
+        /// Key name
         /// </summary>
-        public string Compression { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
-        /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
+        /// List of Apps and Corresponding Actions to be permitted by numbers
         /// </summary>
-        public string Encryption { get; set; }
+        public IEnumerable<AppPermissions> Permissions { get; set; }
 
         /// <summary>
-        /// If the publically viewable PublicDirectory field should be created
+        /// Key public key
         /// </summary>
-        public bool? GeneratePublicDirectory { get; set; } = true;
+        public string PublicKey { get; set; }
 
         /// <summary>
-        /// Override for the number of PBE iterations to generate the key
+        /// Key valid purposes
         /// </summary>
-        public int? Iterations { get; set; }
+        public IEnumerable<string> Purposes { get; set; }
 
-        /// <summary>
-        /// Password as bytes if Encryption is not null
-        /// </summary>
-        public byte[] Password { get; set; }
+        public override string ToString() => $"Key '{Name}' {Id}{_indent}Purposes: [{_displayablePurposes}]{_indent}{_actionsFor}";
 
+        private static readonly string _indent = Environment.NewLine + "\t";
+        private static readonly string _indent2 = _indent + "  ";
 
-        /// <summary>
-        /// Locator for the previous version of this set
-        /// </summary>
-        public string Previous { get; set; }
-
+        private string _actionsFor => Permissions is null ? "No actions permitted!" : $"Actions permitted:{_indent2}{Permissions.JoinedBy(_indent2)}";
+        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
     }
 }

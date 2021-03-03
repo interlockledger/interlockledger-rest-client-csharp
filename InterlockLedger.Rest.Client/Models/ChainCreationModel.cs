@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
-
+ 
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,50 +30,81 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
     /// <summary>
-    /// Key
+    /// Chain created
     /// </summary>
-    public class KeyModel
+    public class ChainCreatedModel : ChainIdModel
     {
-        public bool Actionable => Purposes.Contains("Action");
-
         /// <summary>
-        /// Unique key id
+        /// Emergency key file names
         /// </summary>
-        public string Id { get; set; }
+        public List<ExportedKeyFile> KeyFiles { get; set; }
+    }
+
+    /// <summary>
+    /// Chain creation parameters
+    /// </summary>
+    public class ChainCreationModel
+    {
+        /// <summary>
+        /// List of additional apps (only the numeric ids)
+        /// </summary>
+        public List<ulong> AdditionalApps { get; set; }
 
         /// <summary>
-        /// Key name
+        /// Description (perhaps intended primary usage) [Optional]
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Emergency closing key password [Required]
+        /// </summary>
+        public string EmergencyClosingKeyPassword { get; set; }
+
+        /// <summary>
+        /// Emergency closing key strength of key (default: ExtraStrong)
+        /// </summary>
+        public KeyStrength EmergencyClosingKeyStrength { get; set; } = KeyStrength.ExtraStrong;
+
+        /// <summary>
+        /// App/Key management key password [Required]
+        /// </summary>
+        public string ManagementKeyPassword { get; set; }
+
+        /// <summary>
+        /// App/Key management strength of key (default: Strong)
+        /// </summary>
+        public KeyStrength ManagementKeyStrength { get; set; } = KeyStrength.Strong;
+
+        /// <summary>
+        /// Keys algorithm (default: RSA)
+        /// </summary>
+        public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
+
+        /// <summary>
+        /// Name [Required]
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// List of Apps and Corresponding Actions to be permitted by numbers
+        /// Operating key strength of key (default: Normal)
         /// </summary>
-        public IEnumerable<AppPermissions> Permissions { get; set; }
+        public KeyStrength OperatingKeyStrength { get; set; } = KeyStrength.Normal;
 
         /// <summary>
-        /// Key public key
+        /// Parent record Id [Optional]
         /// </summary>
-        public string PublicKey { get; set; }
+        public string Parent { get; set; }
+    }
 
-        /// <summary>
-        /// Key valid purposes
-        /// </summary>
-        public IEnumerable<string> Purposes { get; set; }
-
-        public override string ToString() => $"Key '{Name}' {Id}{_indent}Purposes: [{_displayablePurposes}]{_indent}{_actionsFor}";
-
-        private static readonly string _indent = Environment.NewLine + "\t";
-        private static readonly string _indent2 = _indent + "  ";
-
-        private string _actionsFor => Permissions is null ? "No actions permitted!" : $"Actions permitted:{_indent2}{Permissions.JoinedBy(_indent2)}";
-        private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
+    public class ExportedKeyFile
+    {
+        public byte[] KeyFileBytes { get; set; }
+        public string KeyFileName { get; set; }
+        public string KeyName { get; set; }
     }
 }

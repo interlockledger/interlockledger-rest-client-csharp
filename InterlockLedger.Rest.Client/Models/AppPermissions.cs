@@ -37,7 +37,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
     [JsonConverter(typeof(Converter))]
     public class AppPermissions

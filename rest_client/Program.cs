@@ -37,12 +37,12 @@ namespace rest_client
     public static class Program
     {
         public static void Main(string[] args) {
-            if (args.Length < 2) {
-                Console.WriteLine("You must provide at least 2 parameters!");
+            if (args.Length < 4) {
+                Console.WriteLine("You must provide at least 4 parameters!");
                 Console.WriteLine();
-                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password [api-port]");
+                Console.WriteLine("Usage: rest_client path-to-certificate-pfx-file certificate-password api-port rest-url [writeable]");
             } else {
-                UsingV4_2.DoIt(args);
+                UsingV6_0.DoIt(args);
             }
         }
     }

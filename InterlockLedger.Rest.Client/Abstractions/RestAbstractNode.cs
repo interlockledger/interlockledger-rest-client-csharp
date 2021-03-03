@@ -42,7 +42,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using InterlockLedger.Rest.Client.V3;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -92,8 +91,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         public Task<IEnumerable<PeerModel>> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
 
-        public async Task<IEnumerable<InterlockingRecordModel>> InterlocksOfAsync(string chain)
-            => await GetAsync<IEnumerable<InterlockingRecordModel>>($"/interlockings/{chain}");
+        public async Task<PageOf<InterlockingRecordModel>> InterlocksOfAsync(string chain)
+            => await GetAsync<PageOf<InterlockingRecordModel>>($"/interlockings/{chain}");
 
         Task<TR> IRestNodeInternals.PostAsync<TR>(string url, object body) => PostAsync<TR>(url, body);
 

@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
-        <Version>5.1.0</Version>
+        <TargetFrameworks>net5.0</TargetFrameworks>
+        <Version>6.0.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Copyright>Copyright (c) 2018-2020 InterlockLedger Network</Copyright>
+        <Copyright>Copyright (c) 2018-2021 InterlockLedger Network</Copyright>
         <Description>This library implements a C# wrapper around the InterlockLedger Node REST API. 
 
 BSD 3-Clause License
@@ -14,9 +14,9 @@ BSD 3-Clause License
         <RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <LangVersion>9</LangVersion>
+        <LangVersion>Preview</LangVersion>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Match API 4.3.0</PackageReleaseNotes>
+        <PackageReleaseNotes>Catching up to match API 6.0.0</PackageReleaseNotes>
         <PackageIcon>IL2.png</PackageIcon>
         <Authors>InterlockLedger Network</Authors>
         <Product>InterlockLedger</Product>
@@ -24,6 +24,7 @@ BSD 3-Clause License
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="InterlockLedger.Commons" Version="1.2.2" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -30,20 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-
-namespace InterlockLedger.Rest.Client.V4_3
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class DocumentsTransactionModel
+    /// <summary>
+    /// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
+    /// </summary>
+    public sealed class DocumentsBeginTransactionModel
     {
         /// <summary>
-        /// If no files/documents are still uploading
-        /// </summary>
-        public bool CanCommitNow { get; set; }
-
-        /// <summary>
-        /// Id of chain where the transaction data will be stored
+        /// Id of the chain where the set of documents should be stored.
         /// </summary>
         public string Chain { get; set; }
 
@@ -64,16 +59,6 @@ namespace InterlockLedger.Rest.Client.V4_3
         public string Compression { get; set; }
 
         /// <summary>
-        /// Total count of uploaded documents for this transaction
-        /// </summary>
-        public int CountOfUploadedDocuments { get; set; }
-
-        /// <summary>
-        /// Names of documents already uploaded
-        /// </summary>
-        public IEnumerable<string> DocumentNames { get; set; }
-
-        /// <summary>
         /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
         /// </summary>
         public string Encryption { get; set; }
@@ -81,21 +66,23 @@ namespace InterlockLedger.Rest.Client.V4_3
         /// <summary>
         /// If the publically viewable PublicDirectory field should be created
         /// </summary>
-        public bool GeneratePublicDirectory { get; set; }
+        public bool? GeneratePublicDirectory { get; set; } = true;
+
+        /// <summary>
+        /// Override for the number of PBE iterations to generate the key
+        /// </summary>
+        public int? Iterations { get; set; }
+
+        /// <summary>
+        /// Password as bytes if Encryption is not null
+        /// </summary>
+        public byte[] Password { get; set; }
+
 
         /// <summary>
         /// Locator for the previous version of this set
         /// </summary>
         public string Previous { get; set; }
 
-        /// <summary>
-        /// The transaction will be aborted if not completed until this timeout
-        /// </summary>
-        public DateTimeOffset TimeOutLimit { get; set; }
-
-        /// <summary>
-        /// Id of the transaction to use when uploading each file and committing the transaction
-        /// </summary>
-        public string TransactionId { get; set; }
     }
 }

@@ -33,15 +33,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System;
 using System.Collections.Generic;
 
-namespace InterlockLedger.Rest.Client.V4_3
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    /// <summary>
-    /// Model for metadata associated to a Multi-Document Storage Locator
-    /// </summary>
-    public class DocumentsMetadataModel
+    public class DocumentsTransactionModel
     {
         /// <summary>
-        /// Any additional information about this set of documents
+        /// If no files/documents are still uploading
+        /// </summary>
+        public bool CanCommitNow { get; set; }
+
+        /// <summary>
+        /// Id of chain where the transaction data will be stored
+        /// </summary>
+        public string Chain { get; set; }
+
+        /// <summary>
+        /// Any additional information about the set of documents to be stored
         /// </summary>
         public string Comment { get; set; }
 
@@ -57,76 +64,38 @@ namespace InterlockLedger.Rest.Client.V4_3
         public string Compression { get; set; }
 
         /// <summary>
+        /// Total count of uploaded documents for this transaction
+        /// </summary>
+        public int CountOfUploadedDocuments { get; set; }
+
+        /// <summary>
+        /// Names of documents already uploaded
+        /// </summary>
+        public IEnumerable<string> DocumentNames { get; set; }
+
+        /// <summary>
         /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
         /// </summary>
         public string Encryption { get; set; }
 
         /// <summary>
-        /// Parameters used to do the encryption
+        /// If the publically viewable PublicDirectory field should be created
         /// </summary>
-        public Parameters EncryptionParameters { get; set; }
+        public bool GeneratePublicDirectory { get; set; }
 
         /// <summary>
-        /// List of stored documents
+        /// Locator for the previous version of this set
         /// </summary>
-        public IEnumerable<DirectoryEntry> PublicDirectory { get; set; }
-
-        public override string ToString() => $@"{nameof(DocumentsMetadataModel)}
-    {nameof(Comment)} : {Comment}
-    {nameof(Compression)} : {Compression}
-    {nameof(Encryption)} : {Encryption}
-    {nameof(EncryptionParameters)} : {EncryptionParameters}
-    {nameof(PublicDirectory)} : [{_joiner}{PublicDirectory.JoinedBy(_joiner)}
-    ]";
+        public string Previous { get; set; }
 
         /// <summary>
-        /// Entry for each stored document in this MultiDocument set
+        /// The transaction will be aborted if not completed until this timeout
         /// </summary>
-        public class DirectoryEntry
-        {
-            /// <summary>
-            /// Any provided additional information about the document file
-            /// </summary>
-            public string Comment { get; set; }
-
-            /// <summary>
-            /// Mime Type for the document content
-            /// </summary>
-            public string MimeType { get; set; }
-
-            /// <summary>
-            /// Document (file) name
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Document (file) path (without the name)
-            /// </summary>
-            public string Path { get; set; }
-
-            public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}    {nameof(Path)} : {Path}{_joiner}}}
-";
-        }
+        public DateTimeOffset TimeOutLimit { get; set; }
 
         /// <summary>
-        /// The parameters used to make the encryption of the set of documents
+        /// Id of the transaction to use when uploading each file and committing the transaction
         /// </summary>
-        public class Parameters
-        {
-            /// <summary>
-            /// Number of iterations to generate the key
-            /// </summary>
-            public int Iterations { get; set; }
-
-            /// <summary>
-            /// Salt value to feed the cypher engine
-            /// </summary>
-            public byte[] Salt { get; set; }
-
-            public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt)}'{_joiner}}}
-";
-        }
-
-        private static readonly string _joiner = Environment.NewLine + "      ";
+        public string TransactionId { get; set; }
     }
 }

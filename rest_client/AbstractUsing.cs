@@ -39,8 +39,7 @@ using System.Text;
 using System.Threading.Tasks;
 using InterlockLedger.Rest.Client;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V3;
-using InterlockLedger.Rest.Client.V4_3;
+using InterlockLedger.Rest.Client.V6_0;
 
 namespace rest_client
 {
@@ -75,26 +74,28 @@ namespace rest_client
 
         protected void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 
-        protected async Task ExerciseAsync() {
+        protected async Task ExerciseAsync(bool write) {
             Console.WriteLine($"Client connected to {_node.BaseUri} using certificate {_node.CertificateName} using API version {Version}");
-            Console.WriteLine("-- Create Chain:");
-            try {
-                var chain = await _node.CreateChainAsync(new ChainCreationModel {
-                    Name = "Rest Created Test Chain",
-                    Description = "Just a test",
-                    EmergencyClosingKeyPassword = "password",
-                    ManagementKeyPassword = "password",
-                    ManagementKeyStrength = KeyStrength.ExtraStrong,
-                    KeysAlgorithm = Algorithms.RSA,
-                    AdditionalApps = new List<ulong> { 4, 8 }
-                });
-                Console.WriteLine(chain);
-            } catch (InvalidOperationException) {
-                throw;
-            } catch (Exception e) {
-                Console.WriteLine(e);
+            if (write) {
+                Console.WriteLine("-- Create Chain:");
+                try {
+                    var chain = await _node.CreateChainAsync(new ChainCreationModel {
+                        Name = "Rest Created Test Chain",
+                        Description = "Just a test",
+                        EmergencyClosingKeyPassword = "password",
+                        ManagementKeyPassword = "password",
+                        ManagementKeyStrength = KeyStrength.ExtraStrong,
+                        KeysAlgorithm = Algorithms.RSA,
+                        AdditionalApps = new List<ulong> { 4, 8 }
+                    });
+                    Console.WriteLine(chain);
+                } catch (InvalidOperationException) {
+                    throw;
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
+                Console.WriteLine();
             }
-            Console.WriteLine();
             Console.WriteLine(await _node.GetDetailsAsync());
             DisplayOtherNodeInfo();
             var apps = await _node.Network.GetAppsAsync();
@@ -109,20 +110,22 @@ namespace rest_client
             Console.WriteLine();
             Console.WriteLine("-- Chains:");
             foreach (var chain in await _node.GetChainsAsync())
-                await ExerciseChainAsync(_node, chain, transact: true);
+                await ExerciseChainAsync(_node, chain, transact: write);
             Console.WriteLine();
             Console.WriteLine("-- Mirrors:");
             foreach (var chain in await _node.GetMirrorsAsync())
                 await ExerciseChainAsync(_node, chain);
             Console.WriteLine();
-            Console.WriteLine("-- Create Mirror:");
-            try {
-                foreach (var chain in await _node.AddMirrorsOfAsync(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
-                    Console.WriteLine(chain);
-            } catch (Exception e) {
-                Console.WriteLine(e);
+            if (write) {
+                Console.WriteLine("-- Create Mirror:");
+                try {
+                    foreach (var chain in await _node.AddMirrorsOfAsync(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
+                        Console.WriteLine(chain);
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
+                Console.WriteLine();
             }
-            Console.WriteLine();
         }
 
         protected async Task ExerciseChainAsync(RestAbstractNode<T> node, T chain, bool transact = false) {
@@ -133,26 +136,31 @@ namespace rest_client
             Console.WriteLine($"  Summary.Description: {summary.Description}");
             Console.WriteLine($"  Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}");
             Console.WriteLine($"  Summary.LastRecord: {summary.LastRecord}");
+            Console.WriteLine($"  Summary.SizeInBytes: {summary.SizeInBytes}");
+            Console.WriteLine($"  Summary.LicensingStatus: {summary.LicensingStatus}");
+            Console.WriteLine($"  Summary.Licensed: {summary.Licensed}");
+            Console.WriteLine($"  Summary.LicenseIsExpired: {summary.LicenseIsExpired}");
+            Console.WriteLine($"  Summary.LicensedApps: {summary.LicensedApps.JoinedBy(",")}");
             Console.WriteLine();
-            Console.WriteLine($"  Active apps: {string.Join(", ", chain.GetActiveAppsAsync())}");
+            Console.WriteLine($"  Active apps: {string.Join(",", await chain.GetActiveAppsAsync())}");
             Console.WriteLine();
             Console.WriteLine("  Keys:");
             foreach (var key in await chain.GetPermittedKeysAsync())
                 Console.WriteLine($"    {key}");
             Console.WriteLine();
             Console.WriteLine("  Interlocks stored here:");
-            foreach (var interlock in await chain.GetInterlocksAsync())
+            foreach (var interlock in (await chain.GetInterlocksAsync()).Safe().Items)
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Interlocks of this chain:");
-            foreach (var interlock in await node.InterlocksOfAsync(chain.Id))
+            foreach (var interlock in (await node.InterlocksOfAsync(chain.Id)).Safe().Items)
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Records:");
-            foreach (var record in await chain.RecordsFromToAsync(0, 1))
+            foreach (var record in (await chain.RecordsFromToAsync(0, 1)).Safe().Items)
                 Console.WriteLine($"    {record}");
             Console.WriteLine("  RecordsAsJson:");
-            foreach (var record in await chain.RecordsFromToAsJsonAsync(0, 2))
+            foreach (var record in (await chain.RecordsFromToAsJsonAsync(0, 2)).Safe().Items)
                 Console.WriteLine($"    {record}");
             if (transact) {
                 await TryToAddNiceUnpackedRecordAsync(chain);

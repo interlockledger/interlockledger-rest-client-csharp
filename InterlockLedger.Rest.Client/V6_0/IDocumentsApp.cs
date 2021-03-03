@@ -31,19 +31,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using System.Web;
-using InterlockLedger.Rest.Client.Abstractions;
 
-namespace InterlockLedger.Rest.Client.V4_3
+namespace InterlockLedger.Rest.Client.V6_0
 {
     public interface IDocumentsApp
     {
         Uri BaseUri { get; }
 
         Task<DocumentsUploadConfiguration> GetDocumentsUploadConfigurationAsync();
+
+        Task<IEnumerable<string>> ListKnownChainsAcceptingTransactionsAsync();
+
+        Task<IEnumerable<string>> ListKnownChainsAsync();
 
         Task<DocumentsMetadataModel> RetrieveMetadataAsync(string locator);
 
@@ -76,48 +78,5 @@ namespace InterlockLedger.Rest.Client.V4_3
         Task<string> TransactionCommitAsync(string transactionId);
 
         Task<DocumentsTransactionModel> TransactionStatusAsync(string transactionId);
-    }
-
-    public class RestNode : RestAbstractNode<RestChain>, IDocumentsApp
-    {
-        public RestNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(x509Certificate, networkId, address) { }
-
-        public RestNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost")
-            : base(x509Certificate, port, address) { }
-
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
-
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost")
-            : base(certFile, certPassword, port, address) { }
-
-        Task<DocumentsUploadConfiguration> IDocumentsApp.GetDocumentsUploadConfigurationAsync()
-            => GetAsync<DocumentsUploadConfiguration>("/documents/configuration");
-
-        Task<DocumentsMetadataModel> IDocumentsApp.RetrieveMetadataAsync(string locator)
-            => GetAsync<DocumentsMetadataModel>(FromLocator(locator, "metadata"));
-
-        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveSingleAsync(string locator, int index)
-            => GetFileReadStreamAsync(FromLocator(locator, index));
-
-        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveZipAsync(string locator)
-            => GetFileReadStreamAsync(FromLocator(locator, "zip"), accept: "application/zip");
-
-        Task<DocumentsTransactionModel> IDocumentsApp.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
-            => PostStreamAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}?name={HttpUtility.UrlEncode(name)}&comment={HttpUtility.UrlEncode(comment)}", source, contentType);
-
-        Task<DocumentsTransactionModel> IDocumentsApp.TransactionBeginAsync(DocumentsBeginTransactionModel transactionStart)
-            => PostAsync<DocumentsTransactionModel>("/documents/transaction", transactionStart);
-
-        Task<string> IDocumentsApp.TransactionCommitAsync(string transactionId)
-            => PostAsync<string>($"/documents/transaction/{transactionId}/commit", null);
-
-        Task<DocumentsTransactionModel> IDocumentsApp.TransactionStatusAsync(string transactionId)
-            => GetAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId}");
-
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
-
-        private static string FromLocator<T>(string locator, T selector) => $"/documents/{HttpUtility.UrlEncode(locator)}/{selector}";
     }
 }

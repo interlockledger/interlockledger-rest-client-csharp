@@ -30,18 +30,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using InterlockLedger.Rest.Client.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class RestNode : RestAbstractNode<RestChain>
+    public sealed record DocumentsUploadConfiguration
     {
-        public RestNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-            : base(certFile, certPassword, networkId, address) { }
+        public DocumentsUploadConfiguration() { }
 
-        public RestNode(string certFile, string certPassword, ushort port, string address = "localhost") :
-            base(certFile, certPassword, port, address) { }
+        public string DefaultCompression { get; set; }
+        public string DefaultEncryption { get; set; }
+        public long FileSizeLimit { get; set; }
+        public int? Iterations { get; set; }
+        public IEnumerable<string> PermittedContentTypes { get; set; }
+        public ushort TimeOutInMinutes { get; set; }
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c);
+        public override string ToString()
+            => $@"{nameof(DocumentsUploadConfiguration)}
+    {nameof(DefaultCompression)} : {DefaultCompression}
+    {nameof(DefaultEncryption)} : {DefaultEncryption}
+    {nameof(FileSizeLimit)} : {FileSizeLimit}
+    {nameof(Iterations)} : {Iterations}
+    {nameof(PermittedContentTypes)} :{_joiner}{PermittedContentTypes.JoinedBy(_joiner)}
+    {nameof(TimeOutInMinutes)} : {TimeOutInMinutes}
+";
+
+        private static readonly string _joiner = $"{Environment.NewLine}        ";
     }
 }

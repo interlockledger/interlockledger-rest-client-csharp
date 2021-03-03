@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,30 +30,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System.Collections.Generic;
+using System;
+using InterlockLedger.Rest.Client.Abstractions;
+using InterlockLedger.Rest.Client.V6_0;
 
-namespace InterlockLedger.Rest.Client
+namespace rest_client
 {
-    public sealed class ChainSummaryModel : ChainIdModel
+    public class UsingV6_0 : AbstractUsing<RestChain>
     {
-        /// <summary>
-        /// List of active apps (only the numeric ids)
-        /// </summary>
-        public List<ulong> ActiveApps { get; set; }
+        public static void DoIt(string[] args) {
+            try {
+                var client =
+                    args.Length > 3
+                    ? new RestNode(args[0], args[1], ushort.Parse(args[2]), args[3])
+                    : throw new InvalidOperationException("You must provide at least 4 parameters");
+                new UsingV6_0(client).ExerciseAsync(args.Length > 4).Wait();
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
 
-        /// <summary>
-        /// Description (perhaps intended primary usage) [Optional]
-        /// </summary>
-        public string Description { get; set; }
+        protected UsingV6_0(RestAbstractNode<RestChain> node) : base(node) {
+        }
 
-        /// <summary>
-        /// Is this record not able to accept new records?
-        /// </summary>
-        public bool IsClosedForNewTransactions { get; set; }
-
-        /// <summary>
-        /// Last record (serial number)
-        /// </summary>
-        public ulong LastRecord { get; set; }
+        protected override string Version => "6.0";
     }
 }

@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -30,81 +30,54 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
-namespace InterlockLedger.Rest.Client.V3
+namespace InterlockLedger.Rest.Client
 {
-    /// <summary>
-    /// Chain created
-    /// </summary>
-    public class ChainCreatedModel : ChainIdModel
+    public class KeyPermitModel
     {
-        /// <summary>
-        /// Emergency key file names
-        /// </summary>
-        public List<ExportedKeyFile> KeyFiles { get; set; }
-    }
+        public KeyPermitModel(string id, string name, string publicKey, ulong app, IEnumerable<ulong> appActions, params KeyPurpose[] purposes)
+            : this(id, name, publicKey, new AppPermissions[] { new AppPermissions(app, appActions) }, purposes) {
+        }
 
-    /// <summary>
-    /// Chain creation parameters
-    /// </summary>
-    public class ChainCreationModel
-    {
-        /// <summary>
-        /// List of additional apps (only the numeric ids)
-        /// </summary>
-        public List<ulong> AdditionalApps { get; set; }
-
-        /// <summary>
-        /// Description (perhaps intended primary usage) [Optional]
-        /// </summary>
-        public string Description { get; set; }
+        public KeyPermitModel(string id, string name, string publicKey, IEnumerable<AppPermissions> permissions, params KeyPurpose[] purposes) {
+            Permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
+            if (!permissions.Any())
+                throw new InvalidDataException("This key doesn't have at least one action to be permitted");
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+            Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
+            if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
+                throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
+        }
 
         /// <summary>
-        /// Emergency closing key password [Required]
+        /// Unique key id
         /// </summary>
-        public string EmergencyClosingKeyPassword { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// Emergency closing key strength of key (default: ExtraStrong)
-        /// </summary>
-        public KeyStrength EmergencyClosingKeyStrength { get; set; } = KeyStrength.ExtraStrong;
-
-        /// <summary>
-        /// App/Key management key password [Required]
-        /// </summary>
-        public string ManagementKeyPassword { get; set; }
-
-        /// <summary>
-        /// App/Key management strength of key (default: Strong)
-        /// </summary>
-        public KeyStrength ManagementKeyStrength { get; set; } = KeyStrength.Strong;
-
-        /// <summary>
-        /// Keys algorithm (default: RSA)
-        /// </summary>
-        public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
-
-        /// <summary>
-        /// Name [Required]
+        /// Key name
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Operating key strength of key (default: Normal)
+        /// List of Apps and Corresponding Actions to be permitted by numbers
         /// </summary>
-        public KeyStrength OperatingKeyStrength { get; set; } = KeyStrength.Normal;
+        public IEnumerable<AppPermissions> Permissions { get; set; }
 
         /// <summary>
-        /// Parent record Id [Optional]
+        /// Key public key
         /// </summary>
-        public string Parent { get; set; }
-    }
+        public string PublicKey { get; set; }
 
-    public class ExportedKeyFile
-    {
-        public byte[] KeyFileBytes { get; set; }
-        public string KeyFileName { get; set; }
-        public string KeyName { get; set; }
+        /// <summary>
+        /// Key valid purposes
+        /// </summary>
+        public KeyPurpose[] Purposes { get; set; }
     }
 }
