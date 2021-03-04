@@ -42,7 +42,7 @@ namespace InterlockLedger.Rest.Client
     [JsonConverter(typeof(Converter))]
     public class AppPermissions
     {
-        public static readonly Regex Mask = new Regex("^#[0-9]+(,[0-9]+)*$");
+        public static readonly Regex Mask = new("^#[0-9]+(,[0-9]+)*$");
 
         public AppPermissions(ulong app, params ulong[] appActions) : this(app, (IEnumerable<ulong>)appActions) {
         }

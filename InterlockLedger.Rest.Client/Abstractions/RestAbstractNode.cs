@@ -177,7 +177,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
         protected bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
             => true;
 
-        private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings {
+        private static readonly JsonSerializerSettings _jsonSettings = new() {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
@@ -200,7 +200,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
         private static TR Deserialize<TR>(string s) => JsonConvert.DeserializeObject<TR>(s);
 
         private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
-            => new X509Certificate2(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
+            => new(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
         private static async Task<RawDocumentModel> GetRawResponseAsync(HttpWebRequest req) {
             var response = await GetResponseAsync(req);

@@ -57,7 +57,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
                 return new PageOf<T>(result);
             ushort totalPages = (ushort)Math.Min((result.Length + pageSize - 1) / pageSize, ushort.MaxValue);
             if (page >= totalPages)
-                page = totalPages > 0 ? (ushort)(totalPages - 1) : 0;
+                page = (ushort)(totalPages > 0 ? totalPages - 1 : 0);
             return new PageOf<T>(result.Skip(page * pageSize).Take(pageSize).ToArray(), page, pageSize, totalPages);
         }
 
@@ -74,7 +74,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
             TotalNumberOfPages = totalNumberOfPages;
         }
 
-        public PageOf(IEnumerable<T> items) : this(items, 0, 0, items.SafeAny() ? 1 : 0) {
+        public PageOf(IEnumerable<T> items) : this(items, 0, 0, (ushort)(items.SafeAny() ? 1 : 0)) {
         }
 
         public static PageOf<T> Empty { get; } = new PageOf<T>(Enumerable.Empty<T>(), 0, 0, 0);
@@ -83,8 +83,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
         public byte PageSize { get; }
         public ushort TotalNumberOfPages { get; }
 
-        public PageOf<TN> Cast<TN>() => new PageOf<TN>(Items.Cast<TN>(), Page, PageSize, TotalNumberOfPages);
+        public PageOf<TN> Cast<TN>() => new(Items.Cast<TN>(), Page, PageSize, TotalNumberOfPages);
 
-        public PageOf<TN> Convert<TN>(Func<T, TN> converter) => new PageOf<TN>(Items.Select(converter), Page, PageSize, TotalNumberOfPages);
+        public PageOf<TN> Convert<TN>(Func<T, TN> converter) => new(Items.Select(converter), Page, PageSize, TotalNumberOfPages);
     }
 }

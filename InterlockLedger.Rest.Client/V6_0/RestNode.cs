@@ -98,7 +98,7 @@ namespace InterlockLedger.Rest.Client.V6_0
         Task<DocumentsTransactionModel> IDocumentsApp.TransactionStatusAsync(string transactionId)
             => GetAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId.Required(nameof(transactionId))}");
 
-        protected override RestChain BuildChain(ChainIdModel c) => new RestChain(this, c.Required(nameof(c)));
+        protected override RestChain BuildChain(ChainIdModel c) => new(this, c.Required(nameof(c)));
 
         private static string FromLocator<T>(string locator, T selector) => $"/documents/{HttpUtility.UrlEncode(locator)}/{selector}";
 
