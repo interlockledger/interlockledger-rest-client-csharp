@@ -41,7 +41,7 @@ using InterlockLedger.Rest.Client.Abstractions;
 
 namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class RestNode : RestAbstractNode<RestChain>, IDocumentsApp
+    public class RestNode : RestAbstractNode<RestChain>, IDocumentRegistry
     {
         public RestNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
             : base(x509Certificate, networkId, address) { }
@@ -55,12 +55,12 @@ namespace InterlockLedger.Rest.Client.V6_0
         public RestNode(string certFile, string certPassword, ushort port, string address)
             : base(certFile, certPassword, port, address) { }
 
-        Task<DocumentsUploadConfiguration> IDocumentsApp.GetDocumentsUploadConfigurationAsync()
+        Task<DocumentsUploadConfiguration> IDocumentRegistry.GetDocumentsUploadConfigurationAsync()
             => GetAsync<DocumentsUploadConfiguration>("/documents/configuration");
 
         public async Task<IEnumerable<string>> ListKnownChainsAcceptingTransactionsAsync() {
             var result = new List<string>();
-            foreach (var chain in (await GetChainsAsync().ConfigureAwait(false)).Safe()) {
+            foreach (IRestChain chain in (await GetChainsAsync().ConfigureAwait(false)).Safe()) {
                 var summary = await chain.GetSummaryAsync().ConfigureAwait(false);
                 if (summary is not null
                     && !summary.IsClosedForNewTransactions
@@ -75,27 +75,27 @@ namespace InterlockLedger.Rest.Client.V6_0
         public async Task<IEnumerable<string>> ListKnownChainsAsync()
             => (await GetChainsAsync().ConfigureAwait(false)).Safe().Select(ch => ch.Id);
 
-        Task<DocumentsMetadataModel> IDocumentsApp.RetrieveMetadataAsync(string locator)
+        Task<DocumentsMetadataModel> IDocumentRegistry.RetrieveMetadataAsync(string locator)
             => GetAsync<DocumentsMetadataModel>(FromLocator(locator.Required(nameof(locator)), "metadata"));
 
-        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveSingleAsync(string locator, int index)
+        Task<(string Name, string ContentType, Stream Content)> IDocumentRegistry.RetrieveSingleAsync(string locator, int index)
             => GetFileReadStreamAsync(FromLocator(locator.Required(nameof(locator)), index));
 
-        Task<(string Name, string ContentType, Stream Content)> IDocumentsApp.RetrieveZipAsync(string locator)
+        Task<(string Name, string ContentType, Stream Content)> IDocumentRegistry.RetrieveZipAsync(string locator)
             => GetFileReadStreamAsync(FromLocator(locator.Required(nameof(locator)), "zip"), accept: "application/zip");
 
-        Task<DocumentsTransactionModel> IDocumentsApp.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
+        Task<DocumentsTransactionModel> IDocumentRegistry.TransactionAddItemAsync(string transactionId, string path, string name, string comment, string contentType, Stream source)
             => PostStreamAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId.Required(nameof(transactionId))}?name={HttpUtility.UrlEncode(name.Required(nameof(name)))}&comment={HttpUtility.UrlEncode(comment)}", source.Required(nameof(source)), contentType.Required(nameof(contentType)));
 
-        async Task<DocumentsTransactionModel> IDocumentsApp.TransactionBeginAsync(DocumentsBeginTransactionModel transactionStart) {
+        async Task<DocumentsTransactionModel> IDocumentRegistry.TransactionBeginAsync(DocumentsBeginTransactionModel transactionStart) {
             await ValidateChainAsync(transactionStart.Required(nameof(transactionStart)).Chain);
             return await PostAsync<DocumentsTransactionModel>("/documents/transaction", transactionStart);
         }
 
-        Task<string> IDocumentsApp.TransactionCommitAsync(string transactionId)
+        Task<string> IDocumentRegistry.TransactionCommitAsync(string transactionId)
             => PostAsync<string>($"/documents/transaction/{transactionId.Required(nameof(transactionId))}/commit", null);
 
-        Task<DocumentsTransactionModel> IDocumentsApp.TransactionStatusAsync(string transactionId)
+        Task<DocumentsTransactionModel> IDocumentRegistry.TransactionStatusAsync(string transactionId)
             => GetAsync<DocumentsTransactionModel>($"/documents/transaction/{transactionId.Required(nameof(transactionId))}");
 
         protected override RestChain BuildChain(ChainIdModel c) => new(this, c.Required(nameof(c)));

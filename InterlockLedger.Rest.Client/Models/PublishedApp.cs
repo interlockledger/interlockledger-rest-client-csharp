@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace InterlockLedger.Rest.Client
@@ -39,6 +40,7 @@ namespace InterlockLedger.Rest.Client
     public class PublishedApp : IComparable<PublishedApp>, IEquatable<PublishedApp>
     {
         public ulong? AlternativeId { get; set; }
+        [JsonConverter(typeof(VersionJsonConverter))]
         public Version AppVersion { get; set; }
         public string CompositeName => Safe($"{PublisherName}.{Name}#{AppVersion}");
         public string Description { get; set; }

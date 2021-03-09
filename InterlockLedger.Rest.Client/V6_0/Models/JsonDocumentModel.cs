@@ -30,31 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
-
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class ForceInterlockModel
+    public sealed class JsonDocumentModel : RecordModelBase
     {
-        public ForceInterlockModel() { }
-
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        /// <summary>
+        /// Encrypted Blob
+        /// </summary>
+        public EncryptedTextModel EncryptedJson { get; set; }
 
         /// <summary>
-        /// Hash algorithm to use. Default: SHA256
+        /// Stored JsonDocument
         /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
-
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        public string JsonText { get; set; }
     }
 }

@@ -31,30 +31,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class ForceInterlockModel
+    public static class StringExtensions
     {
-        public ForceInterlockModel() { }
+        public static string Ellipsis(this string text, ushort limit) => UnsafeEllipsis(text.Safe(), limit);
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        public static bool IsValidJson(this string text) {
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+            try {
+                _ = JsonSerializer.Deserialize<object>(text.Trim(), _jsonValidationOptions);
+            } catch (Exception) {
+                return false;
+            }
+            return true;
+        }
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
+        private static readonly JsonSerializerOptions _jsonValidationOptions = new() {
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.Strict,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+        };
 
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        private static string UnsafeEllipsis(string text, ushort limit)
+            => text.Length <= limit ? text : limit > 3 ? $"{text.Substring(0, -3 + limit)}..." : text.Substring(0, limit);
     }
 }

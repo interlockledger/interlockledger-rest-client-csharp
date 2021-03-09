@@ -31,30 +31,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Threading.Tasks;
+using InterlockLedger.Rest.Client.Abstractions;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class ForceInterlockModel
+    internal sealed class JsonStoreImplementation : IJsonStore
     {
-        public ForceInterlockModel() { }
+        public JsonStoreImplementation(RestAbstractChain parent) {
+            _parent = parent.Required(nameof(parent));
+            _rest = _parent._rest;
+            _id = _parent.Id;
+        }
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        public Task<JsonDocumentModel> RetrieveAsync(ulong serial)
+            => _rest.GetAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/{serial}");
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
-
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        private readonly string _id;
+        private readonly RestAbstractChain _parent;
+        private readonly IRestNodeInternals _rest;
     }
 }

@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -40,14 +41,14 @@ using System.Net.Security;
 using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public abstract class RestAbstractNode<T> : IRestNodeInternals where T : RestAbstractChain
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
+    public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestChain
     {
         public RestAbstractNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
             : this(x509Certificate, (ushort)networkId, address) { }
@@ -65,8 +66,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
             : this(GetCertFromFile(certFile, certPassword), port, address) { }
 
         public Uri BaseUri { get; }
-        public string CertificateName => _certificate.FriendlyName;
-
+        public X509Certificate2 Certificate => _certificate;
+        public string CertificateName => _certificate.FriendlyName.WithDefault(_certificate.Subject);
         public RestNetwork Network { get; }
 
         public Task<IEnumerable<ChainIdModel>> AddMirrorsOfAsync(IEnumerable<string> newMirrors)
@@ -101,6 +102,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
 
         Task<bool> IRestNodeInternals.PostStreamAsync(string url, Stream body, string contentType)
             => PostStreamAsync<bool>(url, body, contentType);
+
+        public override string ToString() => $"Node [{BaseUri}] connected with certificate '{CertificateName}'";
 
         protected readonly X509Certificate2 _certificate;
 
@@ -152,7 +155,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
         }
 
         protected async Task<TR> PostAsync<TR>(string url, object body)
-                    => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
+            => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
 
         protected async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
             => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
@@ -177,10 +180,6 @@ namespace InterlockLedger.Rest.Client.Abstractions
         protected bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
             => true;
 
-        private static readonly JsonSerializerSettings _jsonSettings = new() {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-        };
-
         private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
 
         private static byte[] ArrayConcat(byte[] firstBuffer, Memory<byte> secondBuffer, int count) {
@@ -197,7 +196,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
                 : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
         }
 
-        private static TR Deserialize<TR>(string s) => JsonConvert.DeserializeObject<TR>(s);
+        private static TR Deserialize<TR>(string s) => JsonSerializer.Deserialize<TR>(s, Globals.JsonSettings);
 
         private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
             => new(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
@@ -240,6 +239,8 @@ namespace InterlockLedger.Rest.Client.Abstractions
             return filename;
         }
 
+        private string GetDebuggerDisplay() => ToString();
+
         private HttpWebRequest PreparePostRawRequest(string url, byte[] body, string accept, string contentType) {
             var request = PrepareRequest(url, "POST", accept);
             request.ContentType = contentType;
@@ -254,7 +255,7 @@ namespace InterlockLedger.Rest.Client.Abstractions
             var request = PrepareRequest(url, "POST", accept);
             request.ContentType = "application/json; charset=utf-8";
             using (var stream = request.GetRequestStream()) {
-                var json = JsonConvert.SerializeObject(body, _jsonSettings);
+                var json = JsonSerializer.Serialize(body, Globals.JsonSettings);
                 using var writer = new StreamWriter(stream, _utf8WithoutBOM);
                 writer.Write(json);
                 writer.Flush();

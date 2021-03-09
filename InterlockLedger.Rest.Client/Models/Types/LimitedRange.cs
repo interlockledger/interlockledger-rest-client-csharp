@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -35,11 +35,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace InterlockLedger.Rest.Client
 {
-    [TypeConverter(typeof(RangeConverter))]
+    [TypeConverter(typeof(LimitedRangeConverter))]
+    [JsonConverter(typeof(LimitedRangeJsonConverter))]
     public struct LimitedRange : IEquatable<LimitedRange>
     {
         public readonly ulong End;
@@ -95,7 +99,7 @@ namespace InterlockLedger.Rest.Client
         }
     }
 
-    public static class RangeExtensions
+    public static class LimitedRangeExtensions
     {
         public static bool AnyOverlapsWith(this IEnumerable<LimitedRange> first, IEnumerable<LimitedRange> second) => first.Any(f => second.Any(s => s.OverlapsWith(f)));
 
@@ -104,7 +108,7 @@ namespace InterlockLedger.Rest.Client
         public static bool IsSupersetOf(this IEnumerable<LimitedRange> first, IEnumerable<LimitedRange> second) => second.All(r => first.Any(fr => fr.Contains(r)));
     }
 
-    public class RangeConverter : TypeConverter
+    internal class LimitedRangeConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType == typeof(string);
 
@@ -130,5 +134,18 @@ namespace InterlockLedger.Rest.Client
             LimitedRange lr => lr.ToString(),
             _ => throw new InvalidOperationException("Can only convert Range to string!!!")
         };
+    }
+
+    internal class LimitedRangeJsonConverter : JsonConverter<LimitedRange>
+    {
+        public override LimitedRange Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => reader.TokenType switch
+            {
+                JsonTokenType.String => LimitedRange.Resolve(reader.GetString()),
+                _ => throw new InvalidDataException("Invalid format for a LimitedRange")
+            };
+
+        public override void Write(Utf8JsonWriter writer, LimitedRange value, JsonSerializerOptions options)
+            => writer.WriteStringValue(value.ToString());
     }
 }

@@ -30,31 +30,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using System.Threading.Tasks;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public class ForceInterlockModel
+    public interface IRestRecordsAsJson
     {
-        public ForceInterlockModel() { }
+        Task<RecordModelAsJson> AddAsync(NewRecordModelAsJson model);
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, object payload);
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
+        Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, RecordType type, object payload);
 
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
+        Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10);
 
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10);
     }
 }

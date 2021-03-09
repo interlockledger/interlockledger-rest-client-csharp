@@ -31,30 +31,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace InterlockLedger.Rest.Client
 {
-    public class ForceInterlockModel
+    internal class VersionJsonConverter : JsonConverter<Version>
     {
-        public ForceInterlockModel() { }
+        public override Version Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => reader.TokenType switch
+            {
+                JsonTokenType.Null => null,
+                JsonTokenType.String => Version.Parse(reader.GetString()),
+                _ => throw new InvalidDataException("Badly formatted version")
+            };
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
-
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
-
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        public override void Write(Utf8JsonWriter writer, Version value, JsonSerializerOptions options) {
+            if (value is null)
+                writer.WriteNullValue();
+            else
+                writer.WriteStringValue(value.ToString());
+        }
     }
 }

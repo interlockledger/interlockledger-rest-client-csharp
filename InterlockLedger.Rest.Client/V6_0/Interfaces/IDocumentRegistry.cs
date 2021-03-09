@@ -37,7 +37,7 @@ using System.Threading.Tasks;
 
 namespace InterlockLedger.Rest.Client.V6_0
 {
-    public interface IDocumentsApp
+    public interface IDocumentRegistry
     {
         Uri BaseUri { get; }
 

@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace InterlockLedger.Rest.Client
 {
@@ -44,6 +45,7 @@ namespace InterlockLedger.Rest.Client
         /// <summary>
         /// Mapping color
         /// </summary>
+        [JsonConverter(typeof(ColorJsonConverter))]
         public Color Color { get; set; }
 
         /// <summary>

@@ -30,31 +30,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using System.Threading.Tasks;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public class ForceInterlockModel
+    public interface IRestInterlockings
     {
-        public ForceInterlockModel() { }
+        Task<InterlockingRecordModel> ForceInterlockAsync(string targetChain)
+            => ForceInterlockAsync(new ForceInterlockModel(targetChain));
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        Task<InterlockingRecordModel> ForceInterlockAsync(ForceInterlockModel model);
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
-
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        Task<PageOf<InterlockingRecordModel>> GetInterlocksAsync(ushort page = 0, byte pageSize = 10);
     }
 }

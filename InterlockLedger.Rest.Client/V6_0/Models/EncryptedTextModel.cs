@@ -31,30 +31,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.V6_0
 {
-    public class ForceInterlockModel
+    public sealed class EncryptedTextModel
     {
-        public ForceInterlockModel() { }
+        public EncryptedTextModel() { }
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        public string Cipher { get; set; }
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
+        public byte[] CipherText { get; set; }
 
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
+        public IEnumerable<ReadingKeyModel> ReadingKeys { get; set; }
 
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        public override string ToString()
+            => $"Encrypted Json with {Cipher} for {ReadingKeys?.Count()} keys with content \"{CipherText.ToSafeBase64().Ellipsis(47)}\"";
+        public string DecodedWith(X509Certificate2 certificate) => throw new NotImplementedException();
     }
 }

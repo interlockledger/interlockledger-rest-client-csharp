@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -71,6 +71,11 @@ namespace InterlockLedger.Rest.Client
         public KeyStrength EmergencyClosingKeyStrength { get; set; } = KeyStrength.ExtraStrong;
 
         /// <summary>
+        /// Keys algorithm (default: RSA)
+        /// </summary>
+        public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
+
+        /// <summary>
         /// App/Key management key password [Required]
         /// </summary>
         public string ManagementKeyPassword { get; set; }
@@ -79,11 +84,6 @@ namespace InterlockLedger.Rest.Client
         /// App/Key management strength of key (default: Strong)
         /// </summary>
         public KeyStrength ManagementKeyStrength { get; set; } = KeyStrength.Strong;
-
-        /// <summary>
-        /// Keys algorithm (default: RSA)
-        /// </summary>
-        public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
 
         /// <summary>
         /// Name [Required]

@@ -43,7 +43,7 @@ using InterlockLedger.Rest.Client.V6_0;
 
 namespace rest_client
 {
-    public abstract class AbstractUsing<T> where T : RestAbstractChain
+    public abstract class AbstractUsing<T> where T : IRestChain
     {
         public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
         protected readonly RestAbstractNode<T> _node;
@@ -53,22 +53,22 @@ namespace rest_client
         protected abstract string Version { get; }
 
         protected Task<RecordModelAsJson> AddRecordAsJsonAsync(T chain, ulong appId, ulong action, object json)
-            => chain.AddRecordAsJsonAsync(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
+            => chain.RecordsAsJson.AddAsync(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
 
         protected Task<RecordModel> AddRecordAsync(T chain, ulong appId, params byte[] payload)
-            => chain.AddRecordAsync(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
+            => chain.Records.AddRecordAsync(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
 
         protected KeyPermitModel BuildKey()
             => new(
                 id: "Key!U0y4av1fQGnOkC_1RkZLd4gE8vVSGVGJO5o1pzprQHo",
                 name: "InterlockLedger Documenter",
                 publicKey: "PubKey!KPkBERD5AQiuLtsWMFr3H6HtQVUMky1wFzL0TQF3VC-X24G4gjFqcrHHawNxNgDiw21YS8Fx6o1ornUOHqJPvIpYX1H2T2bqbIsIMNgyO4H234Ahken7SadTlnRPw92_sRpqprBobfuX9f9K6iM-SUJ2WY_6U4bAG4HdsFRV4yqfdDhrCAedBUs8O9qyne6vHFN8CiTEcapfQE7K-StPlW2wVmLdIXov2FdfYdJpFLXbbkgBCdkAZl2Oc86PRVzPkqD5dzl86QNZGZxhq2ngQ1UXASUQVh4tV5XqXQoe7xgeiE-1O82oWZWOvH6xdHjY9sMFyY3Mhjz8_MrI_0_DBEH7Pikmhp0LlyucyUA6dz4G_e13Xmyty2LDeqyYNhYORuZu2ev7zIEPvclpKeztC5gmJdCdcXZf_Omigb6I20HiggFBBrTGIjxJ_5xvpfb8DZCB6jqG5deTqybkjDJYPkA0TeoswKlwncT6mmZ3RdNNxoojUEX0TcBfSioKrnWRqGZ6Yc5wPFIvZ2REU6NP5gJv53FYe2yGAFygvWM1t2wBpWb6bx4h4BFKbfHPcCdmPqJHF0WQdMd7rtryENICHh9ozcVHtpHUtGdwoqV8gmeav836canWcXhKWQILiTiLpGAMa7FuUmPUr3K3q0c2rAy0IYXigjHvujTMz_0aGYqZoHD726gb4RADAQAB#RSA",
-                new AppPermissions(4, 1000, 1001).ToEnumerable(),
+                new AppPermissions(4).ToEnumerable(),
                 KeyPurpose.Protocol,
                 KeyPurpose.Action);
 
         protected void DisplayOtherNodeInfo() {
-            if (_node is IDocumentsApp nodeV4_2)
+            if (_node is IDocumentRegistry nodeV4_2)
                 Console.WriteLine($" {nodeV4_2.GetDocumentsUploadConfigurationAsync().Result}");
         }
 
@@ -126,7 +126,10 @@ namespace rest_client
                 }
                 Console.WriteLine();
             }
+            await DoExtraExercisesAsync(_node, write);
         }
+
+        protected abstract Task DoExtraExercisesAsync(RestAbstractNode<T> node, bool write);
 
         protected async Task ExerciseChainAsync(RestAbstractNode<T> node, T chain, bool transact = false) {
             Console.WriteLine(chain);
@@ -149,7 +152,7 @@ namespace rest_client
                 Console.WriteLine($"    {key}");
             Console.WriteLine();
             Console.WriteLine("  Interlocks stored here:");
-            foreach (var interlock in (await chain.GetInterlocksAsync()).Safe().Items)
+            foreach (var interlock in (await chain.Interlockings.GetInterlocksAsync()).Safe().Items)
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Interlocks of this chain:");
@@ -157,10 +160,10 @@ namespace rest_client
                 Console.WriteLine($"    {interlock}");
             Console.WriteLine();
             Console.WriteLine("  Records:");
-            foreach (var record in (await chain.RecordsFromToAsync(0, 1)).Safe().Items)
+            foreach (var record in (await chain.Records.RecordsFromToAsync(0, 1)).Safe().Items)
                 Console.WriteLine($"    {record}");
             Console.WriteLine("  RecordsAsJson:");
-            foreach (var record in (await chain.RecordsFromToAsJsonAsync(0, 2)).Safe().Items)
+            foreach (var record in (await chain.RecordsAsJson.FromToAsync(0, 2)).Safe().Items)
                 Console.WriteLine($"    {record}");
             if (transact) {
                 await TryToAddNiceUnpackedRecordAsync(chain);
@@ -180,7 +183,7 @@ namespace rest_client
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a badly encoded unpacked record:");
-                var record = await chain.AddRecordAsync(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                var record = await chain.Records.AddRecordAsync(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -224,7 +227,7 @@ namespace rest_client
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to add a nice unpacked record:");
-                var record = await chain.AddRecordAsync(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+                var record = await chain.Records.AddRecordAsync(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
                 Console.WriteLine($"    {record}");
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -235,7 +238,7 @@ namespace rest_client
             try {
                 Console.WriteLine();
                 Console.WriteLine("  Trying to force an interlock:");
-                var interlock = await chain.ForceInterlockAsync(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
+                var interlock = await chain.Interlockings.ForceInterlockAsync(new ForceInterlockModel() { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1, TargetChain = "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" });
                 Console.WriteLine($"    {interlock}");
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -264,7 +267,7 @@ namespace rest_client
         }
 
         protected async Task TryToStoreNiceDocumentsAsync(T chain) {
-            if (_node is IDocumentsApp docsApp)
+            if (_node is IDocumentRegistry docsApp)
                 try {
                     Console.WriteLine();
                     Console.WriteLine("  Trying to begin a transaction:");

@@ -30,31 +30,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************************************************************/
 
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public class ForceInterlockModel
+    public interface IRestChain
     {
-        public ForceInterlockModel() { }
+        string Id { get; }
+        IRestInterlockings Interlockings { get; }
+        string Name { get; }
+        IRestRecords Records { get; }
+        IRestRecordsAsJson RecordsAsJson { get; }
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        Task<IEnumerable<ulong>> GetActiveAppsAsync();
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
+        Task<IEnumerable<KeyModel>> GetPermittedKeysAsync();
 
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
+        Task<ChainSummaryModel> GetSummaryAsync();
 
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
+        Task<IEnumerable<ulong>> PermitAppsAsync(params ulong[] appsToPermit);
 
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        Task<IEnumerable<KeyModel>> PermitKeysAsync(params KeyPermitModel[] keysToPermit);
     }
 }

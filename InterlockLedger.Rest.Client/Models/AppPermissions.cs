@@ -32,10 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace InterlockLedger.Rest.Client
 {
@@ -60,8 +60,9 @@ namespace InterlockLedger.Rest.Client
         /// <summary>
         /// App to be permitted (by number)
         /// </summary>
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include, Required = Required.Always)]
         public ulong AppId { get; set; }
+
+        public string TextualRepresentation => $"#{AppId}{_firstComma}{ActionIds.WithCommas(noSpaces: true)}";
 
         public IEnumerable<AppPermissions> ToEnumerable() => new AppPermissions[] { this };
 
@@ -73,19 +74,19 @@ namespace InterlockLedger.Rest.Client
 
         public class Converter : JsonConverter<AppPermissions>
         {
-            public override AppPermissions ReadJson(JsonReader reader, Type objectType, [AllowNull] AppPermissions existingValue, bool hasExistingValue, JsonSerializer serializer)
+            public override AppPermissions Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
                 => reader.TokenType switch
                 {
-                    JsonToken.Null => null,
-                    JsonToken.String => new AppPermissions(reader.Value as string),
+                    JsonTokenType.Null => null,
+                    JsonTokenType.String => new AppPermissions(reader.GetString()),
                     _ => throw new InvalidCastException($"TokenType should be Null or String but is {reader.TokenType}")
                 };
 
-            public override void WriteJson(JsonWriter writer, [AllowNull] AppPermissions value, JsonSerializer serializer) {
+            public override void Write(Utf8JsonWriter writer, AppPermissions value, JsonSerializerOptions options) {
                 if (value is null)
-                    writer.WriteNull();
+                    writer.WriteNullValue();
                 else
-                    writer.WriteValue(value.TextualRepresentation);
+                    writer.WriteStringValue(value.TextualRepresentation);
             }
         }
 
@@ -97,8 +98,6 @@ namespace InterlockLedger.Rest.Client
             AppId = source.First();
             ActionIds = source.Skip(1).ToArray();
         }
-
-        internal string TextualRepresentation => $"#{AppId}{_firstComma}{ActionIds.WithCommas(noSpaces: true)}";
 
         private string _firstComma => ActionIds.Any() ? "," : string.Empty;
 

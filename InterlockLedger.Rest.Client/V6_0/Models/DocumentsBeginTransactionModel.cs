@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace InterlockLedger.Rest.Client.V6_0
 {
+
     /// <summary>
     /// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
     /// </summary>
@@ -78,11 +79,9 @@ namespace InterlockLedger.Rest.Client.V6_0
         /// </summary>
         public byte[] Password { get; set; }
 
-
         /// <summary>
         /// Locator for the previous version of this set
         /// </summary>
         public string Previous { get; set; }
-
     }
 }

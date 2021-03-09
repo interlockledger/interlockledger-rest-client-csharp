@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using InterlockLedger.Rest.Client.Abstractions;
 using InterlockLedger.Rest.Client.V6_0;
 
@@ -54,5 +56,38 @@ namespace rest_client
         }
 
         protected override string Version => "6.0";
+
+        protected override async Task DoExtraExercisesAsync(RestAbstractNode<RestChain> node, bool write) {
+            try {
+                foreach (IRestChainV6_0 chain in await node.GetChainsAsync()) {
+                    if (write) {
+                        // Add something
+                    }
+                    var records = await chain.Records.RecordsFromAsync(0, pageSize: 0);
+                    var filteredRecords = records.Items.Where(r => r.ApplicationId == 8ul && r.PayloadTagId == 2100)
+                                                       .Select(r => r.Serial)
+                                                       .ToArray();
+                    Console.WriteLine($"{Environment.NewLine}==== JSON from {chain.Id}: {filteredRecords.Length} records");
+                    foreach (var serial in filteredRecords) {
+                        var json = await chain.JsonStore.RetrieveAsync(serial);
+                        Console.WriteLine($"{Environment.NewLine}Json at {chain.Id}@{serial}:");
+                        if (json is null)
+                            Console.WriteLine("-- Could not retrieve it!");
+                        else if (json.JsonText.IsValidJson())
+                            Console.WriteLine($"-- {json.JsonText.Ellipsis(300)}");
+                        else if (json.EncryptedJson is null)
+                            Console.WriteLine("-- Invalid format!");
+                        else {
+                            Console.WriteLine($"-- {json.EncryptedJson}");
+                            Console.WriteLine($"-- {json.EncryptedJson.DecodedWith(node.Certificate)}");
+                        }
+
+
+                    }
+                }
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
     }
 }

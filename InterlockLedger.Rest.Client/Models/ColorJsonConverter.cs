@@ -31,30 +31,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Drawing;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace InterlockLedger.Rest.Client
 {
-    public class ForceInterlockModel
+    internal class ColorJsonConverter : JsonConverter<Color>
     {
-        public ForceInterlockModel() { }
-
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
-
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
-
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
-
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
-
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        private static readonly ColorConverter _colorConverter = new();
+        public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => reader.TokenType switch
+            {
+                JsonTokenType.String => (Color)_colorConverter.ConvertFromInvariantString(reader.GetString()),
+                _ => Color.Transparent
+            };
+        public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
+            => writer.WriteStringValue(_colorConverter.ConvertToInvariantString(value));
     }
 }

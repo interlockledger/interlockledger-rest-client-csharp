@@ -31,30 +31,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
+using System.Threading.Tasks;
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client.Abstractions
 {
-    public class ForceInterlockModel
+    internal sealed class RecordsAsJsonImplementation : IRestRecordsAsJson
     {
-        public ForceInterlockModel() { }
+        public RecordsAsJsonImplementation(RestAbstractChain parent) {
+            _parent = parent.Required(nameof(parent));
+            _rest = _parent._rest;
+            _id = _parent.Id;
+        }
 
-        public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+        public Task<RecordModelAsJson> AddAsync(NewRecordModelAsJson model)
+            => AddAsync(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
 
-        /// <summary>
-        /// Hash algorithm to use. Default: SHA256
-        /// </summary>
-        public HashAlgorithms? HashAlgorithm { get; set; }
+        public Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, object payload)
+            => AddAsync(applicationId, payloadTagId, RecordType.Data, payload);
 
-        /// <summary>
-        /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
-        /// </summary>
-        public ulong? MinSerial { get; set; }
+        public Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
+            => _rest.PostAsync<RecordModelAsJson>($"records@{_id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
 
-        /// <summary>
-        /// Id of chain to be interlocked
-        /// </summary>
-        public string TargetChain { get; set; }
+        public Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10)
+            => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&page={page}&pageSize={pageSize}");
 
-        public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
+        public Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10)
+            => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}");
+
+        private readonly string _id;
+        private readonly RestAbstractChain _parent;
+        private readonly IRestNodeInternals _rest;
     }
 }

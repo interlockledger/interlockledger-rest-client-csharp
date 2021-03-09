@@ -1,5 +1,5 @@
 /******************************************************************************************************************************
- 
+
 Copyright (c) 2018-2020 InterlockLedger Network
 All rights reserved.
 
@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace InterlockLedger.Rest.Client
 {
@@ -82,6 +82,6 @@ namespace InterlockLedger.Rest.Client
         /// </summary>
         public ushort Version { get; set; }
 
-        public override string ToString() => JsonConvert.SerializeObject(this, Formatting.Indented);
+        public override string ToString() => JsonSerializer.Serialize(this, Globals.JsonSettings);
     }
 }
