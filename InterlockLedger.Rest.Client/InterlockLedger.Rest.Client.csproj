@@ -25,6 +25,7 @@ BSD 3-Clause License
 
     <ItemGroup>
         <PackageReference Include="InterlockLedger.Commons" Version="1.2.2" />
+        <PackageReference Include="InterlockLedger.Tags.ILInt" Version="3.0.1" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

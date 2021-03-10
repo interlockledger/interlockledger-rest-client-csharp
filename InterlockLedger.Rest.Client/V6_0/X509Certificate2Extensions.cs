@@ -31,21 +31,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using InterlockLedger.Tags;
 
 namespace InterlockLedger.Rest.Client.V6_0
 {
-    public sealed class EncryptedTextModel
+    public static class X509Certificate2Extensions
     {
-        public EncryptedTextModel() { }
+        public static string ToKeyId(this X509Certificate2 certificate) => "Key!" + certificate.GetCertHash().ToSafeBase64() + "#SHA1";
 
-        public string Cipher { get; set; }
+        public static string ToPubKeyHash(this X509Certificate2 certificate) {
+            var pubKeyRSA = certificate?.GetRSAPublicKey();
+            if (pubKeyRSA is null)
+                return null;
+            var pubKeyRSAParameters = pubKeyRSA.ExportParameters(includePrivateParameters: false);
+            var modulus = pubKeyRSAParameters.Modulus;
+            var exponent = pubKeyRSAParameters.Exponent;
+            var modulusTag = PseudoTag(16, modulus);
+            var exponentTag = PseudoTag(16, exponent);
+            var pubKeyRSAParametersTag = PseudoTag(40, modulusTag, exponentTag);
+            return HashSha256(pubKeyRSAParametersTag).ToSafeBase64() + "#SHA256";
 
-        public byte[] CipherText { get; set; }
+            static byte[] PseudoTag(ulong tagId, params byte[][] parts)
+                => tagId.ILIntEncode().Concat(((ulong)parts.Sum(b => b.Length)).ILIntEncode()).Concat(parts.SelectMany(b => b)).ToArray();
 
-        public IEnumerable<ReadingKeyModel> ReadingKeys { get; set; }
-        public override string ToString()
-            => $"Encrypted Json with {Cipher} for {ReadingKeys?.Count()} keys with content \"{CipherText.ToSafeBase64().Ellipsis(135)}\"";
+            static byte[] HashSha256(byte[] data) {
+                using var hasher = SHA256.Create();
+                hasher.Initialize();
+                return hasher.ComputeHash(data);
+            }
+        }
+
     }
 }
