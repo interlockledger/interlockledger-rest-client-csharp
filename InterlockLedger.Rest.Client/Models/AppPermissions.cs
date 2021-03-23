@@ -75,8 +75,7 @@ namespace InterlockLedger.Rest.Client
         public class Converter : JsonConverter<AppPermissions>
         {
             public override AppPermissions Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                => reader.TokenType switch
-                {
+                => reader.TokenType switch {
                     JsonTokenType.Null => null,
                     JsonTokenType.String => new AppPermissions(reader.GetString()),
                     _ => throw new InvalidCastException($"TokenType should be Null or String but is {reader.TokenType}")

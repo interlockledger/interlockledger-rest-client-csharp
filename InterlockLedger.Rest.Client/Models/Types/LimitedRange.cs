@@ -128,8 +128,7 @@ namespace InterlockLedger.Rest.Client
                 ? TryConvertToString(value)
                 : throw new InvalidOperationException("Can only convert to string!!!");
 
-        private static string TryConvertToString(object value) => value switch
-        {
+        private static string TryConvertToString(object value) => value switch {
             null => throw new ArgumentNullException(nameof(value)),
             LimitedRange lr => lr.ToString(),
             _ => throw new InvalidOperationException("Can only convert Range to string!!!")
@@ -139,8 +138,7 @@ namespace InterlockLedger.Rest.Client
     internal class LimitedRangeJsonConverter : JsonConverter<LimitedRange>
     {
         public override LimitedRange Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            => reader.TokenType switch
-            {
+            => reader.TokenType switch {
                 JsonTokenType.String => LimitedRange.Resolve(reader.GetString()),
                 _ => throw new InvalidDataException("Invalid format for a LimitedRange")
             };

@@ -41,8 +41,7 @@ namespace InterlockLedger.Rest.Client
     {
         private static readonly ColorConverter _colorConverter = new();
         public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            => reader.TokenType switch
-            {
+            => reader.TokenType switch {
                 JsonTokenType.String => (Color)_colorConverter.ConvertFromInvariantString(reader.GetString()),
                 _ => Color.Transparent
             };

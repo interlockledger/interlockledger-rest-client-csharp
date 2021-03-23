@@ -48,8 +48,7 @@ namespace InterlockLedger.Rest.Client
 
         public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{_partialContentAsBase64}";
 
-        private string _partialContentAsBase64 => (Content?.Length) switch
-        {
+        private string _partialContentAsBase64 => (Content?.Length) switch {
             null => "?",
             > 256 => Convert.ToBase64String(Content, 0, 256) + "...",
             _ => Convert.ToBase64String(Content)
