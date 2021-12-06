@@ -1,4 +1,4 @@
-name: .NET Core
+name: .NET
 
 on: [push]
 
@@ -8,15 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.4.0
 
-    - name: Setup .NET 5.0
-      uses: actions/setup-dotnet@v1.7.2
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v1.9.0
       with:
-        dotnet-version: 5.0.200
+        dotnet-version: 6.0.100
 
     - name: Setup nuget config
-      run: sed 's/GITHUB_TOKEN/${{ secrets.RegistryToken }}/g' .nuget.config > nuget.config
+      run: sed 's/GITHUB_TOKEN/${{ secrets.REGISTRY_TOKEN }}/g' .nuget.config > nuget.config
 
-    - name: Build with dotnet
-      run: dotnet build --configuration Release -v:m | grep -v 'NAME_UNKNOWN:Package'
+    - name: Test with dotnet
+      run: dotnet test --configuration Release -v:m | grep -v 'NAME_UNKNOWN:Package'
+
+    - name: Pack nuget
+      run: dotnet pack -o `pwd`/.nugets --configuration Release --no-build -v:m
+
+    - name: Push nuget
+      run: dotnet nuget push `pwd`/.nugets/*.nupkg -s https://nuget.pkg.github.com/interlockledger/index.json --skip-duplicate
