@@ -1,55 +1,68 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net5.0</TargetFrameworks>
-        <Version>6.0.2</Version>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Copyright>Copyright (c) 2018-2021 InterlockLedger Network</Copyright>
-        <Description>This library implements a C# wrapper around the InterlockLedger Node REST API. 
+	<PropertyGroup>
+		<TargetFrameworks>net6.0</TargetFrameworks>
+		<Version>6.0.3</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Copyright>Copyright (c) 2018-2021 InterlockLedger Network</Copyright>
+		<Description>
+			This library implements a C# wrapper around the InterlockLedger Node REST API.
 
-BSD 3-Clause License
-</Description>
-        <PackageLicenseUrl></PackageLicenseUrl>
-        <PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <LangVersion>Preview</LangVersion>
-        <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Working on JsonDocument decoders</PackageReleaseNotes>
-        <PackageIcon>IL2.png</PackageIcon>
-        <Authors>InterlockLedger Network</Authors>
-        <Product>InterlockLedger</Product>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    </PropertyGroup>
+			BSD 3-Clause License
+		</Description>
+		<PackageLicenseUrl></PackageLicenseUrl>
+		<PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<LangVersion>Preview</LangVersion>
+		<PackageTags>REST Client InterlockLedger</PackageTags>
+		<PackageReleaseNotes>Working on JsonDocument decoders</PackageReleaseNotes>
+		<PackageIcon>IL2.png</PackageIcon>
+		<Authors>InterlockLedger Network</Authors>
+		<Product>InterlockLedger</Product>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<ImplicitUsings>Enable</ImplicitUsings>
+	</PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="InterlockLedger.Commons" Version="1.2.5" />
-        <PackageReference Include="InterlockLedger.Tags.ILInt" Version="3.0.3" />
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
-    </ItemGroup>
+	<ItemGroup>
+		<Using Include="InterlockLedger.Rest.Client.Abstractions"/>
+		<Using Include="InterlockLedger.Tags"/>
+		<Using Include="System.Security.Cryptography"/>
+		<Using Include="System.Security.Cryptography.X509Certificates"/>
+		<Using Include="System.Text"/>
+		<Using Include="System.Text.Json"/>
+		<Using Include="System.Text.Json.Serialization"/>
+		<Using Include="System.Text.RegularExpressions"/>
+		<Using Include="System.Web"/>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="InterlockLedger.Commons" Version="2.0.1" />
+		<PackageReference Include="InterlockLedger.Tags.ILInt" Version="5.0.1" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+	</ItemGroup>
 
-    <ItemGroup>
-      <None Include="..\LICENSE">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
-        <None Include="..\IL2.png">
-            <Pack>True</Pack>
-            <PackagePath></PackagePath>
-        </None>
-    </ItemGroup>
-    
-    <Target Name="PublishLocally" AfterTargets="Pack" Condition="Exists('$(INTERLOCK_LOCAL_NUGETS_FOLDER)')">
-        <ItemGroup>
-            <NugetPackages Include="$(PackageOutputAbsolutePath)\*$(Version).nupkg" />
-        </ItemGroup>
-        <Message Importance="high" Text="Publish to Local Nugets Folder '$(INTERLOCK_LOCAL_NUGETS_FOLDER)'" />
-        <Copy DestinationFolder="$(INTERLOCK_LOCAL_NUGETS_FOLDER)" SourceFiles="@(NugetPackages)" ContinueOnError="true" SkipUnchangedFiles="false" />
-    </Target>
+	<ItemGroup>
+		<None Include="..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\IL2.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<Target Name="PublishLocally" AfterTargets="Pack" Condition="Exists('$(INTERLOCK_LOCAL_NUGETS_FOLDER)')">
+		<ItemGroup>
+			<NugetPackages Include="$(PackageOutputAbsolutePath)\*$(Version).nupkg" />
+		</ItemGroup>
+		<Message Importance="high" Text="Publish to Local Nugets Folder '$(INTERLOCK_LOCAL_NUGETS_FOLDER)'" />
+		<Copy DestinationFolder="$(INTERLOCK_LOCAL_NUGETS_FOLDER)" SourceFiles="@(NugetPackages)" ContinueOnError="true" SkipUnchangedFiles="false" />
+	</Target>
 
 </Project>

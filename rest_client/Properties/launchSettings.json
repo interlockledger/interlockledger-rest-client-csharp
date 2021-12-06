@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "rest_client": {
-      "commandName": "Project",
-      "commandLineArgs": "D:\\clients\\minerva-examples\\certificates\\examples.api.pfx  restClientPassword 32024 node.il2"
+    "profiles": {
+        "rest_client": {
+            "commandName": "Project",
+            "commandLineArgs": "D:\\clients\\minerva-examples\\certificates\\examples.api.pfx  restClientPassword 32024 node.il2"
+        }
     }
-  }
 }

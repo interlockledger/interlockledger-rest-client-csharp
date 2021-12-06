@@ -30,13 +30,29 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+namespace InterlockLedger.Rest.Client;
 
-public class RestNetwork
+public static class StringExtensions
 {
-    public Task<AppsModel> GetAppsAsync() => _rest.GetAsync<AppsModel>("/apps");
+    public static string Ellipsis(this string text, ushort limit) => UnsafeEllipsis(text.Safe(), limit);
 
-    internal RestNetwork(IRestNodeInternals rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
+    public static bool IsValidJson(this string text) {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        try {
+            _ = JsonSerializer.Deserialize<object>(text.Trim(), _jsonValidationOptions);
+        } catch (Exception) {
+            return false;
+        }
+        return true;
+    }
 
-    private readonly IRestNodeInternals _rest;
+    private static readonly JsonSerializerOptions _jsonValidationOptions = new() {
+        AllowTrailingCommas = true,
+        NumberHandling = JsonNumberHandling.Strict,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+    };
+
+    private static string UnsafeEllipsis(string text, ushort limit)
+        => text.Length <= limit ? text : limit > 3 ? $"{text[..(-3 + limit)]}..." : text[..limit];
 }

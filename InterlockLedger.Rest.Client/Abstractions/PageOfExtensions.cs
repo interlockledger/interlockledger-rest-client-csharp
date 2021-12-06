@@ -1,5 +1,5 @@
 // ******************************************************************************************************************************
-//
+//  
 // Copyright (c) 2018-2021 InterlockLedger Network
 // All rights reserved.
 //
@@ -32,11 +32,29 @@
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
-public class RestNetwork
+public static class PageOfExtensions
 {
-    public Task<AppsModel> GetAppsAsync() => _rest.GetAsync<AppsModel>("/apps");
+    public static bool Any<T>(this PageOf<T> page) => page.Safe().Items.SafeAny();
 
-    internal RestNetwork(IRestNodeInternals rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
+    public static bool Any<T>(this PageOf<T> page, Func<T, bool> predicate) => page.Safe().Items.SafeAny(predicate);
 
-    private readonly IRestNodeInternals _rest;
+    public static T First<T>(this PageOf<T> page) where T : class => page?.Items?.FirstOrDefault();
+
+    public static T Last<T>(this PageOf<T> page) where T : class => page?.Items?.LastOrDefault();
+
+    public static bool None<T>(this PageOf<T> page) => !page.Any();
+
+    public static bool None<T>(this PageOf<T> page, Func<T, bool> predicate) => !page.Any(predicate);
+
+    public static PageOf<T> Paginate<T>(this IEnumerable<T> resultList, ushort page, byte pageSize) {
+        var result = resultList.ToArray();
+        if (pageSize == 0)
+            return new PageOf<T>(result);
+        ushort totalPages = (ushort)Math.Min((result.Length + pageSize - 1) / pageSize, ushort.MaxValue);
+        if (page >= totalPages)
+            page = (ushort)(totalPages > 0 ? totalPages - 1 : 0);
+        return new PageOf<T>(result.Skip(page * pageSize).Take(pageSize).ToArray(), page, pageSize, totalPages);
+    }
+
+    public static PageOf<T> Safe<T>(this PageOf<T> page) => page ?? PageOf<T>.Empty;
 }
