@@ -1,6 +1,6 @@
 // ******************************************************************************************************************************
-//  
-// Copyright (c) 2018-2021 InterlockLedger Network
+//
+// Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

@@ -7,7 +7,7 @@
         <Authors>Rafael Teixeira</Authors>
         <Company>InterlockLedger Network</Company>
         <Product>InterlockLedger</Product>
-        <Copyright>Copyright (c) 2017-2021 InterlockLedger Network</Copyright>
+        <Copyright>Copyright (c) 2017-2022 InterlockLedger Network</Copyright>
         <Version>6.0.3</Version>
         <ImplicitUsings>Enable</ImplicitUsings>
     </PropertyGroup>

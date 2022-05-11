@@ -1,7 +1,7 @@
 {
-  "profiles": {
-    "InterlockLedger.Rest.Client": {
-      "commandName": "Project"
+    "profiles": {
+        "InterlockLedger.Rest.Client": {
+            "commandName": "Project"
+        }
     }
-  }
 }
