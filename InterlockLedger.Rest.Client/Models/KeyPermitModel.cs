@@ -39,13 +39,13 @@ public class KeyPermitModel
     }
 
     public KeyPermitModel(string id, string name, string publicKey, IEnumerable<AppPermissions> permissions, params KeyPurpose[] purposes) {
-        Permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
+        Permissions = permissions.Required();
         if (!permissions.Any())
             throw new InvalidDataException("This key doesn't have at least one action to be permitted");
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
-        Purposes = purposes ?? throw new ArgumentNullException(nameof(purposes));
+        Id = id.Required();
+        Name = name.Required();
+        PublicKey = publicKey.Required();
+        Purposes = purposes.Required();
         if (!(purposes.Contains(KeyPurpose.Action) && purposes.Contains(KeyPurpose.Protocol)))
             throw new InvalidDataException("This key doesn't have the required purposes to be permitted");
     }

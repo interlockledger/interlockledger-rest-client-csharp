@@ -157,7 +157,9 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
     }
 
     protected HttpWebRequest PrepareRequest(string url, string method, string accept) {
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
         var req = (HttpWebRequest)WebRequest.Create(new Uri(BaseUri, url));
+#pragma warning restore SYSLIB0014 // Type or member is obsolete
         req.AllowAutoRedirect = false;
         req.AuthenticationLevel = AuthenticationLevel.MutualAuthRequired;
         req.ServerCertificateValidationCallback = ServerCertificateValidation;

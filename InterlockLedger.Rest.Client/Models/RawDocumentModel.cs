@@ -35,9 +35,9 @@ namespace InterlockLedger.Rest.Client;
 public class RawDocumentModel
 {
     public RawDocumentModel(string contentType, byte[] content, string name) {
-        ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
-        Content = content ?? throw new ArgumentNullException(nameof(content));
-        Name = name ?? throw new ArgumentNullException(nameof(name));
+        ContentType = contentType.Required();
+        Content = content.Required();
+        Name = name.Required();
     }
 
     public byte[] Content { get; }

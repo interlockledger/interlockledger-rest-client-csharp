@@ -65,10 +65,8 @@ public abstract class RestAbstractChain : IRestChain
     internal readonly IRestNodeInternals _rest;
 
     internal RestAbstractChain(IRestNodeInternals rest, ChainIdModel chainId) {
-        if (chainId == null)
-            throw new ArgumentNullException(nameof(chainId));
-        _rest = rest ?? throw new ArgumentNullException(nameof(rest));
-        Id = chainId.Id;
+        _rest = rest.Required();
+        Id = chainId.Required().Id;
         Name = chainId.Name;
         _records = new RecordsImplementation(this);
         _recordsAsJson = new RecordsAsJsonImplementation(this);

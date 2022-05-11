@@ -78,9 +78,7 @@ public static class EncryptedTextModelExtensions
         }
 
         static byte[] AES256Decrypt(byte[] cipherData, byte[] key, byte[] iv) {
-            if (cipherData is null)
-                throw new ArgumentNullException(nameof(cipherData));
-            using var source = new MemoryStream(cipherData);
+            using var source = new MemoryStream(cipherData.Required());
             using var algorithm = Aes.Create();
             algorithm.KeySize = 256;
             algorithm.BlockSize = 128;
