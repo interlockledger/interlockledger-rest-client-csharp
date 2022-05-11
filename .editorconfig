@@ -1,6 +1,7 @@
 [*]
 charset = utf-8
 end_of_line = lf
+insert_final_newline = false
 indent_size = 4
 indent_style = space
 trim_trailing_whitespace = true
@@ -178,5 +179,4 @@ csharp_style_prefer_parameter_null_checking = true:suggestion
 csharp_style_prefer_pattern_matching = true:silent
 csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_prefer_extended_property_pattern = true:suggestion
-insert_final_newline = true
 
