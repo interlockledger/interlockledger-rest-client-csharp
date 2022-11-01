@@ -4,5 +4,3 @@
 
 **C#** REST Client for InterlockLedger Node
 
-![Visualization of the codebase](./diagram.svg)
-

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0</TargetFrameworks>
-		<Version>7.0.0</Version>
+		<Version>7.0.1</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Copyright>Copyright (c) 2018-2022 InterlockLedger Network</Copyright>
 		<Description>
@@ -16,8 +16,8 @@
 		<RepositoryType>git</RepositoryType>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageTags>REST Client InterlockLedger</PackageTags>
-		<PackageReleaseNotes>Some API/ABI changes - Update/Remove dependencies</PackageReleaseNotes>
-		<PackageIcon>IL2.png</PackageIcon>
+		<PackageReleaseNotes>Drop diagram - Update to square icon</PackageReleaseNotes>
+		<PackageIcon>il2.png</PackageIcon>
 		<Authors>InterlockLedger Network</Authors>
 		<Product>InterlockLedger</Product>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -49,7 +49,7 @@
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
-		<None Include="..\IL2.png">
+		<None Include="..\il2.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
