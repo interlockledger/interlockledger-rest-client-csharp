@@ -8,18 +8,18 @@
         <Company>InterlockLedger Network</Company>
         <Product>InterlockLedger</Product>
         <Copyright>Copyright (c) 2017-2022 InterlockLedger Network</Copyright>
-        <Version>6.0.3</Version>
+        <Version>6.0.4</Version>
         <ImplicitUsings>Enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>
-        <Using Include="System.Security.Cryptography"/>
-        <Using Include="System.Security.Cryptography.X509Certificates"/>
-        <Using Include="System.Text"/>
-        <Using Include="System.Text.Json"/>
-        <Using Include="System.Text.Json.Serialization"/>
-        <Using Include="System.Text.RegularExpressions"/>
-        <Using Include="System.Web"/>
+        <Using Include="System.Security.Cryptography" />
+        <Using Include="System.Security.Cryptography.X509Certificates" />
+        <Using Include="System.Text" />
+        <Using Include="System.Text.Json" />
+        <Using Include="System.Text.Json.Serialization" />
+        <Using Include="System.Text.RegularExpressions" />
+        <Using Include="System.Web" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,7 +27,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -39,5 +39,7 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+    <Target Name="TagSources" />
+    <Target Name="NugetOrg" />
 
 </Project>
