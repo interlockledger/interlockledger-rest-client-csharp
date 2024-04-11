@@ -71,26 +71,34 @@ public class NodeCommonModel
     public string OwnerName { get; set; }
 
     /// <summary>
+    /// Peer address in the cannonical form like 'ilkl-minerva://node.il2:32025'
+    /// </summary>
+    public string PeerAddress { get; set; }
+
+    /// <summary>
     /// List of active roles running in the node
     /// </summary>
     public IEnumerable<string> Roles { get; set; }
+
+
+    public virtual string ResolvedPeerAddress => PeerAddress;
 
     /// <summary>
     /// Version of software running the Node
     /// </summary>
     public Versions SoftwareVersions { get; set; }
 
-    public override string ToString() => $@"Node '{Name}' {Id}
-Running il2 node#{SoftwareVersions?.Node} using [Message Envelope Wire Format #{SoftwareVersions?.MessageEnvelopeWireFormat}]
-    with Peer2Peer#{SoftwareVersions?.Peer2peer} and CoreLibs#{SoftwareVersions?.CoreLibs}
-Network {Network}
-Color {Fancy(Color)}
-Owner {OwnerName} #{OwnerId}
-Roles: {string.Join(", ", Roles ?? _empty)}
-{Extras}
-";
-
-    protected static readonly IEnumerable<string> _empty = Enumerable.Empty<string>();
+    public override string ToString() => $"""
+        Node '{Name}' [{Id}] at {ResolvedPeerAddress}
+        Running il2 Node#{SoftwareVersions?.NodeVersion}
+          with Peer2Peer#{SoftwareVersions?.Peer2peer}, Tags#{SoftwareVersions?.Tags} and CoreLibs#{SoftwareVersions?.CoreLibs}
+        Network: {Network}
+        Color: {Fancy(Color)}
+        Owner: {OwnerName} #{OwnerId}
+        Roles: {Roles.JoinedBy(", ")}
+        {Extras}
+        """;
+    protected static readonly IEnumerable<string> _empty = [];
     protected virtual string Extras { get; }
 
     private static string Fancy(Color color) => color.IsNamedColor ? color.Name : "#" + color.Name.Remove(0, 2).ToUpperInvariant();

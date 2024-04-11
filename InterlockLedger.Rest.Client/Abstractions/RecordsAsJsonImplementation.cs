@@ -35,7 +35,7 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 internal sealed class RecordsAsJsonImplementation : IRestRecordsAsJson
 {
     public RecordsAsJsonImplementation(RestAbstractChain parent) {
-        _parent = parent.Required(nameof(parent));
+        _parent = parent.Required();
         _rest = _parent._rest;
         _id = _parent.Id;
     }
@@ -49,11 +49,11 @@ internal sealed class RecordsAsJsonImplementation : IRestRecordsAsJson
     public Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, RecordType type, object payload)
         => _rest.PostAsync<RecordModelAsJson>($"records@{_id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
 
-    public Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false)
-        => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}");
+    public Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
+        => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 
-    public Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false)
-        => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}");
+    public Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
+        => _rest.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 
     private readonly string _id;
     private readonly RestAbstractChain _parent;

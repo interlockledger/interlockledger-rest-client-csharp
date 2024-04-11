@@ -40,7 +40,7 @@ public interface IRestRecordsAsJson
 
     Task<RecordModelAsJson> AddAsync(ulong applicationId, ulong payloadTagId, RecordType type, object payload);
 
-    Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false);
+    Task<PageOf<RecordModelAsJson>> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
 
-    Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false);
+    Task<PageOf<RecordModelAsJson>> FromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
 }

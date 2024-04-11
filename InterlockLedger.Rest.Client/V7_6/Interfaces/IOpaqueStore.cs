@@ -1,5 +1,5 @@
 // ******************************************************************************************************************************
-//
+//  
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
@@ -30,14 +30,15 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V6_0
+
+using InterlockLedger.Rest.Client.V6_0;
+
+namespace InterlockLedger.Rest.Client.V7_6;
+
+public interface IOpaqueStore
 {
-    public class RestChain : RestAbstractChain, IRestChainV6_0
-    {
-        IJsonStore IRestChainV6_0.JsonStore => _jsonStore;
-
-        internal RestChain(RestNode rest, ChainIdModel chainId) : base(rest, chainId) => _jsonStore = new JsonStoreImplementation(this);
-
-        private readonly IJsonStore _jsonStore;
-    }
+    Task<OpaqueRecordModel> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, Stream source);
+    Task<OpaqueRecordModel> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, byte[] bytes);
+    Task<PageOfOpaqueRecordsModel> QueryRecordsFromAsync(ulong appId, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, ulong[] payloadTypeIds = null, ulong? howMany = null);
+    Task<(ulong AppId, ulong PayloadTypeId, Stream Content)> RetrieveSinglePayloadAsync(ulong serial);
 }

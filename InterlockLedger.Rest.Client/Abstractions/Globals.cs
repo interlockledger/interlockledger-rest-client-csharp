@@ -41,6 +41,7 @@ namespace InterlockLedger.Rest.Client
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true,
+            PreferredObjectCreationHandling = JsonObjectCreationHandling.Replace,
         };
     }
 }

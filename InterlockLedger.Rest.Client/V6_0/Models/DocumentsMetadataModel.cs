@@ -30,6 +30,8 @@
 //
 // ******************************************************************************************************************************
 
+#nullable enable
+
 namespace InterlockLedger.Rest.Client.V6_0;
 
 /// <summary>
@@ -38,9 +40,19 @@ namespace InterlockLedger.Rest.Client.V6_0;
 public class DocumentsMetadataModel
 {
     /// <summary>
+    /// Replicates RecordReference record info to simplify REST API usage
+    /// </summary>
+    public string? RecordReference { get; }
+
+    /// <summary>
+    /// Replicates CreationTime record info to simplify REST API usage
+    /// </summary>
+    public DateTimeOffset? CreationTime { get; set; }
+
+    /// <summary>
     /// Any additional information about this set of documents
     /// </summary>
-    public string Comment { get; set; }
+    public string? Comment { get; set; }
 
     /// <summary>
     /// Compression algorithm can be:
@@ -51,22 +63,22 @@ public class DocumentsMetadataModel
     ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
     ///     </list>
     /// </summary>
-    public string Compression { get; set; }
+    public string? Compression { get; set; }
 
     /// <summary>
     /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
     /// </summary>
-    public string Encryption { get; set; }
+    public string? Encryption { get; set; }
 
     /// <summary>
     /// Parameters used to do the encryption
     /// </summary>
-    public Parameters EncryptionParameters { get; set; }
+    public Parameters? EncryptionParameters { get; set; }
 
     /// <summary>
     /// List of stored documents
     /// </summary>
-    public IEnumerable<DirectoryEntry> PublicDirectory { get; set; }
+    public IEnumerable<DirectoryEntry>? PublicDirectory { get; set; }
 
     public override string ToString() => $@"{nameof(DocumentsMetadataModel)}
     {nameof(Comment)} : {Comment}
@@ -84,22 +96,32 @@ public class DocumentsMetadataModel
         /// <summary>
         /// Any provided additional information about the document file
         /// </summary>
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         /// <summary>
         /// Mime Type for the document content
         /// </summary>
-        public string MimeType { get; set; }
+        public required string MimeType { get; set; }
 
         /// <summary>
         /// Document (file) name
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// Document (file) path (without the name)
         /// </summary>
-        public string Path { get; set; }
+        public string? Path { get; set; }
+
+        /// <summary>
+        /// Hash SHA256 of Document (file) content
+        /// </summary>
+        public byte[]? HashSHA256 { get; }
+
+        /// <summary>
+        /// Size in bytes of Document (file)
+        /// </summary>
+        public ulong? Size { get; }
 
         public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}    {nameof(Path)} : {Path}{_joiner}}}
 ";
@@ -118,9 +140,9 @@ public class DocumentsMetadataModel
         /// <summary>
         /// Salt value to feed the cypher engine
         /// </summary>
-        public byte[] Salt { get; set; }
+        public byte[]? Salt { get; set; }
 
-        public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt)}'{_joiner}}}
+        public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt ?? [])}'{_joiner}}}
 ";
     }
 

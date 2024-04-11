@@ -30,17 +30,9 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+namespace InterlockLedger.Rest.Client.V7_6;
 
-public interface IRestRecords
+public interface IRestChainV7_6 : V6_0.IRestChainV6_0
 {
-    Task<RecordModel> AddRecordAsync(NewRecordModel model);
-
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes);
-
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes);
-
-    Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
-
-    Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    IOpaqueStore OpaqueStore { get; }
 }

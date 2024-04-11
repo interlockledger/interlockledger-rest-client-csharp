@@ -33,16 +33,16 @@
 namespace InterlockLedger.Rest.Client;
 
 [JsonConverter(typeof(Converter))]
-public class AppPermissions
+public partial class AppPermissions
 {
-    public static readonly Regex Mask = new("^#[0-9]+(,[0-9]+)*$");
+    public static readonly Regex Mask = AppPermissionsRegex();
 
     public AppPermissions(ulong app, params ulong[] appActions) : this(app, (IEnumerable<ulong>)appActions) {
     }
 
     public AppPermissions(ulong app, IEnumerable<ulong> appActions) {
         AppId = app;
-        ActionIds = appActions ?? Array.Empty<ulong>();
+        ActionIds = appActions ?? [];
     }
 
     /// <summary>
@@ -57,10 +57,10 @@ public class AppPermissions
 
     public string TextualRepresentation => $"#{AppId}{_firstComma}{ActionIds.WithCommas(noSpaces: true)}";
 
-    public IEnumerable<AppPermissions> ToEnumerable() => new AppPermissions[] { this };
+    public IEnumerable<AppPermissions> ToEnumerable() => [this];
 
     public override string ToString() {
-        var actions = ActionIds?.ToArray() ?? Array.Empty<ulong>();
+        var actions = ActionIds?.ToArray() ?? [];
         var plural = (actions.Length == 1 ? "" : "s");
         return $"App #{AppId} {(actions.Length > 0 ? $"Action{plural} {actions.WithCommas(noSpaces: true)}" : "All Actions")}";
     }
@@ -94,4 +94,7 @@ public class AppPermissions
     private string _firstComma => ActionIds.Any() ? "," : string.Empty;
 
     private static ulong AsUlong(string s) => ulong.TryParse(s?.Trim(), out ulong result) ? result : 0;
+
+    [GeneratedRegex("^#[0-9]+(,[0-9]+)*$")]
+    private static partial Regex AppPermissionsRegex();
 }

@@ -32,17 +32,11 @@
 
 namespace InterlockLedger.Rest.Client;
 
-public class RawDocumentModel
+public class RawDocumentModel(string contentType, byte[] content, string name)
 {
-    public RawDocumentModel(string contentType, byte[] content, string name) {
-        ContentType = contentType.Required();
-        Content = content.Required();
-        Name = name.Required();
-    }
-
-    public byte[] Content { get; }
-    public string ContentType { get; }
-    public string Name { get; }
+    public byte[] Content { get; } = content.Required();
+    public string ContentType { get; } = contentType.Required();
+    public string Name { get; } = name.Required();
 
     public override string ToString() => $"Document '{Name}' [{ContentType}]{Environment.NewLine}{_partialContentAsBase64}";
 

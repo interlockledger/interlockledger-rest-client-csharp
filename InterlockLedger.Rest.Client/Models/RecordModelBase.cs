@@ -53,9 +53,9 @@ public abstract class RecordModelBase
     public DateTimeOffset CreatedAt { get; set; }
 
     /// <summary>
-    /// Hash of the full encoded bytes of the record
+    /// IL2 Network
     /// </summary>
-    public string Hash { get; set; }
+    public string Network { get; set; }
 
     /// <summary>
     /// The payload's TagId
@@ -63,10 +63,16 @@ public abstract class RecordModelBase
     public ulong PayloadTagId { get; set; }
 
     /// <summary>
+    /// Record universal reference [Network]:[ChainId]@[Serial]
+    /// </summary>
+    public string Reference { get; set; }
+
+    /// <summary>
     /// Record serial number.
     /// For the first record this value is zero (0)
     /// </summary>
     public ulong Serial { get; set; }
+
 
     /// <summary>
     /// Block type
@@ -79,5 +85,4 @@ public abstract class RecordModelBase
     /// </summary>
     public ushort Version { get; set; }
 
-    public override string ToString() => JsonSerializer.Serialize(this, Globals.JsonSettings);
 }

@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client;
 
-public sealed class ChainSummaryModel : ChainIdModel
+public sealed partial class ChainSummaryModel : ChainIdModel
 {
     /// <summary>
     /// List of active apps (only the numeric ids)
@@ -63,14 +63,14 @@ public sealed class ChainSummaryModel : ChainIdModel
 
     public ulong[] LicensedApps {
         get {
-            var match = Regex.Match(LicensingStatus.Safe(), @"Apps: \[([\d,]+)\]");
+            var match = LicensedAppsRegex().Match(LicensingStatus.Safe());
             if (match.Success)
                 if (match.Groups.Count > 1) {
                     string[] values = match.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     return values.Select(s => ulong.Parse(s)).ToArray();
                 }
 
-            return Array.Empty<ulong>();
+            return [];
         }
     }
 
@@ -88,4 +88,7 @@ public sealed class ChainSummaryModel : ChainIdModel
     /// Size in bytes the chain occupies in storage
     /// </summary>
     public ulong? SizeInBytes { get; set; }
+
+    [GeneratedRegex(@"Apps: \[([\d,]+)\]")]
+    private static partial Regex LicensedAppsRegex();
 }

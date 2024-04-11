@@ -35,7 +35,7 @@ namespace InterlockLedger.Rest.Client;
 public class KeyPermitModel
 {
     public KeyPermitModel(string id, string name, string publicKey, ulong app, IEnumerable<ulong> appActions, params KeyPurpose[] purposes)
-        : this(id, name, publicKey, new AppPermissions[] { new AppPermissions(app, appActions) }, purposes) {
+        : this(id, name, publicKey, [new(app, appActions)], purposes) {
     }
 
     public KeyPermitModel(string id, string name, string publicKey, IEnumerable<AppPermissions> permissions, params KeyPurpose[] purposes) {

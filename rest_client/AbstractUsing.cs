@@ -36,13 +36,10 @@ using InterlockLedger.Rest.Client.Abstractions;
 using InterlockLedger.Rest.Client.V6_0;
 
 namespace rest_client;
-
-public abstract class AbstractUsing<T> where T : IRestChain
+public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRestChain
 {
     public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
-    protected readonly RestAbstractNode<T> _node;
-
-    protected AbstractUsing(RestAbstractNode<T> node) => _node = node.Required(nameof(node));
+    protected readonly RestAbstractNode<T> _node = node.Required();
 
     protected abstract string Version { get; }
 
@@ -62,16 +59,16 @@ public abstract class AbstractUsing<T> where T : IRestChain
             KeyPurpose.Action);
 
     protected void DisplayOtherNodeInfo() {
-        if (_node is IDocumentRegistry nodeV4_2)
-            Console.WriteLine($" {nodeV4_2.GetDocumentsUploadConfigurationAsync().Result}");
+        if (_node is INodeWithDocumentRegistry node)
+            Console.WriteLine($" {node.DocumentRegistry.GetDocumentsUploadConfigurationAsync().Result}");
     }
 
     protected abstract Task DoExtraExercisesAsync(RestAbstractNode<T> node, bool write);
 
     protected void Dump(string document) => Console.WriteLine($"----{Environment.NewLine}{document}{Environment.NewLine}----");
 
-    protected async Task ExerciseAsync(bool write) {
-        Console.WriteLine($"Client connected to {_node.BaseUri} using certificate {_node.CertificateName} using API version {Version}");
+    protected internal async Task ExerciseAsync(bool write) {
+        Console.WriteLine($"Client connected to {_node.BaseUri} using certificate '{_node.CertificateName}' via API version {Version}");
         if (write) {
             Console.WriteLine("-- Create Chain:");
             try {
@@ -82,7 +79,7 @@ public abstract class AbstractUsing<T> where T : IRestChain
                     ManagementKeyPassword = "password",
                     ManagementKeyStrength = KeyStrength.ExtraStrong,
                     KeysAlgorithm = Algorithms.RSA,
-                    AdditionalApps = new List<ulong> { 4, 8 }
+                    AdditionalApps = [4, 8]
                 });
                 Console.WriteLine(chain);
             } catch (InvalidOperationException) {
@@ -96,13 +93,15 @@ public abstract class AbstractUsing<T> where T : IRestChain
         DisplayOtherNodeInfo();
         var apps = await _node.Network.GetAppsAsync();
         Console.WriteLine($"-- Valid apps for network {apps.Network}:");
-        foreach (var app in apps.ValidApps.OrderBy(a => a))
+        foreach (var app in apps.ValidApps.OrderByDescending(a => (a.Id, a.AppVersion)).DistinctBy(a => a.Id).OrderBy(a => a.Id))
             Console.WriteLine(app);
         Console.WriteLine();
         var peers = await _node.GetPeersAsync();
         Console.WriteLine($"-- Known peers:");
-        foreach (var peer in peers.OrderBy(a => a.Name))
+        foreach (var peer in peers.OrderBy(a => a.Name)) {
             Console.WriteLine(peer);
+            Console.WriteLine("---------------------------------");
+        }
         Console.WriteLine();
         Console.WriteLine("-- Chains:");
         foreach (var chain in await _node.GetChainsAsync())
@@ -115,7 +114,7 @@ public abstract class AbstractUsing<T> where T : IRestChain
         if (write) {
             Console.WriteLine("-- Create Mirror:");
             try {
-                foreach (var chain in await _node.AddMirrorsOfAsync(new string[] { "72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4" }))
+                foreach (var chain in await _node.AddMirrorsOfAsync(_newMirrors))
                     Console.WriteLine(chain);
             } catch (Exception e) {
                 Console.WriteLine(e);
@@ -133,6 +132,7 @@ public abstract class AbstractUsing<T> where T : IRestChain
         Console.WriteLine($"  Summary.Description: {summary.Description}");
         Console.WriteLine($"  Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}");
         Console.WriteLine($"  Summary.LastRecord: {summary.LastRecord}");
+        Console.WriteLine($"  Summary.LastUpdate: {summary.LastUpdate}");
         Console.WriteLine($"  Summary.SizeInBytes: {summary.SizeInBytes}");
         Console.WriteLine($"  Summary.LicensingStatus: {summary.LicensingStatus}");
         Console.WriteLine($"  Summary.Licensed: {summary.Licensed}");
@@ -177,7 +177,7 @@ public abstract class AbstractUsing<T> where T : IRestChain
         try {
             Console.WriteLine();
             Console.WriteLine("  Trying to add a badly encoded unpacked record:");
-            var record = await chain.Records.AddRecordAsync(1, 300, new byte[] { 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+            var record = await chain.Records.AddRecordAsync(1, 300, [10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3]);
             Console.WriteLine($"    {record}");
         } catch (Exception e) {
             Console.WriteLine(e);
@@ -221,7 +221,7 @@ public abstract class AbstractUsing<T> where T : IRestChain
         try {
             Console.WriteLine();
             Console.WriteLine("  Trying to add a nice unpacked record:");
-            var record = await chain.Records.AddRecordAsync(1, 300, new byte[] { 5, 0, 0, 20, 5, 4, 0, 1, 2, 3 });
+            var record = await chain.Records.AddRecordAsync(1, 300, [5, 0, 0, 20, 5, 4, 0, 1, 2, 3]);
             Console.WriteLine($"    {record}");
         } catch (Exception e) {
             Console.WriteLine(e);
@@ -295,5 +295,42 @@ public abstract class AbstractUsing<T> where T : IRestChain
             }
     }
 
+    protected internal static async Task ExerciseJsonDocumentAsync(RestAbstractNode<T> node, bool write) {
+        try {
+            var chains = (await node.GetChainsAsync()).Where(c => c is IRestChainV6_0).Cast<IRestChainV6_0>();
+            foreach (var chain in chains) {
+                if (write) {
+                    // Add something
+                }
+                var records = (await chain.Records.RecordsFromAsync(0, pageSize: 0))?.Items;
+                if (records.SafeAny()) {
+                    var filteredRecords = records.Where(r => r.ApplicationId == 8ul && r.PayloadTagId == 2100)
+                                                 .Select(r => r.Serial)
+                                                 .ToArray();
+                    Console.WriteLine($"{Environment.NewLine}==== JSON from {chain.Id}: {filteredRecords.Length} records");
+                    foreach (var serial in filteredRecords) {
+                        var json = await chain.JsonStore.RetrieveAsync(serial);
+                        Console.WriteLine($"{Environment.NewLine}Json at {chain.Id}@{serial}:");
+                        if (json is null)
+                            Console.WriteLine("-- Could not retrieve it!");
+                        else if (json.JsonText.IsValidJson())
+                            Console.WriteLine($"-- {json.JsonText.Ellipsis(300)}");
+                        else if (json.EncryptedJson is null)
+                            Console.WriteLine("-- Invalid format!");
+                        else {
+                            Console.WriteLine($"-- {json.EncryptedJson}");
+                            Console.WriteLine($"-- {json.EncryptedJson.DecodedWith(node.Certificate)}");
+                        }
+                    }
+                } else {
+                    Console.WriteLine($"No jsonDocuments found in {chain.Id}");
+                }
+            }
+        } catch (Exception e) {
+            Console.WriteLine(e);
+        }
+    }
+
     private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
+    private static readonly string[] _newMirrors = ["72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4"];
 }

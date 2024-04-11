@@ -29,18 +29,25 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // ******************************************************************************************************************************
+#nullable enable
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+namespace InterlockLedger.Rest.Client.V6_0;
 
-public interface IRestRecords
+public abstract class RestAbstractNodeWithDocumentRegistry<T> : RestAbstractNode<T>, INodeWithDocumentRegistry where T : IRestChain
 {
-    Task<RecordModel> AddRecordAsync(NewRecordModel model);
+    public RestAbstractNodeWithDocumentRegistry(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
+        : base(x509Certificate, networkId, address) { }
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes);
+    public RestAbstractNodeWithDocumentRegistry(X509Certificate2 x509Certificate, ushort port, string address)
+        : base(x509Certificate, port, address) { }
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes);
+    public RestAbstractNodeWithDocumentRegistry(string certFile, string certPassword, NetworkPredefinedPorts networkId, string address)
+        : base(certFile, certPassword, networkId, address) { }
 
-    Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    public RestAbstractNodeWithDocumentRegistry(string certFile, string certPassword, ushort port, string address)
+        : base(certFile, certPassword, port, address) { }
+    public IDocumentRegistry DocumentRegistry => _documentRegistry ??= new DocumentRegistryImplementation<T>(this);
 
-    Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    private IDocumentRegistry? _documentRegistry;
+
 }

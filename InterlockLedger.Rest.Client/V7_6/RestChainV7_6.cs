@@ -30,17 +30,22 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+using InterlockLedger.Rest.Client.V6_0;
 
-public interface IRestRecords
+namespace InterlockLedger.Rest.Client.V7_6
 {
-    Task<RecordModel> AddRecordAsync(NewRecordModel model);
+    public class RestChainV7_6 : RestAbstractChain, IRestChainV7_6
+    {
+        public IJsonStore JsonStore => _jsonStore;
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes);
+        public IOpaqueStore OpaqueStore => _opaqueStore;
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes);
+        internal RestChainV7_6(RestNodeV7_6 node, ChainIdModel chainId) : base(node, chainId) {
+            _jsonStore = new JsonStoreImplementation(this);
+            _opaqueStore = new OpaqueStoreImplementation(node, this);
+        }
 
-    Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
-
-    Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+        private readonly IJsonStore _jsonStore;
+        private readonly IOpaqueStore _opaqueStore;
+    }
 }

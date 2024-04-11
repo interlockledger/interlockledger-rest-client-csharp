@@ -35,7 +35,7 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 internal sealed class RecordsImplementation : IRestRecords
 {
     public RecordsImplementation(RestAbstractChain parent) {
-        _parent = parent.Required(nameof(parent));
+        _parent = parent.Required();
         _rest = _parent._rest;
         _id = _parent.Id;
     }
@@ -49,11 +49,11 @@ internal sealed class RecordsImplementation : IRestRecords
     public Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes)
         => _rest.PostRawAsync<RecordModel>($"records@{_id}/with?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", bytes, "application/interlockledger");
 
-    public Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10)
-        => _rest.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&page={page}&pageSize={pageSize}");
+    public Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
+        => _rest.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 
-    public Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10)
-        => _rest.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}");
+    public Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
+        => _rest.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 
     private readonly string _id;
     private readonly RestAbstractChain _parent;

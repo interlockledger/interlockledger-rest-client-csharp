@@ -30,6 +30,8 @@
 //
 // ******************************************************************************************************************************
 
+#nullable enable
+
 namespace InterlockLedger.Rest.Client.V6_0;
 
 /// <summary>
@@ -40,12 +42,12 @@ public sealed class DocumentsBeginTransactionModel
     /// <summary>
     /// Id of the chain where the set of documents should be stored.
     /// </summary>
-    public string Chain { get; set; }
+    public required string Chain { get; set; }
 
     /// <summary>
     /// Any additional information about the set of documents to be stored
     /// </summary>
-    public string Comment { get; set; }
+    public string? Comment { get; set; }
 
     /// <summary>
     /// Compression algorithm can be:
@@ -56,12 +58,12 @@ public sealed class DocumentsBeginTransactionModel
     ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
     ///     </list>
     /// </summary>
-    public string Compression { get; set; }
+    public string? Compression { get; set; }
 
     /// <summary>
-    /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
+    /// The encryption descriptor in the [pbe]-[hash]-[cipher]-[level] format. Ex: "PBKDF2-SHA256-AES256-MID"
     /// </summary>
-    public string Encryption { get; set; }
+    public string? Encryption { get; set; }
 
     /// <summary>
     /// If the publically viewable PublicDirectory field should be created
@@ -76,10 +78,26 @@ public sealed class DocumentsBeginTransactionModel
     /// <summary>
     /// Password as bytes if Encryption is not null
     /// </summary>
-    public byte[] Password { get; set; }
+    public byte[]? Password { get; set; }
 
     /// <summary>
     /// Locator for the previous version of this set
     /// </summary>
-    public string Previous { get; set; }
+    public string? Previous { get; set; }
+
+    /// <summary>
+    /// Indexes of the documents from the previous version of this document set NOT to be copied into this new set (supported since API Version 13.0.0).
+    /// If absent/empty all previous documents will be copied
+    /// </summary>
+    public int[]? PreviousDocumentsNotToCopy { get; set; }
+
+    /// <summary>
+    /// For 'Multi-Document Storage Application Chains' embeds '.to-children' control file if true.
+    /// </summary>
+    public bool? AllowChildren { get; set; }
+
+    /// <summary>
+    /// If AllowChildren is true the textual comment to be contained in the '.to-children' control file
+    /// </summary>
+    public string? ToChildrenComment { get; set; }
 }

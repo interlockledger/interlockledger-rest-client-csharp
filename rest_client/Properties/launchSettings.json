@@ -1,8 +1,12 @@
 {
-    "profiles": {
-        "rest_client": {
-            "commandName": "Project",
-            "commandLineArgs": "D:\\clients\\minerva-examples\\certificates\\examples.api.pfx  restClientPassword 32024 node.il2"
-        }
+  "profiles": {
+    "rest_client": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\vault\\clients\\minerva-debug\\certificates\\rest.api.pfx  DebugKey 32024 node.il2"
+    },
+    "rest_client Help": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
     }
+  }
 }

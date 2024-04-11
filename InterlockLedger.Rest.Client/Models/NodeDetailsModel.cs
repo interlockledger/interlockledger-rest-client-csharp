@@ -38,9 +38,23 @@ namespace InterlockLedger.Rest.Client;
 public class NodeDetailsModel : NodeCommonModel
 {
     /// <summary>
-    /// List of owned records, only the ids
+    /// List of owned chains, only the ids
     /// </summary>
     public IEnumerable<string> Chains { get; set; }
 
-    protected override string Extras => $"Chains: {string.Join(", ", Chains ?? _empty)}";
+    /// <summary>
+    /// Other properties the node may have
+    /// </summary>
+    public Dictionary<string, string> Extensions { get; set; }
+
+    private static string ToLine(KeyValuePair<string, string> x) => $"{x.Key}: {x.Value}";
+
+    private static readonly string _itemSeparator = $"{Environment.NewLine} - ";
+
+    private static string ToList(string label, IEnumerable<string> items) => items.PrependedBy(label).JoinedBy(_itemSeparator);
+
+    protected override string Extras => $"""
+        {ToList("Extensions:", Extensions.Select(ToLine))}
+        {ToList("Chains:", Chains)}
+        """;
 }

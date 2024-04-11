@@ -96,45 +96,40 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
 
     public override string ToString() => $"Node [{BaseUri}] connected with certificate '{CertificateName}'";
 
-    protected readonly X509Certificate2 _certificate;
+    protected internal readonly X509Certificate2 _certificate;
 
-    protected static async Task<HttpWebResponse> GetResponseAsync(HttpWebRequest req) {
-        return await ValidatedAsync(await GetInnerResponseAsync(req).ConfigureAwait(false));
-
-        static async Task<HttpWebResponse> ValidatedAsync(HttpWebResponse resp) => await IfOkOrCreatedReturnAsync(resp, () => Task.FromResult(resp));
-        static async Task<HttpWebResponse> GetInnerResponseAsync(HttpWebRequest req) {
-            try {
-                return (HttpWebResponse)await req.GetResponseAsync().ConfigureAwait(false);
-            } catch (WebException e) {
-                return (HttpWebResponse)e.Response
-                    ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
-            }
+    protected internal static async Task<HttpWebResponse> GetResponseAsync(HttpWebRequest req) {
+        try {
+            return (HttpWebResponse)await req.GetResponseAsync().ConfigureAwait(false);
+        } catch (WebException e) {
+            return (HttpWebResponse)e.Response
+                ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
         }
     }
 
-    protected static async Task<string> GetStringResponseAsync(HttpWebRequest req) => await ReadAsStringAsync(await GetResponseAsync(req));
+    protected internal static async Task<string> GetStringResponseAsync(HttpWebRequest req) => await ReadAsStringAsync(await GetResponseAsync(req));
 
-    protected static async Task<string> ReadAsStringAsync(HttpWebResponse resp) {
+    protected internal static async Task<string> ReadAsStringAsync(HttpWebResponse resp) {
         if (resp == null)
             return string.Empty;
         using var readStream = new StreamReader(resp.GetResponseStream());
         return await readStream.ReadToEndAsync();
     }
 
-    protected abstract T BuildChain(ChainIdModel c);
+    protected internal abstract T BuildChain(ChainIdModel c);
 
-    protected async Task<string> CallApiAsync(string url, string method, string accept = "application/json")
+    protected internal async Task<string> CallApiAsync(string url, string method, string accept = "application/json")
         => await GetStringResponseAsync(PrepareRequest(url, method, accept));
 
-    protected async Task<string> CallApiPlainDocAsync(string url, string method, string accept = "plain/text")
+    protected internal async Task<string> CallApiPlainDocAsync(string url, string method, string accept = "plain/text")
         => await GetStringResponseAsync(PrepareRequest(url, method, accept));
 
-    protected async Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*")
+    protected internal async Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*")
         => await GetRawResponseAsync(PrepareRequest(url, method, accept));
 
-    protected async Task<TR> GetAsync<TR>(string url) => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
+    protected internal async Task<TR> GetAsync<TR>(string url) => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
 
-    protected async Task<(string Name, string ContentType, Stream Content)> GetFileReadStreamAsync(string url, string accept = "*/*", string method = "GET") {
+    protected internal async Task<(string Name, string ContentType, Stream Content)> GetFileReadStreamAsync(string url, string accept = "*/*", string method = "GET") {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
         if (string.IsNullOrWhiteSpace(accept))
@@ -144,19 +139,23 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
         return (ParseFileName(resp), resp.ContentType, resp.GetResponseStream());
     }
+    protected internal async Task<(ulong AppId, ulong PayloadTypeId, Stream Content)> GetOpaqueStreamAsync(string url) {
+        var resp = await GetResponseAsync(PrepareRequest(url.Required(), "GET", "application/octet-stream"));
+        return (ulong.Parse(resp.Headers["x-app-id"].WithDefault("0")), ulong.Parse(resp.Headers["x-payload-type-id"].WithDefault("0")), resp.GetResponseStream());
+    }
 
-    protected async Task<TR> PostAsync<TR>(string url, object body)
+    protected internal async Task<TR> PostAsync<TR>(string url, object body)
         => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
 
-    protected async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
+    protected internal async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
         => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
 
-    protected async Task<TR> PostStreamAsync<TR>(string url, Stream body, string contentType) {
+    protected internal async Task<TR> PostStreamAsync<TR>(string url, Stream body, string contentType) {
         var resp = await GetResponseAsync(PreparePostStreamRequest(url, body, accept: "*/*", contentType));
         return await IfOkOrCreatedReturnAsync(resp, async () => Deserialize<TR>(await ReadAsStringAsync(resp)));
     }
 
-    protected HttpWebRequest PrepareRequest(string url, string method, string accept) {
+    protected internal HttpWebRequest PrepareRequest(string url, string method, string accept) {
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
         var req = (HttpWebRequest)WebRequest.Create(new Uri(BaseUri, url));
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
@@ -170,7 +169,7 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         return req;
     }
 
-    protected bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    protected internal bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         => true;
 
     private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
@@ -189,7 +188,15 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
             : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
     }
 
-    private static TR Deserialize<TR>(string s) => JsonSerializer.Deserialize<TR>(s, Globals.JsonSettings);
+    private static TR Deserialize<TR>(string s) {
+        try {
+            return JsonSerializer.Deserialize<TR>(s, Globals.JsonSettings);
+        } catch (Exception e) {
+            Console.Error.WriteLine(typeof(TR).FullName);
+            Console.Error.WriteLine(e);
+            return default(TR);
+        }
+    }
 
     private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
         => new(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);

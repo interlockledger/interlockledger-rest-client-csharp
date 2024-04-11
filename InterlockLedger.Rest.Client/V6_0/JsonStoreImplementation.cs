@@ -35,7 +35,7 @@ namespace InterlockLedger.Rest.Client.V6_0;
 internal sealed class JsonStoreImplementation : IJsonStore
 {
     public JsonStoreImplementation(RestAbstractChain parent) {
-        _parent = parent.Required(nameof(parent));
+        _parent = parent.Required();
         _rest = _parent._rest;
         _id = _parent.Id;
     }

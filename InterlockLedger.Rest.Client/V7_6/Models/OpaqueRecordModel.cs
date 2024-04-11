@@ -1,5 +1,5 @@
-// ******************************************************************************************************************************
-//
+﻿// ******************************************************************************************************************************
+//  
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
@@ -29,18 +29,44 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // ******************************************************************************************************************************
+#nullable enable
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+namespace InterlockLedger.Rest.Client.V7_6;
 
-public interface IRestRecords
+/// <summary>
+/// Generic opaque record
+/// </summary>
+public class OpaqueRecordModel
 {
-    Task<RecordModel> AddRecordAsync(NewRecordModel model);
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes);
+    /// <summary>
+    /// Network the chain that contains this record belongs to
+    /// </summary>
+    public required string Network { get; set; }
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes);
+    /// <summary>
+    /// chain id that owns this record
+    /// </summary>
+    public required string ChainId { get; set; }
 
-    Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    /// <summary>
+    /// Block serial number.
+    /// For the first record this value is zero (0)
+    /// </summary>
+    public ulong Serial { get; set; }
 
-    Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    /// <summary>
+    /// Application id this record is associated with
+    /// </summary>
+    public ulong ApplicationId { get; set; }
+
+    /// <summary>
+    /// The payload's TagId
+    /// </summary>
+    public ulong PayloadTagId { get; set; }
+
+    /// <summary>
+    /// Time of record creation
+    /// </summary>
+    public DateTimeOffset CreatedAt { get; set; }
 }

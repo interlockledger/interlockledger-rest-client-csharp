@@ -43,14 +43,23 @@ public class Versions
     public string CoreLibs { get; set; }
 
     /// <summary>
-    /// Message envelope wire format version
+    /// InterlockLedger-Tags library version
     /// </summary>
-    public string MessageEnvelopeWireFormat { get; set; }
+    public string Tags { get; set; }
 
+    /// <summary>
+    /// Interlockledger node daemon version [Deprecated]
+    /// </summary>
+    public string Node { get; set; }
     /// <summary>
     /// Interlockledger node daemon version
     /// </summary>
-    public string Node { get; set; }
+    public string Main { get; set; }
+
+    /// <summary>
+    /// Resolved node version, either Main or Node
+    /// </summary>
+    public string NodeVersion => Main.WithDefault(Node).WithDefault("?");
 
     /// <summary>
     /// Peer2Peer connectivity library version

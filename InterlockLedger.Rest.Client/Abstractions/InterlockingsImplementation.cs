@@ -35,7 +35,7 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 internal sealed class InterlockingsImplementation : IRestInterlockings
 {
     public InterlockingsImplementation(RestAbstractChain parent) {
-        _parent = parent.Required(nameof(parent));
+        _parent = parent.Required();
         _rest = _parent._rest;
         _id = _parent.Id;
     }

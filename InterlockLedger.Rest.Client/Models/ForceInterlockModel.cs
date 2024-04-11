@@ -36,7 +36,7 @@ public class ForceInterlockModel
 {
     public ForceInterlockModel() { }
 
-    public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required(nameof(targetChain));
+    public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required();
 
     /// <summary>
     /// Hash algorithm to use. Default: SHA256

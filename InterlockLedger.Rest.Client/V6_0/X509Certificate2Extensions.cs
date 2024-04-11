@@ -49,7 +49,7 @@ public static class X509Certificate2Extensions
         return HashSha256(pubKeyRSAParametersTag).ToSafeBase64() + "#SHA256";
 
         static byte[] PseudoTag(ulong tagId, params byte[][] parts)
-            => tagId.ILIntEncode().Concat(((ulong)parts.Sum(b => b.Length)).ILIntEncode()).Concat(parts.SelectMany(b => b)).ToArray();
+            => [.. tagId.ILIntEncode(), .. ((ulong)parts.Sum(b => b.Length)).ILIntEncode(), .. parts.SelectMany(b => b)];
 
         static byte[] HashSha256(byte[] data) {
             using var hasher = SHA256.Create();

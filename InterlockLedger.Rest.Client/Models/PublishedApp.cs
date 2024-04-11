@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client;
 
-public class PublishedApp : IComparable<PublishedApp>, IEquatable<PublishedApp>
+public partial class PublishedApp : IComparable<PublishedApp>, IEquatable<PublishedApp>
 {
     public ulong? AlternativeId { get; set; }
     [JsonConverter(typeof(VersionJsonConverter))]
@@ -76,5 +76,8 @@ public class PublishedApp : IComparable<PublishedApp>, IEquatable<PublishedApp>
 
     public override string ToString() => $"  #{Id} {CompositeName}   {Environment.NewLine}    {Description}";
 
-    private static string Safe(string name) => Regex.Replace(name, @"[\s\\/:""<>|\*\?]+", "_");
+    private static string Safe(string name) => UnsafeCharsRegex().Replace(name, "_");
+
+    [GeneratedRegex(@"[\s\\/:""<>|\*\?]+")]
+    private static partial Regex UnsafeCharsRegex();
 }

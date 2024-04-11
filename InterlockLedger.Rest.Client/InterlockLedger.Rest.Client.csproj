@@ -1,59 +1,64 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>net6.0</TargetFrameworks>
-		<Version>7.0.1</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Copyright>Copyright (c) 2018-2022 InterlockLedger Network</Copyright>
-		<Description>
-			This library implements a C# wrapper around the InterlockLedger Node REST API.
+    <PropertyGroup>
+        <TargetFrameworks>net8.0</TargetFrameworks>
+        <Version>13.6.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
+        <Description>
+            This library implements a C# wrapper around the InterlockLedger Node REST API.
 
-			BSD 3-Clause License
-		</Description>
-		<PackageLicenseUrl></PackageLicenseUrl>
-		<PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<PackageTags>REST Client InterlockLedger</PackageTags>
-		<PackageReleaseNotes>Drop diagram - Update to square icon</PackageReleaseNotes>
-		<PackageIcon>il2.png</PackageIcon>
-		<Authors>InterlockLedger Network</Authors>
-		<Product>InterlockLedger</Product>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<ImplicitUsings>Enable</ImplicitUsings>
-	</PropertyGroup>
+            BSD 3-Clause License
+        </Description>
+        <PackageLicenseUrl></PackageLicenseUrl>
+        <PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageTags>REST Client InterlockLedger</PackageTags>
+        <PackageReleaseNotes>Implement new API features of IL2 Node</PackageReleaseNotes>
+        <PackageIcon>il2.png</PackageIcon>
+        <Authors>InterlockLedger Network</Authors>
+        <Product>InterlockLedger</Product>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <ImplicitUsings>Enable</ImplicitUsings>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<Using Include="InterlockLedger.Rest.Client.Abstractions" />
-		<Using Include="InterlockLedger.Tags" />
-		<Using Include="System.Security.Cryptography" />
-		<Using Include="System.Security.Cryptography.X509Certificates" />
-		<Using Include="System.Text" />
-		<Using Include="System.Text.Json" />
-		<Using Include="System.Text.Json.Serialization" />
-		<Using Include="System.Text.RegularExpressions" />
-		<Using Include="System.Web" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="InterlockLedger.Tags.ILInt" Version="5.0.2" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
-	</ItemGroup>
+    <ItemGroup>
+        <Using Include="InterlockLedger.Rest.Client.Abstractions" />
+        <Using Include="InterlockLedger.Tags" />
+        <Using Include="System.Security.Cryptography" />
+        <Using Include="System.Security.Cryptography.X509Certificates" />
+        <Using Include="System.Text" />
+        <Using Include="System.Text.Json" />
+        <Using Include="System.Text.Json.Serialization" />
+        <Using Include="System.Text.RegularExpressions" />
+        <Using Include="System.Web" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="InterlockLedger.Commons" Version="18.2.0" />
+        <PackageReference Include="InterlockLedger.Tags.ILInt" Version="14.0.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+    </ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\LICENSE">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-		<None Include="..\il2.png">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-	</ItemGroup>
+    <ItemGroup>
+        <None Include="..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+        <None Include="..\il2.png">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\Types\" />
+    </ItemGroup>
     <Target Name="TagSources">
         <Exec Command="git tag v$(Version)" ContinueOnError="true" StandardErrorImportance="low" StandardOutputImportance="low" IgnoreExitCode="true" />
         <Message Importance="high" Text="Recent tags:" />

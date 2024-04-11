@@ -51,6 +51,6 @@ public sealed class PeerModel : NodeCommonModel
     /// Network protocol the peer is listening
     /// </summary>
     public string Protocol { get; set; }
-
-    protected override string Extras => $"P2P listening at {Address}:{Port}";
+    public override string ResolvedPeerAddress => $"ilkl-{Network.ToLowerInvariant()}://{Address}:{Port}";
+    protected override string Extras => string.Empty;
 }

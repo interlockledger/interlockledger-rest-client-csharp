@@ -30,17 +30,23 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.Abstractions;
+using InterlockLedger.Rest.Client.V6_0;
 
-public interface IRestRecords
+namespace InterlockLedger.Rest.Client.V7_6;
+
+public class RestNodeV7_6 : RestAbstractNodeWithDocumentRegistry<RestChainV7_6>
 {
-    Task<RecordModel> AddRecordAsync(NewRecordModel model);
+    public RestNodeV7_6(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
+        : base(x509Certificate, networkId, address) { }
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, byte[] bytes);
+    public RestNodeV7_6(X509Certificate2 x509Certificate, ushort port, string address)
+        : base(x509Certificate, port, address) { }
 
-    Task<RecordModel> AddRecordAsync(ulong applicationId, ulong payloadTagId, RecordType type, byte[] bytes);
+    public RestNodeV7_6(string certFile, string certPassword, NetworkPredefinedPorts networkId, string address)
+        : base(certFile, certPassword, networkId, address) { }
 
-    Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    public RestNodeV7_6(string certFile, string certPassword, ushort port, string address)
+        : base(certFile, certPassword, port, address) { }
+    protected internal override RestChainV7_6 BuildChain(ChainIdModel c) => new(this, c.Required());
 
-    Task<PageOf<RecordModel>> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
 }
