@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
-        <Version>13.7.0</Version>
+        <Version>13.7.3</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
@@ -13,7 +13,7 @@
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Update to last changes in node v13.7.0</PackageReleaseNotes>
+        <PackageReleaseNotes>Update to last changes in node v13.7.3</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

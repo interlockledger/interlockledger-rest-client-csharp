@@ -288,12 +288,12 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
     protected static async Task ReadSomeJsonDocumentsRecordsAsync<TJson>(X509Certificate2 certificate, TJson jsonStore, IRecordsStore recordsStore, string chainId, ulong payloadTagId, string payloadTypeName, Func<X509Certificate2, TJson, string, ulong, Task> retrieveAndDumpAsync) where TJson : IJsonStore {
         ulong[] filteredRecords = await FindJsonRecords(recordsStore, payloadTagId);
         if (filteredRecords.SafeAny()) {
-            Console.WriteLine($"{Environment.NewLine}==== {payloadTypeName} from {chainId}: {filteredRecords.Length} records");
+            Console.WriteLine($"{Environment.NewLine}    ==== {payloadTypeName} from {chainId}: {filteredRecords.Length} records");
             foreach (var serial in filteredRecords) {
                 await retrieveAndDumpAsync(certificate, jsonStore, chainId, serial);
             }
         } else {
-            Console.WriteLine($"No {payloadTypeName} found in {chainId}");
+            Console.WriteLine($"    No {payloadTypeName} found in {chainId}");
         }
 
         static async Task<ulong[]> FindJsonRecords(IRecordsStore recordsStore, ulong payloadTagId) {
@@ -309,16 +309,16 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
 
     protected static async Task RetrieveAndDumpJsonDocumentsAsync<TJson>(X509Certificate2 certificate, TJson jsonStore, string chainId, ulong serial) where TJson : IJsonStore {
         var json = await jsonStore.RetrieveAsync(serial);
-        Console.WriteLine($"{Environment.NewLine}Json at {chainId}@{serial}:");
+        Console.WriteLine($"{Environment.NewLine}    Json at {chainId}@{serial}:");
         if (json is null)
-            Console.WriteLine("-- Could not retrieve it!");
+            Console.WriteLine("    -- Could not retrieve it!");
         else if (json.JsonText.IsValidJson())
-            Console.WriteLine($"-- {json.JsonText.Ellipsis(300)}");
+            Console.WriteLine($"    -- {json.JsonText.Ellipsis(300)}");
         else if (json.EncryptedJson is null)
-            Console.WriteLine("-- Invalid format!");
+            Console.WriteLine("    -- Invalid format!");
         else {
-            Console.WriteLine($"-- {json.EncryptedJson}");
-            Console.WriteLine($"-- {json.EncryptedJson.DecodedWith(certificate)}");
+            Console.WriteLine($"    -- {json.EncryptedJson}");
+            Console.WriteLine($"    -- {json.EncryptedJson.DecodedWith(certificate)}");
         }
     }
 
