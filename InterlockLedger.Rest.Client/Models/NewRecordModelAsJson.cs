@@ -37,7 +37,7 @@ public class NewRecordModelAsJson : NewRecordModelBase
     /// <summary>
     /// The payload data matching the metadata for PayloadTagId
     /// </summary>
-    public object Json { get; set; }
+    public object? Json { get; set; }
 
     /// <summary>
     /// The tag id for the payload, as registered for the application

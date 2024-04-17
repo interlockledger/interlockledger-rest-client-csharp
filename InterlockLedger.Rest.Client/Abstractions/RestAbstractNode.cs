@@ -30,6 +30,8 @@
 //
 // ******************************************************************************************************************************
 
+
+
 using System.Diagnostics;
 using System.Net;
 using System.Net.Mime;
@@ -39,7 +41,7 @@ using System.Security;
 namespace InterlockLedger.Rest.Client.Abstractions;
 
 [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestChain
+public abstract class RestAbstractNode<T> where T : IRestChain
 {
     public RestAbstractNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
         : this(x509Certificate, (ushort)networkId, address) { }
@@ -47,7 +49,7 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
     public RestAbstractNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost") {
         _certificate = x509Certificate;
         BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
-        Network = new RestNetwork(this);
+        Network = new RestNetwork<T>(this);
     }
 
     public RestAbstractNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
@@ -59,40 +61,24 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
     public Uri BaseUri { get; }
     public X509Certificate2 Certificate => _certificate;
     public string CertificateName => _certificate.FriendlyName.WithDefault(_certificate.Subject);
-    public RestNetwork Network { get; }
+    public RestNetwork<T> Network { get; }
 
-    public Task<IEnumerable<ChainIdModel>> AddMirrorsOfAsync(IEnumerable<string> newMirrors)
+    public Task<IEnumerable<ChainIdModel>?> AddMirrorsOfAsync(IEnumerable<string> newMirrors)
         => PostAsync<IEnumerable<ChainIdModel>>("/mirrors", newMirrors);
 
-    Task<string> IRestNodeInternals.CallApiPlainDocAsync(string url, string method, string accept)
-        => CallApiPlainDocAsync(url, method, accept);
-
-    Task<RawDocumentModel> IRestNodeInternals.CallApiRawDocAsync(string url, string method, string accept)
-        => CallApiRawDocAsync(url, method, accept);
-
-    public Task<ChainCreatedModel> CreateChainAsync(ChainCreationModel model)
+    public Task<ChainCreatedModel?> CreateChainAsync(ChainCreationModel model)
         => PostAsync<ChainCreatedModel>($"/chain", model);
 
-    Task<TR> IRestNodeInternals.GetAsync<TR>(string url) => GetAsync<TR>(url);
+    public async Task<IEnumerable<T>> GetChainsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/chain")).Safe().Select(c => BuildChain(c));
 
-    public async Task<IEnumerable<T>> GetChainsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/chain")).Select(c => BuildChain(c));
+    public Task<NodeDetailsModel?> GetDetailsAsync() => GetAsync<NodeDetailsModel>("/");
 
-    public Task<NodeDetailsModel> GetDetailsAsync() => GetAsync<NodeDetailsModel>("/");
+    public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors")).Safe().Select(c => BuildChain(c));
 
-    public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors")).Select(c => BuildChain(c));
+    public Task<IEnumerable<PeerModel>?> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
 
-    public Task<IEnumerable<PeerModel>> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
-
-    public async Task<PageOf<InterlockingRecordModel>> InterlocksOfAsync(string chain)
+    public async Task<PageOf<InterlockingRecordModel>?> InterlocksOfAsync(string chain)
         => await GetAsync<PageOf<InterlockingRecordModel>>($"/interlockings/{chain}");
-
-    Task<TR> IRestNodeInternals.PostAsync<TR>(string url, object body) => PostAsync<TR>(url, body);
-
-    Task<TR> IRestNodeInternals.PostRawAsync<TR>(string url, byte[] body, string contentType)
-        => PostRawAsync<TR>(url, body, contentType);
-
-    Task<bool> IRestNodeInternals.PostStreamAsync(string url, Stream body, string contentType)
-        => PostStreamAsync<bool>(url, body, contentType);
 
     public override string ToString() => $"Node [{BaseUri}] connected with certificate '{CertificateName}'";
 
@@ -102,12 +88,35 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         try {
             return (HttpWebResponse)await req.GetResponseAsync().ConfigureAwait(false);
         } catch (WebException e) {
-            return (HttpWebResponse)e.Response
-                ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
+            return e.Response as HttpWebResponse ?? throw new InvalidOperationException($"Could not retrieve response at {req.Address}", e);
         }
     }
 
-    protected internal static async Task<string> GetStringResponseAsync(HttpWebRequest req) => await ReadAsStringAsync(await GetResponseAsync(req));
+    protected internal static async Task<string> GetStringResponseAsync(HttpWebRequest req)
+        => (await IfOkOrCreatedReturnAsync(await GetResponseAsync(req), ReadAsStringAsync)).WithDefault(string.Empty);
+
+    private static async Task<TR?> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<HttpWebResponse, Task<TR>> buildResult) {
+        return resp.StatusCode switch {
+            HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(resp),
+            HttpStatusCode.NotFound => default,
+            _ => await CheckMessageAsync(resp)
+        };
+
+        static async Task<TR?> CheckMessageAsync(HttpWebResponse resp) {
+            string content = await ReadAsStringAsync(resp).ConfigureAwait(false);
+            if (content.Safe().Contains("outstanding", StringComparison.OrdinalIgnoreCase))
+                return default;
+            else {
+                string exceptionMessage = $"{resp.StatusCode}(#{(int)resp.StatusCode}){Environment.NewLine}{content}";
+                return resp.StatusCode switch {
+                    HttpStatusCode.Unauthorized => throw new SecurityException(exceptionMessage),
+                    HttpStatusCode.Forbidden => throw new SecurityException(exceptionMessage),
+                    _ => throw new ApiException(exceptionMessage),
+                };
+            }
+        }
+    }
+
 
     protected internal static async Task<string> ReadAsStringAsync(HttpWebResponse resp) {
         if (resp == null)
@@ -124,12 +133,13 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
     protected internal async Task<string> CallApiPlainDocAsync(string url, string method, string accept = "plain/text")
         => await GetStringResponseAsync(PrepareRequest(url, method, accept));
 
-    protected internal async Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*")
+    protected internal async Task<RawDocumentModel?> CallApiRawDocAsync(string url, string method, string accept = "*")
         => await GetRawResponseAsync(PrepareRequest(url, method, accept));
 
-    protected internal async Task<TR> GetAsync<TR>(string url) => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
+    protected internal async Task<TR?> GetAsync<TR>(string url)
+        => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
 
-    protected internal async Task<(string Name, string ContentType, Stream Content)> GetFileReadStreamAsync(string url, string accept = "*/*", string method = "GET") {
+    protected internal async Task<(string Name, string ContentType, Stream Content)?> GetFileReadStreamAsync(string url, string accept = "*/*", string method = "GET") {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException($"'{nameof(url)}' cannot be null or empty", nameof(url));
         if (string.IsNullOrWhiteSpace(accept))
@@ -137,22 +147,25 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         if (string.IsNullOrWhiteSpace(method))
             throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
         var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
-        return (ParseFileName(resp), resp.ContentType, resp.GetResponseStream());
+        return resp.StatusCode == HttpStatusCode.OK ? (ParseFileName(resp), resp.ContentType, resp.GetResponseStream()) : null;
     }
-    protected internal async Task<(ulong AppId, ulong PayloadTypeId, Stream Content)> GetOpaqueStreamAsync(string url) {
+    protected internal async Task<(ulong AppId, ulong PayloadTypeId, DateTimeOffset? CreatedAt, Stream Content)?> GetOpaqueStreamAsync(string url) {
         var resp = await GetResponseAsync(PrepareRequest(url.Required(), "GET", "application/octet-stream"));
-        return (ulong.Parse(resp.Headers["x-app-id"].WithDefault("0")), ulong.Parse(resp.Headers["x-payload-type-id"].WithDefault("0")), resp.GetResponseStream());
+        if (resp.StatusCode != HttpStatusCode.OK)
+            return null;
+        DateTimeOffset? createdAt = DateTimeOffset.TryParse(resp.Headers["x-created-at"], out var parsedCreatedAt) ? parsedCreatedAt : null;
+        return (ulong.Parse(resp.Headers["x-app-id"].WithDefault("0")), ulong.Parse(resp.Headers["x-payload-type-id"].WithDefault("0")), createdAt, resp.GetResponseStream());
     }
 
-    protected internal async Task<TR> PostAsync<TR>(string url, object body)
+    protected internal async Task<TR?> PostAsync<TR>(string url, object? body)
         => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
 
-    protected internal async Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType)
+    protected internal async Task<TR?> PostRawAsync<TR>(string url, byte[] body, string contentType)
         => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
 
-    protected internal async Task<TR> PostStreamAsync<TR>(string url, Stream body, string contentType) {
+    protected internal async Task<TR?> PostStreamAsync<TR>(string url, Stream body, string contentType) {
         var resp = await GetResponseAsync(PreparePostStreamRequest(url, body, accept: "*/*", contentType));
-        return await IfOkOrCreatedReturnAsync(resp, async () => Deserialize<TR>(await ReadAsStringAsync(resp)));
+        return await IfOkOrCreatedReturnAsync(resp, async (rs) => Deserialize<TR>(await ReadAsStringAsync(rs)));
     }
 
     protected internal HttpWebRequest PrepareRequest(string url, string method, string accept) {
@@ -169,7 +182,7 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         return req;
     }
 
-    protected internal bool ServerCertificateValidation(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    protected internal bool ServerCertificateValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         => true;
 
     private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
@@ -181,27 +194,21 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         return concatBuffer;
     }
 
-    private static async Task<TR> CheckMessageAsync<TR>(HttpWebResponse resp) {
-        string content = await ReadAsStringAsync(resp).ConfigureAwait(false);
-        return content.Contains("outstanding", StringComparison.OrdinalIgnoreCase)
-            ? default(TR)
-            : throw new InvalidDataException($"API error: {resp.StatusCode}(#{(int)resp.StatusCode}) {resp.StatusDescription}{Environment.NewLine}{content}");
-    }
-
-    private static TR Deserialize<TR>(string s) {
+    private static TR? Deserialize<TR>(string s) {
         try {
             return JsonSerializer.Deserialize<TR>(s, Globals.JsonSettings);
         } catch (Exception e) {
             Console.Error.WriteLine(typeof(TR).FullName);
-            Console.Error.WriteLine(e);
-            return default(TR);
+            Console.Error.WriteLine(s);
+            Console.Error.WriteLine(e.Message);
+            return default;
         }
     }
 
     private static X509Certificate2 GetCertFromFile(string certPath, string certPassword)
         => new(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
-    private static async Task<RawDocumentModel> GetRawResponseAsync(HttpWebRequest req) {
+    private static async Task<RawDocumentModel?> GetRawResponseAsync(HttpWebRequest req) {
         var response = await GetResponseAsync(req);
         if (response is null)
             return null;
@@ -218,13 +225,7 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         return new RawDocumentModel(resp.ContentType, fullBuffer, ParseFileName(resp));
     }
 
-    private static async Task<TR> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<Task<TR>> buildResult) => resp.StatusCode switch {
-        HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(),
-        HttpStatusCode.NotFound => default,
-        HttpStatusCode.Unauthorized => throw new SecurityException(nameof(HttpStatusCode.Unauthorized)),
-        HttpStatusCode.Forbidden => throw new SecurityException(nameof(HttpStatusCode.Forbidden)),
-        _ => await CheckMessageAsync<TR>(resp)
-    };
+
 
     private static string ParseFileName(HttpWebResponse resp) {
         var disposition = resp.GetResponseHeader("Content-Disposition");
@@ -232,10 +233,10 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         var filename = header.FileName;
         if (header.Parameters.ContainsKey("filename*")) {
             filename = header.Parameters["filename*"];
-            if (filename.StartsWith("UTF-8''"))
-                return WebUtility.UrlDecode(filename[7..]);
+            if (filename.Safe().StartsWith("UTF-8''"))
+                return WebUtility.UrlDecode(filename![7..]);
         }
-        return filename;
+        return filename.WithDefault("?");
     }
 
     private string GetDebuggerDisplay() => ToString();
@@ -250,7 +251,7 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         return request;
     }
 
-    private HttpWebRequest PreparePostRequest(string url, object body, string accept) {
+    private HttpWebRequest PreparePostRequest(string url, object? body, string accept) {
         var request = PrepareRequest(url, "POST", accept);
         request.ContentType = "application/json; charset=utf-8";
         using (var stream = request.GetRequestStream()) {
@@ -271,19 +272,4 @@ public abstract class RestAbstractNode<T> : IRestNodeInternals where T : IRestCh
         }
         return request;
     }
-}
-
-internal interface IRestNodeInternals
-{
-    Task<string> CallApiPlainDocAsync(string url, string method, string accept = "text/plain");
-
-    Task<RawDocumentModel> CallApiRawDocAsync(string url, string method, string accept = "*/*");
-
-    Task<TR> GetAsync<TR>(string url);
-
-    Task<TR> PostAsync<TR>(string url, object body);
-
-    Task<TR> PostRawAsync<TR>(string url, byte[] body, string contentType);
-
-    Task<bool> PostStreamAsync(string url, Stream body, string contentType);
 }

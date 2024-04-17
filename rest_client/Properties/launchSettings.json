@@ -2,7 +2,7 @@
   "profiles": {
     "rest_client": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\vault\\clients\\minerva-debug\\certificates\\rest.api.pfx  DebugKey 32024 node.il2"
+      "commandLineArgs": "D:\\vault\\clients\\minerva-debug\\certificates\\rest.api.pfx  DebugKey 32024 node.il2 --writeable"
     },
     "rest_client Help": {
       "commandName": "Project",

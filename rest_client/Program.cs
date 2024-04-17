@@ -31,8 +31,7 @@
 // ******************************************************************************************************************************
 
 using Cocona;
-using InterlockLedger.Rest.Client.V6_0;
-using InterlockLedger.Rest.Client.V7_6;
+using InterlockLedger.Rest.Client.V13_7;
 using rest_client;
 
 
@@ -40,27 +39,15 @@ CoconaLiteApp.Run(([Argument(Description = "Path to file containing client certi
                    [Argument(Description = "Password to open file containing client certificate")] string certificatePassword,
                    [Argument(Description = "Port to access the node API (ex.: 32032)")] ushort apiPort,
                    [Argument(Description = "Address to access the node API (ex.: node.il2, localhost)")] string restURL,
-                   [Option(Description = "Try to write into the node (Default: false)")] bool writeable = false,
-                   [Option(Description = "API version to exercise in the node")] KnownVersions version = KnownVersions.V7_6) => {
+                   [Option(Description = "Try to write into the node (Default: false)")] bool writeable = false) => {
                        try {
                            var pathToCertificatePfxFileInfo = new FileInfo(pathToCertificatePfxFile);
                            if (!pathToCertificatePfxFileInfo.Exists) {
                                Console.WriteLine($"File {pathToCertificatePfxFile} not found!");
                                return 2;
                            }
-                           switch (version) {
-                           case KnownVersions.V6_0:
-                               var client6_0 = new RestNodeV6_0(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
-                               new UsingV6_0(client6_0).ExerciseAsync(writeable).Wait();
-                               break;
-                           case KnownVersions.V7_6:
-                               var client7_6 = new RestNodeV7_6(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
-                               new UsingV7_6(client7_6).ExerciseAsync(writeable).Wait();
-                               break;
-                           default:
-                               Console.WriteLine($"No known API version chosen '{version}'");
-                               break;
-                           }
+                           var client = new RestNodeV13_7(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
+                           new UsingV13_7(client).ExerciseAsync(writeable).Wait();
                            return 0;
                        } catch (Exception e) {
                            Console.WriteLine(e);

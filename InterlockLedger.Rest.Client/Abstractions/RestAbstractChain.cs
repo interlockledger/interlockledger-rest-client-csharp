@@ -35,47 +35,43 @@ using System.Diagnostics;
 namespace InterlockLedger.Rest.Client.Abstractions;
 
 [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-public abstract class RestAbstractChain : IRestChain
+public abstract class RestAbstractChain<T> : IRestChain where T : IRestChain
 {
     public string Id { get; }
-    IRestInterlockings IRestChain.Interlockings => _interlockings;
-    public string Name { get; }
+    public IInterlockings Interlockings { get; }
+    public string? Name { get; }
 
-    IRestRecords IRestChain.Records => _records;
+    public IRecordsStore Records { get; }
 
-    IRestRecordsAsJson IRestChain.RecordsAsJson => _recordsAsJson;
+    public IRecordsAsJsonStore RecordsAsJson { get; }
 
-    Task<IEnumerable<ulong>> IRestChain.GetActiveAppsAsync() => _rest.GetAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
+    public Task<IEnumerable<ulong>?> GetActiveAppsAsync() => _node.GetAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps");
 
-    Task<IEnumerable<KeyModel>> IRestChain.GetPermittedKeysAsync() => _rest.GetAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key");
+    public Task<IEnumerable<KeyModel>?> GetPermittedKeysAsync() => _node.GetAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key");
 
-    Task<ChainSummaryModel> IRestChain.GetSummaryAsync() => _rest.GetAsync<ChainSummaryModel>($"/chain/{Id}");
+    public Task<ChainSummaryModel?> GetSummaryAsync() => _node.GetAsync<ChainSummaryModel>($"/chain/{Id}");
 
-    Task<IEnumerable<ulong>> IRestChain.PermitAppsAsync(params ulong[] appsToPermit)
-        => _rest.PostAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
+    public Task<IEnumerable<ulong>?> PermitAppsAsync(params ulong[] appsToPermit)
+        => _node.PostAsync<IEnumerable<ulong>>($"/chain/{Id}/activeApps", appsToPermit);
 
-    Task<IEnumerable<KeyModel>> IRestChain.PermitKeysAsync(params KeyPermitModel[] keysToPermit)
-        => _rest.PostAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
+    public Task<IEnumerable<KeyModel>?> PermitKeysAsync(params KeyPermitModel[] keysToPermit)
+        => _node.PostAsync<IEnumerable<KeyModel>>($"/chain/{Id}/key", keysToPermit);
 
-    public Task<PageOf<RecordModel>> RecordsFromAsync(ulong firstSerial)
-        => _rest.GetAsync<PageOf<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
+    public Task<PageOf<RecordModel>?> RecordsFromAsync(ulong firstSerial)
+        => _node.GetAsync<PageOf<RecordModel>>($"records@{Id}?firstSerial={firstSerial}");
 
     public override string ToString() => $"Chain '{Name}' #{Id}";
 
-    internal readonly IRestNodeInternals _rest;
+    internal readonly RestAbstractNode<T> _node;
 
-    internal RestAbstractChain(IRestNodeInternals rest, ChainIdModel chainId) {
-        _rest = rest.Required();
-        Id = chainId.Required().Id;
+    internal RestAbstractChain(RestAbstractNode<T> node, ChainIdModel chainId) {
+        _node = node.Required();
+        Id = chainId.Required().Id.Required();
         Name = chainId.Name;
-        _records = new RecordsImplementation(this);
-        _recordsAsJson = new RecordsAsJsonImplementation(this);
-        _interlockings = new InterlockingsImplementation(this);
+        Records = new RecordsStoreImplementation<T>(this);
+        RecordsAsJson = new RecordsAsJsonStoreImplementation<T>(this);
+        Interlockings = new InterlockingsImplementation<T>(this);
     }
 
-    private readonly IRestInterlockings _interlockings;
-    private readonly IRestRecords _records;
-    private readonly IRestRecordsAsJson _recordsAsJson;
-
-    private string GetDebuggerDisplay() => $"{this} at {_rest}";
+    private string GetDebuggerDisplay() => $"{this} at {_node}";
 }

@@ -37,6 +37,6 @@ public class RecordModel : RecordModelBase
     /// <summary>
     /// The payload's bytes
     /// </summary>
-    public byte[] PayloadBytes { get; set; }
+    public byte[]? PayloadBytes { get; set; }
     public override string ToString() => JsonSerializer.Serialize(this, Globals.JsonSettings);
 }

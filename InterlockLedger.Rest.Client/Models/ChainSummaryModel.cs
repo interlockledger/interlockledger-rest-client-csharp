@@ -37,12 +37,12 @@ public sealed partial class ChainSummaryModel : ChainIdModel
     /// <summary>
     /// List of active apps (only the numeric ids)
     /// </summary>
-    public List<ulong> ActiveApps { get; set; }
+    public List<ulong> ActiveApps { get; set; } = [];
 
     /// <summary>
     /// Description (perhaps intended primary usage) [Optional]
     /// </summary>
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// Is this record not able to accept new records?
@@ -82,7 +82,7 @@ public sealed partial class ChainSummaryModel : ChainIdModel
     /// <summary>
     ///  Composite licensing status
     /// </summary>
-    public string LicensingStatus { get; set; }
+    public string? LicensingStatus { get; set; }
 
     /// <summary>
     /// Size in bytes the chain occupies in storage

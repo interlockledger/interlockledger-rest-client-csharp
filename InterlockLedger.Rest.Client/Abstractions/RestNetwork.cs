@@ -32,11 +32,11 @@
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
-public class RestNetwork
+public class RestNetwork<T> where T: IRestChain
 {
-    public Task<AppsModel> GetAppsAsync() => _rest.GetAsync<AppsModel>("/apps");
+    public Task<AppsModel?> GetAppsAsync() => _node.GetAsync<AppsModel>("/apps");
 
-    internal RestNetwork(IRestNodeInternals rest) => _rest = rest ?? throw new ArgumentNullException(nameof(rest));
+    internal RestNetwork(RestAbstractNode<T> node) => _node = node.Required();
 
-    private readonly IRestNodeInternals _rest;
+    private readonly RestAbstractNode<T> _node;
 }

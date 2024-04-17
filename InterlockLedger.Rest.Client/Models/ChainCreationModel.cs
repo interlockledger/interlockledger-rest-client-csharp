@@ -33,17 +33,6 @@
 namespace InterlockLedger.Rest.Client;
 
 /// <summary>
-/// Chain created
-/// </summary>
-public class ChainCreatedModel : ChainIdModel
-{
-    /// <summary>
-    /// Emergency key file names
-    /// </summary>
-    public List<ExportedKeyFile> KeyFiles { get; set; }
-}
-
-/// <summary>
 /// Chain creation parameters
 /// </summary>
 public class ChainCreationModel
@@ -51,17 +40,21 @@ public class ChainCreationModel
     /// <summary>
     /// List of additional apps (only the numeric ids)
     /// </summary>
-    public List<ulong> AdditionalApps { get; set; }
+    public List<ulong> AdditionalApps { get; set; } = [];
 
+    /// <summary>
+    /// API certificates to authorize with corresponding permissions
+    /// </summary>
+    public IEnumerable<CertificatePermitModel>? ApiCertificates { get; set; }
     /// <summary>
     /// Description (perhaps intended primary usage) [Optional]
     /// </summary>
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// Emergency closing key password [Required]
     /// </summary>
-    public string EmergencyClosingKeyPassword { get; set; }
+    public string? EmergencyClosingKeyPassword { get; set; }
 
     /// <summary>
     /// Emergency closing key strength of key (default: ExtraStrong)
@@ -69,14 +62,14 @@ public class ChainCreationModel
     public KeyStrength EmergencyClosingKeyStrength { get; set; } = KeyStrength.ExtraStrong;
 
     /// <summary>
-    /// Keys algorithm (default: RSA)
+    /// Keys algorithm (default: EdDSA)
     /// </summary>
-    public Algorithms KeysAlgorithm { get; set; } = Algorithms.RSA;
+    public Algorithms KeysAlgorithm { get; set; } = Algorithms.EdDSA;
 
     /// <summary>
     /// App/Key management key password [Required]
     /// </summary>
-    public string ManagementKeyPassword { get; set; }
+    public string? ManagementKeyPassword { get; set; }
 
     /// <summary>
     /// App/Key management strength of key (default: Strong)
@@ -86,7 +79,7 @@ public class ChainCreationModel
     /// <summary>
     /// Name [Required]
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Operating key strength of key (default: Normal)
@@ -94,14 +87,13 @@ public class ChainCreationModel
     public KeyStrength OperatingKeyStrength { get; set; } = KeyStrength.Normal;
 
     /// <summary>
+    /// Keys algorithm (default: EdDSA)
+    /// </summary>
+    public Algorithms OperatingKeyAlgorithm { get; set; } = Algorithms.EdDSA;
+
+
+    /// <summary>
     /// Parent record Id [Optional]
     /// </summary>
-    public string Parent { get; set; }
-}
-
-public class ExportedKeyFile
-{
-    public byte[] KeyFileBytes { get; set; }
-    public string KeyFileName { get; set; }
-    public string KeyName { get; set; }
+    public string? Parent { get; set; }
 }

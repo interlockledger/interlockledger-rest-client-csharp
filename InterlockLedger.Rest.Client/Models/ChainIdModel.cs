@@ -40,12 +40,12 @@ public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
     /// <summary>
     /// Unique record id
     /// </summary>
-    public string Id { get; set; }
+    public required string? Id { get; set; }
 
     /// <summary>
     /// Name [Optional]
     /// </summary>
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     public static bool operator !=(ChainIdModel left, ChainIdModel right) => !(left == right);
 
@@ -78,25 +78,25 @@ public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
     ///         This instance follows <paramref name="other">other</paramref> in the sort order.
     /// </para>
     ///  </returns>
-    public int CompareTo(ChainIdModel other) => Id.CompareTo(other?.Id);
+    public int CompareTo(ChainIdModel? other) => Id is null ? -1 : Id.CompareTo(other?.Id) ;
 
     /// <summary>
     /// Compares this ChainIdModel to other object
     /// </summary>
     /// <param name="obj"></param>
     /// <returns>True if obj is a ChainIdModel and is equal to this</returns>
-    public override bool Equals(object obj) => Equals(obj as ChainIdModel);
+    public override bool Equals(object? obj) => Equals(obj as ChainIdModel);
 
     /// <summary>
     /// Compares this ChainIdModel to other instance
     /// </summary>
     /// <param name="other"></param>
     /// <returns>True if other is equal to this</returns>
-    public bool Equals(ChainIdModel other) => other != null && Id == other.Id;
+    public bool Equals(ChainIdModel? other) => other is not null && Id == other.Id;
 
     /// <summary>Calculate the hash</summary>
     /// <returns>A hash code for the current instance</returns>
-    public override int GetHashCode() => Id?.GetHashCode() ?? 0;
+    public override int GetHashCode() =>HashCode.Combine(Id);
 
     public override string ToString() => $"Chain '{Name}' #{Id}";
 }

@@ -38,7 +38,7 @@ internal class ColorJsonConverter : JsonConverter<Color>
 {
     public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => reader.TokenType switch {
-            JsonTokenType.String => (Color)_colorConverter.ConvertFromInvariantString(reader.GetString()),
+            JsonTokenType.String => (Color)(_colorConverter.ConvertFromInvariantString(reader.GetString().Required()) ?? Color.Transparent),
             _ => Color.Transparent
         };
 

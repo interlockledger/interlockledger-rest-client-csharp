@@ -45,7 +45,7 @@ public abstract class RecordModelBase
     /// <summary>
     /// chain id that owns this record
     /// </summary>
-    public string ChainId { get; set; }
+    public required string ChainId { get; set; }
 
     /// <summary>
     /// Time of record creation
@@ -55,7 +55,7 @@ public abstract class RecordModelBase
     /// <summary>
     /// IL2 Network
     /// </summary>
-    public string Network { get; set; }
+    public required string Network { get; set; }
 
     /// <summary>
     /// The payload's TagId
@@ -65,7 +65,7 @@ public abstract class RecordModelBase
     /// <summary>
     /// Record universal reference [Network]:[ChainId]@[Serial]
     /// </summary>
-    public string Reference { get; set; }
+    public required string Reference { get; set; }
 
     /// <summary>
     /// Record serial number.

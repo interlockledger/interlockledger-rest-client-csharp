@@ -35,18 +35,19 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 public interface IRestChain
 {
     string Id { get; }
-    IRestInterlockings Interlockings { get; }
-    string Name { get; }
-    IRestRecords Records { get; }
-    IRestRecordsAsJson RecordsAsJson { get; }
+    string? Name { get; }
 
-    Task<IEnumerable<ulong>> GetActiveAppsAsync();
+    IInterlockings Interlockings { get; }
+    IRecordsStore Records { get; }
+    IRecordsAsJsonStore RecordsAsJson { get; }
 
-    Task<IEnumerable<KeyModel>> GetPermittedKeysAsync();
+    Task<IEnumerable<ulong>?> GetActiveAppsAsync();
 
-    Task<ChainSummaryModel> GetSummaryAsync();
+    Task<IEnumerable<KeyModel>?> GetPermittedKeysAsync();
 
-    Task<IEnumerable<ulong>> PermitAppsAsync(params ulong[] appsToPermit);
+    Task<ChainSummaryModel?> GetSummaryAsync();
 
-    Task<IEnumerable<KeyModel>> PermitKeysAsync(params KeyPermitModel[] keysToPermit);
+    Task<IEnumerable<ulong>?> PermitAppsAsync(params ulong[] appsToPermit);
+
+    Task<IEnumerable<KeyModel>?> PermitKeysAsync(params KeyPermitModel[] keysToPermit);
 }

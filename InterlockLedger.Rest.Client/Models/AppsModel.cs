@@ -37,10 +37,10 @@ public class AppsModel
     /// <summary>
     /// Network name
     /// </summary>
-    public string Network { get; set; }
+    public string? Network { get; set; }
 
     /// <summary>
     /// Currently valid apps for this network
     /// </summary>
-    public IEnumerable<PublishedApp> ValidApps { get; set; }
+    public IEnumerable<PublishedApp> ValidApps { get; set; } = [];
 }

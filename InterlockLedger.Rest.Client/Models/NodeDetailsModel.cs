@@ -40,12 +40,12 @@ public class NodeDetailsModel : NodeCommonModel
     /// <summary>
     /// List of owned chains, only the ids
     /// </summary>
-    public IEnumerable<string> Chains { get; set; }
+    public IEnumerable<string> Chains { get; set; } = [];
 
     /// <summary>
     /// Other properties the node may have
     /// </summary>
-    public Dictionary<string, string> Extensions { get; set; }
+    public Dictionary<string, string> Extensions { get; set; } = [];
 
     private static string ToLine(KeyValuePair<string, string> x) => $"{x.Key}: {x.Value}";
 

@@ -37,5 +37,5 @@ public class NewRecordModel : NewRecordModelBase
     /// <summary>
     /// The payload's bytes
     /// </summary>
-    public byte[] PayloadBytes { get; set; }
+    public required byte[] PayloadBytes { get; set; }
 }

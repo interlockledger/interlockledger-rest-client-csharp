@@ -40,12 +40,12 @@ public class InterlockingRecordModel : RecordModel
     /// <summary>
     /// Interlocked Chain
     /// </summary>
-    public string InterlockedChainId { get; set; }
+    public required string InterlockedChainId { get; set; }
 
     /// <summary>
     /// Interlock Record Hash
     /// </summary>
-    public string InterlockedRecordHash { get; set; }
+    public required string InterlockedRecordHash { get; set; }
 
     /// <summary>
     /// Interlocked Record Offset

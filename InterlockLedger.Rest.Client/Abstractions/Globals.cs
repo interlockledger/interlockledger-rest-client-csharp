@@ -30,18 +30,17 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client
+namespace InterlockLedger.Rest.Client;
+
+internal static class Globals
 {
-    internal static class Globals
-    {
-        public static readonly JsonSerializerOptions JsonSettings = new() {
-            AllowTrailingCommas = true,
-            DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            WriteIndented = true,
-            PreferredObjectCreationHandling = JsonObjectCreationHandling.Replace,
-        };
-    }
+    public static readonly JsonSerializerOptions JsonSettings = new() {
+        AllowTrailingCommas = true,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        WriteIndented = true,
+        PreferredObjectCreationHandling = JsonObjectCreationHandling.Replace,
+    };
 }

@@ -35,9 +35,9 @@ namespace InterlockLedger.Rest.Client;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RecordType
 {
-    Data,
-    Root,
-    Closing,
-    EmergencyClosing,
-    Corrupted
+    Root = 0,
+    Data = 1,
+    Closing = 2,
+    EmergencyClosing = 3,
+    Corrupted = 255
 }

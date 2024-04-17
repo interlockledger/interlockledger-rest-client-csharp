@@ -32,26 +32,23 @@
 
 namespace InterlockLedger.Rest.Client;
 
-public class ForceInterlockModel
+public class ForceInterlockModel(string targetChain)
 {
-    public ForceInterlockModel() { }
-
-    public ForceInterlockModel(string targetChain) => TargetChain = targetChain.Required();
 
     /// <summary>
     /// Hash algorithm to use. Default: SHA256
     /// </summary>
-    public HashAlgorithms? HashAlgorithm { get; set; }
+    public HashAlgorithms? HashAlgorithm { get; init; }
 
     /// <summary>
     /// Required minimum of the serial of the last record in target chain whose hash will be pulled. Default: 0
     /// </summary>
-    public ulong? MinSerial { get; set; }
+    public ulong? MinSerial { get; init; }
 
     /// <summary>
     /// Id of chain to be interlocked
     /// </summary>
-    public string TargetChain { get; set; }
+    public string TargetChain { get; set; } = targetChain.Required();
 
     public override string ToString() => $"force interlock on {TargetChain} @{MinSerial ?? 0ul}+ using {HashAlgorithm ?? HashAlgorithms.SHA256}";
 }

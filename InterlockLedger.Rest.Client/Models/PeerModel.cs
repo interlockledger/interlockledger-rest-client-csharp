@@ -40,7 +40,7 @@ public sealed class PeerModel : NodeCommonModel
     /// <summary>
     /// Network address to contact the peer
     /// </summary>
-    public string Address { get; set; }
+    public required string Address { get; set; }
 
     /// <summary>
     /// Port the peer is listening
@@ -50,7 +50,7 @@ public sealed class PeerModel : NodeCommonModel
     /// <summary>
     /// Network protocol the peer is listening
     /// </summary>
-    public string Protocol { get; set; }
+    public string? Protocol { get; set; }
     public override string ResolvedPeerAddress => $"ilkl-{Network.ToLowerInvariant()}://{Address}:{Port}";
     protected override string Extras => string.Empty;
 }

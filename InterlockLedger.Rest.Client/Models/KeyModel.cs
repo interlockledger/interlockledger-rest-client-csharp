@@ -42,27 +42,27 @@ public class KeyModel
     /// <summary>
     /// Unique key id
     /// </summary>
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     /// <summary>
     /// Key name
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// List of Apps and Corresponding Actions to be permitted by numbers
     /// </summary>
-    public IEnumerable<AppPermissions> Permissions { get; set; }
+    public required IEnumerable<AppPermissions> Permissions { get; set; }
 
     /// <summary>
     /// Key public key
     /// </summary>
-    public string PublicKey { get; set; }
+    public required string PublicKey { get; set; }
 
     /// <summary>
     /// Key valid purposes
     /// </summary>
-    public IEnumerable<string> Purposes { get; set; }
+    public required IEnumerable<string> Purposes { get; set; }
 
     public override string ToString() => $"Key '{Name}' {Id}{_indent}Purposes: [{_displayablePurposes}]{_indent}{_actionsFor}";
 

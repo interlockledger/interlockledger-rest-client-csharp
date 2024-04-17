@@ -2,26 +2,25 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
-        <Version>13.6.0</Version>
+        <Version>13.7.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
             This library implements a C# wrapper around the InterlockLedger Node REST API.
-
-            BSD 3-Clause License
         </Description>
-        <PackageLicenseUrl></PackageLicenseUrl>
         <PackageProjectUrl>https://interlockledger.network/</PackageProjectUrl>
         <RepositoryUrl>https://github.com/interlockledger/interlockledger-rest-client-csharp.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Implement new API features of IL2 Node</PackageReleaseNotes>
+        <PackageReleaseNotes>Update to last changes in node v13.7.0</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
         <Authors>InterlockLedger Network</Authors>
         <Product>InterlockLedger</Product>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <ImplicitUsings>Enable</ImplicitUsings>
+        <Nullable>Enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
@@ -54,10 +53,10 @@
             <Pack>True</Pack>
             <PackagePath></PackagePath>
         </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\Types\" />
+        <None Include="..\README.md">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
     </ItemGroup>
     <Target Name="TagSources">
         <Exec Command="git tag v$(Version)" ContinueOnError="true" StandardErrorImportance="low" StandardOutputImportance="low" IgnoreExitCode="true" />

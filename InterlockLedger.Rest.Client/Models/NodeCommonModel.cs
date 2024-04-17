@@ -48,45 +48,45 @@ public class NodeCommonModel
     /// <summary>
     /// Unique node id
     /// </summary>
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     /// <summary>
     /// Node name
     /// </summary>
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// Network this node participates on
     /// </summary>
-    public string Network { get; set; }
+    public required string Network { get; set; }
 
     /// <summary>
     /// Node owner id [Optional]
     /// </summary>
-    public string OwnerId { get; set; }
+    public string? OwnerId { get; set; }
 
     /// <summary>
     /// Node owner name [Optional]
     /// </summary>
-    public string OwnerName { get; set; }
+    public string? OwnerName { get; set; }
 
     /// <summary>
     /// Peer address in the cannonical form like 'ilkl-minerva://node.il2:32025'
     /// </summary>
-    public string PeerAddress { get; set; }
+    public string? PeerAddress { get; set; }
 
     /// <summary>
     /// List of active roles running in the node
     /// </summary>
-    public IEnumerable<string> Roles { get; set; }
+    public IEnumerable<string> Roles { get; set; } = [];
 
 
-    public virtual string ResolvedPeerAddress => PeerAddress;
+    public virtual string? ResolvedPeerAddress => PeerAddress;
 
     /// <summary>
     /// Version of software running the Node
     /// </summary>
-    public Versions SoftwareVersions { get; set; }
+    public Versions? SoftwareVersions { get; set; }
 
     public override string ToString() => $"""
         Node '{Name}' [{Id}] at {ResolvedPeerAddress}
@@ -99,7 +99,7 @@ public class NodeCommonModel
         {Extras}
         """;
     protected static readonly IEnumerable<string> _empty = [];
-    protected virtual string Extras { get; }
+    protected virtual string Extras { get; } = string.Empty;
 
     private static string Fancy(Color color) => color.IsNamedColor ? color.Name : "#" + color.Name.Remove(0, 2).ToUpperInvariant();
 }

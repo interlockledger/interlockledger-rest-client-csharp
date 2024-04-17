@@ -40,6 +40,6 @@ public class RecordModelAsJson : RecordModelBase
     /// <summary>
     /// The payload's bytes
     /// </summary>
-    public object Payload { get; set; }
+    public object? Payload { get; set; }
     public override string ToString() => JsonSerializer.Serialize(this, Globals.JsonSettings);
 }

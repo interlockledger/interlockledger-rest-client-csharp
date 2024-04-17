@@ -34,10 +34,10 @@ namespace InterlockLedger.Rest.Client;
 
 internal class VersionJsonConverter : JsonConverter<Version>
 {
-    public override Version Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Version? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => reader.TokenType switch {
             JsonTokenType.Null => null,
-            JsonTokenType.String => Version.Parse(reader.GetString()),
+            JsonTokenType.String => Version.Parse(reader.GetString().Required()),
             _ => throw new InvalidDataException("Badly formatted version")
         };
 
