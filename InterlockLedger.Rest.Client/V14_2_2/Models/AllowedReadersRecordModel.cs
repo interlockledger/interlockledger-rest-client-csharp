@@ -30,7 +30,7 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
 /// <summary>
 /// Simplified model for allowed readers record

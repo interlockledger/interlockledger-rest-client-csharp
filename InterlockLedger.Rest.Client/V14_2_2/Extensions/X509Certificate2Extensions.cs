@@ -30,24 +30,30 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public class RestNodeV13_7 : RestAbstractNode<RestChainV13_7>, INodeWithDocumentRegistry
+public static class X509Certificate2Extensions
 {
-    public RestNodeV13_7(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
-        : base(x509Certificate, networkId, address) { }
+    public static string ToKeyId(this X509Certificate2 certificate) => "Key!" + certificate.GetCertHash().ToSafeBase64() + "#SHA1";
 
-    public RestNodeV13_7(X509Certificate2 x509Certificate, ushort port, string address)
-        : base(x509Certificate, port, address) { }
+    public static string? ToPubKeyHash(this X509Certificate2 certificate) {
+        var pubKeyRSA = certificate?.GetRSAPublicKey();
+        if (pubKeyRSA is null)
+            return null;
+        var pubKeyRSAParameters = pubKeyRSA.ExportParameters(includePrivateParameters: false);
+        var modulus = pubKeyRSAParameters.Modulus;
+        var exponent = pubKeyRSAParameters.Exponent;
+        if (modulus == null || exponent == null)
+            return null;
+        var modulusTag = PseudoTag(16, modulus);
+        var exponentTag = PseudoTag(16, exponent);
+        var pubKeyRSAParametersTag = PseudoTag(40, modulusTag, exponentTag);
+        return HashSha256(pubKeyRSAParametersTag).ToSafeBase64() + "#SHA256";
 
-    public RestNodeV13_7(string certFile, string certPassword, NetworkPredefinedPorts networkId, string address)
-        : base(certFile, certPassword, networkId, address) { }
+        static byte[] PseudoTag(ulong tagId, params byte[][] parts)
+            => [.. tagId.ILIntEncode(), .. ((ulong)parts.Sum(b => b.Length)).ILIntEncode(), .. parts.SelectMany(b => b)];
 
-    public RestNodeV13_7(string certFile, string certPassword, ushort port, string address)
-        : base(certFile, certPassword, port, address) { }
-    protected internal override RestChainV13_7 BuildChain(ChainIdModel c) => new(this, c.Required());
-    public IDocumentRegistry DocumentRegistry => _documentRegistry ??= new DocumentRegistryImplementation<RestChainV13_7>(this);
-
-    private IDocumentRegistry? _documentRegistry;
-
+        static byte[] HashSha256(byte[] data)
+            => SHA256.HashData(data);
+    }
 }

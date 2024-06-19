@@ -45,5 +45,5 @@ public enum NetworkPredefinedPorts : ushort
     Paperless = 29720,
     // CustomNets
     TilliT = 32063,
-    GoldReefCity = 2190
+    GoldReefCity = 2190,
 }

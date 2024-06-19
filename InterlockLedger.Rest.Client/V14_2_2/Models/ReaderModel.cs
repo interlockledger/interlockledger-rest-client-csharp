@@ -1,5 +1,5 @@
-// ******************************************************************************************************************************
-//  
+﻿// ******************************************************************************************************************************
+//
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
@@ -30,13 +30,11 @@
 //
 // ******************************************************************************************************************************
 
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-namespace InterlockLedger.Rest.Client.V13_7;
-
-public interface IOpaqueStore
+public class ReaderModel
 {
-    Task<OpaqueRecordModel?> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, Stream source);
-    Task<OpaqueRecordModel?> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, byte[] bytes);
-    Task<PageOfOpaqueRecordsModel?> QueryRecordsFromAsync(ulong appId, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, ulong[]? payloadTypeIds = null, ulong? howMany = null);
-    Task<(ulong AppId, ulong PayloadTypeId, DateTimeOffset? CreatedAt, Stream Content)?> RetrieveSinglePayloadAsync(ulong serial);
+    public string? Name { get; set; }
+
+    public string? PublicKey { get; set; }
 }

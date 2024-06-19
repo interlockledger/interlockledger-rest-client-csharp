@@ -40,15 +40,6 @@ internal sealed class RecordsAsJsonStoreImplementation<T> : IRecordsAsJsonStore 
         _id = _parent.Id;
     }
 
-    public Task<RecordModelAsJson?> AddAsync(NewRecordModelAsJson model)
-        => AddAsync(model.ApplicationId, model.PayloadTagId, model.Type, model.Json);
-
-    public Task<RecordModelAsJson?> AddAsync(ulong applicationId, ulong payloadTagId, object? payload)
-        => AddAsync(applicationId, payloadTagId, RecordType.Data, payload);
-
-    public Task<RecordModelAsJson?> AddAsync(ulong applicationId, ulong payloadTagId, RecordType type, object? payload)
-        => _node.PostAsync<RecordModelAsJson>($"records@{_id}/asJson?applicationId={applicationId}&payloadTagId={payloadTagId}&type={type}", payload);
-
     public Task<PageOf<RecordModelAsJson>?> FromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
         => _node.GetAsync<PageOf<RecordModelAsJson>>($"records@{_id}/asJson?firstSerial={firstSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 

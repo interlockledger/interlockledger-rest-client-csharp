@@ -33,18 +33,14 @@
 using System.IO.Compression;
 using InterlockLedger.Rest.Client;
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V13_7;
+using InterlockLedger.Rest.Client.V14_2_2;
 
 namespace rest_client;
 public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRestChain
 {
-    public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
     protected readonly RestAbstractNode<T> _node = node.Required();
 
     protected abstract string Version { get; }
-
-    protected Task<RecordModelAsJson> AddRecordAsJsonAsync(T chain, ulong appId, ulong action, object json)
-        => chain.RecordsAsJson.AddAsync(new NewRecordModelAsJson() { ApplicationId = appId, PayloadTagId = action, Json = json });
 
     protected Task<RecordModel> AddRecordAsync(T chain, ulong appId, params byte[] payload)
         => chain.Records.AddRecordAsync(new NewRecordModel() { ApplicationId = appId, PayloadBytes = payload });
@@ -60,43 +56,50 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
 
     protected internal async Task ExerciseAsync(bool write) {
         Console.WriteLine($"Client connected to {_node.BaseUri} using certificate '{_node.CertificateName}' via API version {Version}");
+        var apiCertificate = new CertificatePermitModel(_node.Certificate,
+                                                        [new AppPermissions(1), new AppPermissions(2), new AppPermissions(3), new AppPermissions(4), new AppPermissions(5), new AppPermissions(8), new AppPermissions(13)],
+                                                        [KeyPurpose.Protocol, KeyPurpose.Action, KeyPurpose.KeyManagement, KeyPurpose.ForceInterlock]);
         var documentRegistry = (_node is INodeWithDocumentRegistry node) ? node.DocumentRegistry : null;
-        if (write) 
-            await CreateOneChainAsync();
-        Console.WriteLine(await _node.GetDetailsAsync());
-        if (documentRegistry is not null)
-            Console.WriteLine($" {documentRegistry.GetDocumentsUploadConfigurationAsync().Result}");
-        var apps = await _node.Network.GetAppsAsync();
+        ChainCreatedModel createdChain = null;
+        if (write)
+            createdChain = await CreateOneChainAsync(apiCertificate).ConfigureAwait(false);
+        Console.WriteLine(await _node.GetDetailsAsync().ConfigureAwait(false));
+        if (documentRegistry is not null) {
+            Console.WriteLine($" {await documentRegistry.GetDocumentsUploadConfigurationAsync().ConfigureAwait(false)}");
+            Console.WriteLine($"MultiDocument Chains\n-- {(await documentRegistry.ListKnownChainsAcceptingTransactionsAsync().ConfigureAwait(false)).JoinedBy("\n-- ")}");
+        }
+        var apps = await _node.Network.GetAppsAsync().ConfigureAwait(false);
         Console.WriteLine($"-- Valid apps for network {apps.Network}:");
         foreach (var app in apps.ValidApps.OrderByDescending(a => (a.Id, a.AppVersion)).DistinctBy(a => a.Id).OrderBy(a => a.Id))
             Console.WriteLine(app);
         Console.WriteLine();
-        var peers = await _node.GetPeersAsync();
+        var peers = await _node.GetPeersAsync().ConfigureAwait(false);
         Console.WriteLine($"-- Known peers:");
-        foreach (var peer in peers.OrderBy(a => a.Name)) {
+        foreach (var peer in peers.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)) {
             Console.WriteLine(peer);
             Console.WriteLine("---------------------------------");
         }
         Console.WriteLine();
         Console.WriteLine("-- Chains:");
-        foreach (var chain in await _node.GetChainsAsync())
-            await ExerciseChainAsync(_node, chain, write);
+        foreach (var chain in (await _node.GetChainsAsync().ConfigureAwait(false)).SkipWhile(c => createdChain is not null && !c.Id.SafeEqualsTo(createdChain.Id)).Take(3))
+            await ExerciseChainAsync(_node, chain, write).ConfigureAwait(false);
         Console.WriteLine();
         Console.WriteLine("-- Mirrors:");
-        foreach (var chain in await _node.GetMirrorsAsync())
-            await ExerciseChainAsync(_node, chain, write: false);
+        foreach (var chain in (await _node.GetMirrorsAsync().ConfigureAwait(false)).Take(3))
+            await ExerciseChainAsync(_node, chain, write: false).ConfigureAwait(false);
         Console.WriteLine();
         if (write) {
-            await CreateMirrorsAsync();
+            await CreateMirrorsAsync().ConfigureAwait(false);
             if (documentRegistry is not null)
-                await ExerciseDocumentRegistryAsync(documentRegistry);
+                await ExerciseDocumentRegistryAsync(documentRegistry, createdChain).ConfigureAwait(false);
         }
     }
 
     private async Task CreateMirrorsAsync() {
         Console.WriteLine("-- Create Mirror:");
         try {
-            foreach (var chain in await _node.AddMirrorsOfAsync(_newMirrors))
+            var chains = await _node.AddMirrorsOfAsync(_newMirrors).ConfigureAwait(false);
+            foreach (var chain in chains.Safe())
                 Console.WriteLine(chain);
         } catch (Exception e) {
             Console.WriteLine(e.Message);
@@ -104,7 +107,7 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
         Console.WriteLine();
     }
 
-    private async Task CreateOneChainAsync() {
+    private async Task<ChainCreatedModel> CreateOneChainAsync(CertificatePermitModel ApiCertificate) {
         Console.WriteLine("-- Create Chain:");
         try {
             var chain = await _node.CreateChainAsync(new ChainCreationModel {
@@ -114,128 +117,132 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
                 ManagementKeyPassword = "password",
                 ManagementKeyStrength = KeyStrength.ExtraStrong,
                 KeysAlgorithm = Algorithms.RSA,
-                AdditionalApps = [4, 8, 13]
-            });
+                AdditionalApps = [4, 8, 13],
+                ApiCertificates = [ApiCertificate],
+            }).ConfigureAwait(false);
             Console.WriteLine(chain);
-         } catch (Exception e) {
+            return chain;
+        } catch (Exception e) {
             Console.WriteLine(e.Message);
         }
         Console.WriteLine();
+        return null;
     }
 
-    private static async Task ExerciseDocumentRegistryAsync(IDocumentRegistry documentRegistry) {
-        var chains = await documentRegistry.ListKnownChainsAcceptingTransactionsAsync();
+    private static async Task ExerciseDocumentRegistryAsync(IDocumentRegistry documentRegistry, ChainCreatedModel createdChain) {
+        var chains = await documentRegistry.ListKnownChainsAcceptingTransactionsAsync().ConfigureAwait(false);
         Console.WriteLine($"-- Exercise Document Registry (MultiDocuments)");
         Console.WriteLine($"---- {chains.Count()} chains accepting MD transactions");
-        var chainId = chains.FirstOrDefault();
-        if (chainId is not null) {
-            try {
-                Console.WriteLine();
-                Console.WriteLine("  Trying to begin a transaction:");
-                var trx = await documentRegistry.TransactionBeginAsync(new DocumentsBeginTransactionModel {
-                    Chain = chainId,
-                    Comment = "C# REST client testing",
-                    Compression = "BROTLI",
-                    Encryption = "PBKDF2-SHA256-AES256-LOW",
-                    Password = _password
-                });
-                Console.WriteLine(trx);
-                Console.WriteLine("  Trying to store a nice document:");
-                await documentRegistry.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(Content, writable: false));
-                Console.WriteLine(await documentRegistry.TransactionStatusAsync(trx.TransactionId));
-                await documentRegistry.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(Content, writable: false));
-                Console.WriteLine(await documentRegistry.TransactionStatusAsync(trx.TransactionId));
-                var locator = await documentRegistry.TransactionCommitAsync(trx.TransactionId);
-                Console.WriteLine($"    Documents locator: '{locator}'");
-                Console.WriteLine($"    {documentRegistry.RetrieveMetadataAsync(locator)}");
-                var secondFile = await documentRegistry.RetrieveSingleAsync(locator, 1);
-                if (secondFile is null)
-                    Console.WriteLine("Could not retrieve second file");
-                else {
-                    using var streamReader = new StreamReader(secondFile.Value.Content);
-                    Console.WriteLine($"    Retrieved second file {secondFile.Value.Name} : '{streamReader.ReadToEnd()}'");
-                    var blobFile = await documentRegistry.RetrieveZipAsync(locator);
-                    if (blobFile is null)
-                        Console.WriteLine("Could not retrieve zip file");
+        foreach (var chainId in chains) {
+            if (chainId.SafeEqualsTo(createdChain.Id))
+                try {
+                    Console.WriteLine();
+                    Console.WriteLine($"  Trying to begin a transaction at '{chainId}'");
+                    byte[] bytes = Convert.FromBase64String("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERvY3VtZW50c1Rlc3Rz");
+                    var trx = await documentRegistry.TransactionBeginAsync(new DocumentsBeginTransactionModel {
+                        Chain = chainId,
+                        Comment = "C# REST client testing",
+                        Compression = "BROTLI",
+                        Encryption = "PBKDF2-SHA256-AES256-LOW",
+                        Password = _password,
+                        AllowChildren = true,
+                        ToChildrenComment = "Beware my children",
+                        GeneratePublicDirectory = true,
+                        FromParentContent = bytes,
+                    }).ConfigureAwait(false);
+                    Console.WriteLine(trx);
+                    Console.WriteLine("  Trying to store a nice document:");
+                    await documentRegistry.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 1 Razão.txt", "First file", "text/plain", new MemoryStream(AbstractUsingHelpers.Content, writable: false)).ConfigureAwait(false);
+                    Console.WriteLine(await documentRegistry.TransactionStatusAsync(trx.TransactionId).ConfigureAwait(false));
+                    await documentRegistry.TransactionAddItemAsync(trx.TransactionId, "/", "Simple Test 2 Emoção.txt", "Second file", "text/plain", new MemoryStream(AbstractUsingHelpers.Content, writable: false)).ConfigureAwait(false);
+                    Console.WriteLine(await documentRegistry.TransactionStatusAsync(trx.TransactionId).ConfigureAwait(false));
+                    await documentRegistry.TransactionAddItemAsync(trx.TransactionId, "/", ".from-parent", "Fake Control file", "application/octet-stream", new MemoryStream(bytes, writable: false)).ConfigureAwait(false);
+                    Console.WriteLine(await documentRegistry.TransactionStatusAsync(trx.TransactionId).ConfigureAwait(false));
+                    var locator = await documentRegistry.TransactionCommitAsync(trx.TransactionId).ConfigureAwait(false);
+                    Console.WriteLine($"    Documents locator: '{locator}'");
+                    Console.WriteLine($"    {await documentRegistry.RetrieveMetadataAsync(locator).ConfigureAwait(false)}");
+                    var secondFile = await documentRegistry.RetrieveSingleAsync(locator, 1).ConfigureAwait(false);
+                    if (secondFile is null)
+                        Console.WriteLine("Could not retrieve second file");
                     else {
-                        using var stream = blobFile.Value.Content;
-                        var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
-                        Console.WriteLine($"    Blob file '{blobFile.Value.Name}' contains {zip.Entries.Count} entries.");
-                        foreach (var entry in zip.Entries)
-                            Console.WriteLine($"    - {entry.FullName}");
+                        using var streamReader = new StreamReader(secondFile.Value.Content);
+                        Console.WriteLine($"    Retrieved second file {secondFile.Value.Name} : '{await streamReader.ReadToEndAsync().ConfigureAwait(false)}'");
+                        foreach ((bool omitFromParent, bool omitToChildren) in AllCombinations) {
+                            var blobFile = await documentRegistry.RetrieveZipAsync(locator, omitFromParent, omitToChildren).ConfigureAwait(false);
+                            if (blobFile is null)
+                                Console.WriteLine($"Could not retrieve zip file with ({omitFromParent},{omitToChildren})");
+                            else {
+                                using var stream = blobFile.Value.Content;
+                                var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false, Encoding.UTF8);
+                                Console.WriteLine($"    Blob file '{blobFile.Value.Name}' with ({omitFromParent},{omitToChildren}) contains {zip.Entries.Count} entries.");
+                                foreach (var entry in zip.Entries)
+                                    Console.WriteLine($"    - {entry.FullName}");
+                            }
+                        }
                     }
+                    return;
+                } catch (Exception e) {
+                    Console.WriteLine(e.Message);
                 }
-            } catch (Exception e) {
-                Console.WriteLine(e.Message);
-            }
         }
     }
 
+    public static IEnumerable<(bool, bool)> AllCombinations => [(false, false), (false, true), (true, false), (true, true)];
 
     protected async Task ExerciseChainAsync(RestAbstractNode<T> node, T chain, bool write) {
         Console.WriteLine(chain);
-
-        var summary = await chain.GetSummaryAsync();
-        Console.WriteLine($"  Summary.ActiveApps: {string.Join(", ", summary.ActiveApps)}");
-        Console.WriteLine($"  Summary.Description: {summary.Description}");
-        Console.WriteLine($"  Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}");
-        Console.WriteLine($"  Summary.LastRecord: {summary.LastRecord}");
-        Console.WriteLine($"  Summary.LastUpdate: {summary.LastUpdate}");
-        Console.WriteLine($"  Summary.SizeInBytes: {summary.SizeInBytes}");
-        Console.WriteLine($"  Summary.LicensingStatus: {summary.LicensingStatus}");
-        Console.WriteLine($"  Summary.Licensed: {summary.Licensed}");
-        Console.WriteLine($"  Summary.LicenseIsExpired: {summary.LicenseIsExpired}");
-        Console.WriteLine($"  Summary.LicensedApps: {summary.LicensedApps.JoinedBy(",")}");
-        Console.WriteLine();
-        Console.WriteLine($"  Active apps: {string.Join(",", await chain.GetActiveAppsAsync())}");
-        Console.WriteLine();
+        var summary = await chain.GetSummaryAsync().ConfigureAwait(false);
+        await DumpSummary(chain, summary).ConfigureAwait(false);
         Console.WriteLine("  Keys:");
-        foreach (var key in await chain.GetPermittedKeysAsync())
+        foreach (var key in await chain.GetPermittedKeysAsync().ConfigureAwait(false))
             Console.WriteLine($"    {key}");
         Console.WriteLine();
         Console.WriteLine("  Interlocks stored here:");
-        foreach (var interlock in (await chain.Interlockings.GetInterlocksAsync()).Safe().Items)
+        foreach (var interlock in (await chain.Interlockings.GetInterlocksAsync().ConfigureAwait(false)).Safe().Items)
             Console.WriteLine($"    {interlock}");
         Console.WriteLine();
         Console.WriteLine("  Interlocks of this chain:");
-        foreach (var interlock in (await node.InterlocksOfAsync(chain.Id)).Safe().Items)
+        foreach (var interlock in (await node.InterlocksOfAsync(chain.Id).ConfigureAwait(false)).Safe().Items)
             Console.WriteLine($"    {interlock}");
         Console.WriteLine();
         Console.WriteLine("  Records:");
-        foreach (var record in (await chain.Records.RecordsFromToAsync(0, 1)).Safe().Items)
+        foreach (var record in (await chain.Records.RecordsFromToAsync(0, 1).ConfigureAwait(false)).Safe().Items)
             Console.WriteLine($"    {record}");
         Console.WriteLine("  RecordsAsJson:");
-        foreach (var record in (await chain.RecordsAsJson.FromToAsync(0, 2)).Safe().Items)
+        foreach (var record in (await chain.RecordsAsJson.FromToAsync(0, 2).ConfigureAwait(false)).Safe().Items)
             Console.WriteLine($"    {record}");
         if (write) {
-            await TryToAddNiceRecordAsync(chain);
-            await TryToAddNiceJsonRecordAsync(chain);
-            await TryToAddBadRecordAsync(chain);
-            await TryToPermitApp4Async(chain);
-            await TryToForceInterlockAsync(chain);
-            await TryToPermitKeyAsync(chain);
+            await TryToAddNiceRecordAsync(chain).ConfigureAwait(false);
+            await TryToAddBadRecordAsync(chain).ConfigureAwait(false);
+            await TryToPermitApp9Async(chain).ConfigureAwait(false);
+            await TryToForceInterlockAsync(chain).ConfigureAwait(false);
+            await TryToPermitKeyAsync(chain).ConfigureAwait(false);
         }
         Console.WriteLine();
-        await DoExtraExercisesAsync(_node, chain, write);
+        await DoExtraExercisesAsync(_node, chain, write).ConfigureAwait(false);
     }
 
+    private static async Task DumpSummary(T chain, ChainSummaryModel summary) =>
+        Console.WriteLine($"""
+            Summary.ActiveApps: {string.Join(", ", summary.ActiveApps)}
+            Summary.Description: {summary.Description}
+            Summary.IsClosedForNewTransactions: {summary.IsClosedForNewTransactions}
+            Summary.LastRecord: {summary.LastRecord}
+            Summary.LastUpdate: {summary.LastUpdate}
+            Summary.SizeInBytes: {summary.SizeInBytes}
+            Summary.LicensingStatus: {summary.LicensingStatus}
+            Summary.Licensed: {summary.Licensed}
+            Summary.LicenseIsExpired: {summary.LicenseIsExpired}
+            Summary.LicensedApps: {summary.LicensedApps.JoinedBy(",")}
+
+            Active apps: {string.Join(',', await chain.GetActiveAppsAsync().ConfigureAwait(false))}
+            """);
 
     protected async Task TryToAddBadRecordAsync(T chain) {
         try {
             Console.WriteLine();
             Console.WriteLine("  Trying to add a bad record:");
-            var record = await AddRecordAsync(chain, 1, 30);
-            Console.WriteLine($"    {record}");
-        } catch (Exception e) {
-            Console.WriteLine(e.Message);
-        }
-    }
-
-    protected async Task TryToAddNiceJsonRecordAsync(T chain) {
-        try {
-            Console.WriteLine();
-            Console.WriteLine("  Trying to add a nice JSON record:");
-            var record = await AddRecordAsJsonAsync(chain, 1, 300, new { TagId = 300, Version = 1, Apps = new ulong[] { 1, 2, 3 } });
+            var record = await AddRecordAsync(chain, 1, 30).ConfigureAwait(false);
             Console.WriteLine($"    {record}");
         } catch (Exception e) {
             Console.WriteLine(e.Message);
@@ -246,29 +253,29 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
         try {
             Console.WriteLine();
             Console.WriteLine("  Trying to add a nice record:");
-            var record = await AddRecordAsync(chain, 1, 248, 52, 10, 5, 0, 0, 20, 5, 4, 0, 1, 2, 3);
+            var record = await AddRecordAsync(chain, 1, 248, 52, 7, 5, 0, 0, 20, 2, 1, 100).ConfigureAwait(false);
             Console.WriteLine($"    {record}");
         } catch (Exception e) {
             Console.WriteLine(e.Message);
         }
     }
 
-    protected async Task TryToForceInterlockAsync(T chain) {
+ 
+    protected async Task TryToPermitApp9Async(T chain) {
         try {
+            var apps = await chain.PermitAppsAsync(9).ConfigureAwait(false);
+            Console.WriteLine($"  Permit app 9: [{string.Join(", ", apps)}]");
             Console.WriteLine();
-            Console.WriteLine("  Trying to force an interlock:");
-            var interlock = await chain.Interlockings.ForceInterlockAsync(new ForceInterlockModel("72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4") { HashAlgorithm = HashAlgorithms.Copy, MinSerial = 1 });
-            Console.WriteLine($"    {interlock}");
         } catch (Exception e) {
             Console.WriteLine(e.Message);
         }
     }
-
-    protected async Task TryToPermitApp4Async(T chain) {
+    protected async Task TryToForceInterlockAsync(T chain) {
         try {
-            var apps = await chain.PermitAppsAsync(4);
-            Console.WriteLine($"  Permit app 4: [{string.Join(", ", apps)}]");
             Console.WriteLine();
+            Console.WriteLine("  Trying to force an interlock:");
+            var interlock = await chain.Interlockings.ForceInterlockAsync(new ForceInterlockModel("cE98F3JNgzDBOEjCwRLGMgFujHEPCJpKunPUO4fvWoo") { HashAlgorithm = HashAlgorithms.SHA256, MinSerial = 1 }).ConfigureAwait(false);
+            Console.WriteLine($"    {interlock}");
         } catch (Exception e) {
             Console.WriteLine(e.Message);
         }
@@ -278,7 +285,7 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
         try {
             Console.WriteLine();
             Console.WriteLine($"  Trying to permit key: {_keyToPermit.Name} ({_keyToPermit.Id})");
-            foreach (var key in await chain.PermitKeysAsync(_keyToPermit))
+            foreach (var key in await chain.PermitKeysAsync(_keyToPermit).ConfigureAwait(false))
                 Console.WriteLine($"    {key}");
         } catch (Exception e) {
             Console.WriteLine(e.Message);
@@ -286,18 +293,18 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
     }
 
     protected static async Task ReadSomeJsonDocumentsRecordsAsync<TJson>(X509Certificate2 certificate, TJson jsonStore, IRecordsStore recordsStore, string chainId, ulong payloadTagId, string payloadTypeName, Func<X509Certificate2, TJson, string, ulong, Task> retrieveAndDumpAsync) where TJson : IJsonStore {
-        ulong[] filteredRecords = await FindJsonRecords(recordsStore, payloadTagId);
+        ulong[] filteredRecords = await FindJsonRecords(recordsStore, payloadTagId).ConfigureAwait(false);
         if (filteredRecords.SafeAny()) {
             Console.WriteLine($"{Environment.NewLine}    ==== {payloadTypeName} from {chainId}: {filteredRecords.Length} records");
             foreach (var serial in filteredRecords) {
-                await retrieveAndDumpAsync(certificate, jsonStore, chainId, serial);
+                await retrieveAndDumpAsync(certificate, jsonStore, chainId, serial).ConfigureAwait(false);
             }
         } else {
             Console.WriteLine($"    No {payloadTypeName} found in {chainId}");
         }
 
         static async Task<ulong[]> FindJsonRecords(IRecordsStore recordsStore, ulong payloadTagId) {
-            var records = (await recordsStore.RecordsFromAsync(0, pageSize: 0, lastToFirst: true, ommitPayload: true))?.Items;
+            var records = (await recordsStore.RecordsFromAsync(0, pageSize: 0, lastToFirst: true, ommitPayload: true).ConfigureAwait(false))?.Items;
             return records.Safe()
                           .Where(r => r.ApplicationId == 8ul && r.PayloadTagId == payloadTagId)
                           .Take(3)
@@ -308,7 +315,7 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
     }
 
     protected static async Task RetrieveAndDumpJsonDocumentsAsync<TJson>(X509Certificate2 certificate, TJson jsonStore, string chainId, ulong serial) where TJson : IJsonStore {
-        var json = await jsonStore.RetrieveAsync(serial);
+        var json = await jsonStore.RetrieveAsync(serial).ConfigureAwait(false);
         Console.WriteLine($"{Environment.NewLine}    Json at {chainId}@{serial}:");
         if (json is null)
             Console.WriteLine("    -- Could not retrieve it!");
@@ -323,5 +330,5 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
     }
 
     private static readonly byte[] _password = Encoding.UTF8.GetBytes("LongEnoughPassword");
-    private static readonly string[] _newMirrors = ["72_1DyspOtgOpg5XG2ihe7M0xCb2DhrZIQWv3-Bivy4"];
+    private static readonly string[] _newMirrors = ["cE98F3JNgzDBOEjCwRLGMgFujHEPCJpKunPUO4fvWoo"];
 }

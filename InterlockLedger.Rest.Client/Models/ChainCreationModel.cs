@@ -40,6 +40,7 @@ public class ChainCreationModel
     /// <summary>
     /// List of additional apps (only the numeric ids)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0016:Prefer using collection abstraction instead of implementation", Justification = "<Pending>")]
     public List<ulong> AdditionalApps { get; set; } = [];
 
     /// <summary>

@@ -30,23 +30,15 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-internal class JsonStoreImplementation :  IJsonStore
+public sealed class ReadingKeyModel
 {
-    public JsonStoreImplementation(RestChainV13_7 parent) {
-        _parent = parent.Required();
-        _node = _parent._node;
-        _id = _parent.Id;
-    }
+    public byte[]? EncryptedIV { get; set; }
 
-    public Task<JsonDocumentModel?> RetrieveAsync(ulong serial)
-        => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/{serial}");
+    public byte[]? EncryptedKey { get; set; }
 
-    public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
-        => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
+    public string? PublicKeyHash { get; set; }
 
-    protected readonly string _id;
-    private readonly RestChainV13_7 _parent;
-    protected readonly RestAbstractNode<RestChainV13_7> _node;
+    public string? ReaderId { get; set; }
 }

@@ -1,5 +1,5 @@
-// ******************************************************************************************************************************
-//
+﻿// ******************************************************************************************************************************
+//  
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
@@ -30,17 +30,10 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
 
-public sealed class JsonDocumentModel : RecordModelBase
+namespace InterlockLedger.Rest.Client.V14_2_2;
+
+public class PageOfOpaqueRecordsModel : PageOf<OpaqueRecordModel>
 {
-    /// <summary>
-    /// Encrypted Blob
-    /// </summary>
-    public EncryptedTextModel? EncryptedJson { get; set; }
-
-    /// <summary>
-    /// Stored JsonDocument
-    /// </summary>
-    public string? JsonText { get; set; }
+    public ulong LastChangedRecordSerial { get; set; }
 }

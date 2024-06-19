@@ -39,5 +39,5 @@ public enum RecordType
     Data = 1,
     Closing = 2,
     EmergencyClosing = 3,
-    Corrupted = 255
+    Corrupted = 255,
 }

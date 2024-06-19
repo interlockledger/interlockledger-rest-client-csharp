@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client;
 
-internal class VersionJsonConverter : JsonConverter<Version>
+internal sealed class VersionJsonConverter : JsonConverter<Version>
 {
     public override Version? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => reader.TokenType switch {

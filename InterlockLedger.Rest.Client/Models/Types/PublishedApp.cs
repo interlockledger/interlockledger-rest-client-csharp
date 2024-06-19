@@ -62,7 +62,8 @@ public partial class PublishedApp : IComparable<PublishedApp>, IEquatable<Publis
 
     public static bool operator >=(PublishedApp left, PublishedApp right) => left is null ? right is null : left.CompareTo(right) >= 0;
 
-    public int CompareTo(PublishedApp? other) {
+    public int CompareTo(PublishedApp? other)
+    {
         if (other is null) return 1;
         var idCompare = Id.CompareTo(other.Id);
         return idCompare != 0 ? idCompare : AppVersion?.CompareTo(other.AppVersion) ?? -1;
@@ -78,6 +79,6 @@ public partial class PublishedApp : IComparable<PublishedApp>, IEquatable<Publis
 
     private static string Safe(string name) => UnsafeCharsRegex().Replace(name, "_");
 
-    [GeneratedRegex(@"[\s\\/:""<>|\*\?]+")]
+    [GeneratedRegex(@"[\s\\/:""<>|\*\?]", RegexOptions.None, 100)]
     private static partial Regex UnsafeCharsRegex();
 }

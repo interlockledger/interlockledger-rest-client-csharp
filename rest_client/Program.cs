@@ -31,30 +31,30 @@
 // ******************************************************************************************************************************
 
 using Cocona;
-using InterlockLedger.Rest.Client.V13_7;
+using InterlockLedger.Rest.Client.V14_2_2;
 using rest_client;
 
-
-CoconaLiteApp.Run(([Argument(Description = "Path to file containing client certificate in .pfx format")] string pathToCertificatePfxFile,
-                   [Argument(Description = "Password to open file containing client certificate")] string certificatePassword,
-                   [Argument(Description = "Port to access the node API (ex.: 32032)")] ushort apiPort,
-                   [Argument(Description = "Address to access the node API (ex.: node.il2, localhost)")] string restURL,
-                   [Option(Description = "Try to write into the node (Default: false)")] bool writeable = false) => {
-                       try {
-                           var pathToCertificatePfxFileInfo = new FileInfo(pathToCertificatePfxFile);
-                           if (!pathToCertificatePfxFileInfo.Exists) {
-                               Console.WriteLine($"File {pathToCertificatePfxFile} not found!");
-                               return 2;
-                           }
-                           var client = new RestNodeV13_7(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
-                           new UsingV13_7(client).ExerciseAsync(writeable).Wait();
-                           return 0;
-                       } catch (Exception e) {
-                           Console.WriteLine(e);
-                           return 1;
-                       }
-                   }, configureOptions: options => {
-                       options.EnableConvertArgumentNameToLowerCase = false;
-                       options.EnableConvertOptionNameToLowerCase = false;
-                       options.TreatPublicMethodsAsCommands = false;
-                   });
+await CoconaLiteApp.RunAsync((
+    [Argument(Description = "Path to file containing client certificate in .pfx format")] string pathToCertificatePfxFile,
+    [Argument(Description = "Password to open file containing client certificate")] string certificatePassword,
+    [Argument(Description = "Port to access the node API (ex.: 32032)")] ushort apiPort,
+    [Argument(Description = "Address to access the node API (ex.: node.il2, localhost)")] string restURL,
+    [Option(Description = "Try to write into the node (Default: false)")] bool writeable = false) => {
+        try {
+            var pathToCertificatePfxFileInfo = new FileInfo(pathToCertificatePfxFile);
+            if (!pathToCertificatePfxFileInfo.Exists) {
+                Console.WriteLine($"File {pathToCertificatePfxFile} not found!");
+                return 2;
+            }
+            var client = new RestNodeV14_2_2(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
+            new UsingV14_2_2(client).ExerciseAsync(writeable).Wait();
+            return 0;
+        } catch (Exception e) {
+            Console.WriteLine(e);
+            return 1;
+        }
+    }, configureOptions: options => {
+        options.EnableConvertArgumentNameToLowerCase = false;
+        options.EnableConvertOptionNameToLowerCase = false;
+        options.TreatPublicMethodsAsCommands = false;
+    }).ConfigureAwait(false);

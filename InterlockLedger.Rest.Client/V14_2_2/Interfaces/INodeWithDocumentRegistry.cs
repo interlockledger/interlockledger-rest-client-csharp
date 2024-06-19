@@ -30,10 +30,9 @@
 //
 // ******************************************************************************************************************************
 
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-namespace InterlockLedger.Rest.Client.V13_7;
-
-public class PageOfOpaqueRecordsModel : PageOf<OpaqueRecordModel>
+public interface INodeWithDocumentRegistry
 {
-    public ulong LastChangedRecordSerial { get; set; }
+    IDocumentRegistry DocumentRegistry { get; }
 }

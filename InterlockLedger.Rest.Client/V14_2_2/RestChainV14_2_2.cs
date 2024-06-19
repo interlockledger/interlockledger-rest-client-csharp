@@ -30,28 +30,16 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public sealed record DocumentsUploadConfiguration
+public class RestChainV14_2_2 : RestAbstractChain<RestChainV14_2_2>
 {
-    public DocumentsUploadConfiguration() { }
+    public IJsonStore JsonStore { get; }
 
-    public string? DefaultCompression { get; set; }
-    public string? DefaultEncryption { get; set; }
-    public long FileSizeLimit { get; set; }
-    public int? Iterations { get; set; }
-    public IEnumerable<string> PermittedContentTypes { get; set; } = [];
-    public ushort TimeOutInMinutes { get; set; }
+    public IOpaqueStore OpaqueStore { get; }
 
-    public override string ToString()
-        => $@"{nameof(DocumentsUploadConfiguration)}
-    {nameof(DefaultCompression)} : {DefaultCompression}
-    {nameof(DefaultEncryption)} : {DefaultEncryption}
-    {nameof(FileSizeLimit)} : {FileSizeLimit}
-    {nameof(Iterations)} : {Iterations}
-    {nameof(PermittedContentTypes)} :{_joiner}{PermittedContentTypes.JoinedBy(_joiner)}
-    {nameof(TimeOutInMinutes)} : {TimeOutInMinutes}
-";
-
-    private static readonly string _joiner = $"{Environment.NewLine}        ";
+    internal RestChainV14_2_2(RestNodeV14_2_2 node, ChainIdModel chainId) : base(node, chainId) {
+        JsonStore = new JsonStoreImplementation(this);
+        OpaqueStore = new OpaqueStoreImplementation(node, this);
+    }
 }

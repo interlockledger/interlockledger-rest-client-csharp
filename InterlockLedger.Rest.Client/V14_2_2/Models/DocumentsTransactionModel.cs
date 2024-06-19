@@ -30,17 +30,17 @@
 //
 // ******************************************************************************************************************************
 
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-
-namespace InterlockLedger.Rest.Client.V13_7;
-
-/// <summary>
-/// To specify parameters for starting a transaction to store many documents in a single InterlockLedger record
-/// </summary>
-public sealed class DocumentsBeginTransactionModel
+public class DocumentsTransactionModel
 {
     /// <summary>
-    /// Id of the chain where the set of documents should be stored.
+    /// If no files/documents are still uploading
+    /// </summary>
+    public bool CanCommitNow { get; set; }
+
+    /// <summary>
+    /// Id of chain where the transaction data will be stored
     /// </summary>
     public required string Chain { get; set; }
 
@@ -61,24 +61,24 @@ public sealed class DocumentsBeginTransactionModel
     public string? Compression { get; set; }
 
     /// <summary>
-    /// The encryption descriptor in the [pbe]-[hash]-[cipher]-[level] format. Ex: "PBKDF2-SHA256-AES256-MID"
+    /// Total count of uploaded documents for this transaction
+    /// </summary>
+    public int CountOfUploadedDocuments { get; set; }
+
+    /// <summary>
+    /// Names of documents already uploaded
+    /// </summary>
+    public IEnumerable<string> DocumentNames { get; set; } = [];
+
+    /// <summary>
+    /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
     /// </summary>
     public string? Encryption { get; set; }
 
     /// <summary>
     /// If the publically viewable PublicDirectory field should be created
     /// </summary>
-    public bool? GeneratePublicDirectory { get; set; } = true;
-
-    /// <summary>
-    /// Override for the number of PBE iterations to generate the key
-    /// </summary>
-    public int? Iterations { get; set; }
-
-    /// <summary>
-    /// Password as bytes if Encryption is not null
-    /// </summary>
-    public byte[]? Password { get; set; }
+    public bool GeneratePublicDirectory { get; set; }
 
     /// <summary>
     /// Locator for the previous version of this set
@@ -86,18 +86,29 @@ public sealed class DocumentsBeginTransactionModel
     public string? Previous { get; set; }
 
     /// <summary>
-    /// Indexes of the documents from the previous version of this document set NOT to be copied into this new set (supported since API Version 13.0.0).
-    /// If absent/empty all previous documents will be copied
+    /// The transaction will be aborted if not completed until this timeout
     /// </summary>
-    public int[]? PreviousDocumentsNotToCopy { get; set; }
+    public DateTimeOffset TimeOutLimit { get; set; }
 
     /// <summary>
-    /// For 'Multi-Document Storage Application Chains' embeds '.to-children' control file if true.
+    /// Id of the transaction to use when uploading each file and committing the transaction
     /// </summary>
-    public bool? AllowChildren { get; set; }
+    public string? TransactionId { get; set; }
 
-    /// <summary>
-    /// If AllowChildren is true the textual comment to be contained in the '.to-children' control file
-    /// </summary>
-    public string? ToChildrenComment { get; set; }
+    public override string ToString() => $$"""
+        {{nameof(DocumentsTransactionModel)}} : {
+            {{nameof(CanCommitNow)}} : {{CanCommitNow}}
+            {{nameof(Chain)}} : {{Chain}}
+            {{nameof(Comment)}} : {{Comment}}
+            {{nameof(Compression)}} : {{Compression}}
+            {{nameof(CountOfUploadedDocuments)}} : {{CountOfUploadedDocuments}}
+            {{nameof(DocumentNames)}} : [{{DocumentNames.JoinedBy(", ")}}]
+            {{nameof(Encryption)}} : {{Encryption}}
+            {{nameof(GeneratePublicDirectory)}} : {{GeneratePublicDirectory}}
+            {{nameof(Previous)}} : {{Previous}}
+            {{nameof(TimeOutLimit)}} : {{TimeOutLimit:u}}
+            {{nameof(TransactionId)}} : {{TransactionId}}
+        }
+        """;
+
 }

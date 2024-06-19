@@ -31,11 +31,11 @@
 // ******************************************************************************************************************************
 
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-internal class OpaqueStoreImplementation : IOpaqueStore
+internal sealed class OpaqueStoreImplementation : IOpaqueStore
 {
-    public OpaqueStoreImplementation(RestAbstractNode<RestChainV13_7> node, RestChainV13_7 chain) {
+    public OpaqueStoreImplementation(RestAbstractNode<RestChainV14_2_2> node, RestChainV14_2_2 chain) {
         _chain = chain.Required();
         _node = node;
         _id = _chain.Id;
@@ -66,6 +66,6 @@ internal class OpaqueStoreImplementation : IOpaqueStore
 
 
     private readonly string _id;
-    private readonly RestChainV13_7 _chain;
-    private readonly RestAbstractNode<RestChainV13_7> _node;
+    private readonly RestChainV14_2_2 _chain;
+    private readonly RestAbstractNode<RestChainV14_2_2> _node;
 }

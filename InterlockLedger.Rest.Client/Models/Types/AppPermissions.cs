@@ -95,6 +95,6 @@ public partial class AppPermissions
 
     private static ulong AsUlong(string s) => ulong.TryParse(s?.Trim(), out ulong result) ? result : 0;
 
-    [GeneratedRegex("^#[0-9]+(,[0-9]+)*$")]
+    [GeneratedRegex("^#[0-9]+(,[0-9]+)*$", RegexOptions.None, 100)]
     private static partial Regex AppPermissionsRegex();
 }

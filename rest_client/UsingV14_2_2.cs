@@ -31,27 +31,27 @@
 // ******************************************************************************************************************************
 
 using InterlockLedger.Rest.Client.Abstractions;
-using InterlockLedger.Rest.Client.V13_7;
+using InterlockLedger.Rest.Client.V14_2_2;
 
 namespace rest_client;
 
-public class UsingV13_7(RestAbstractNode<RestChainV13_7> node) : AbstractUsing<RestChainV13_7>(node)
+public class UsingV14_2_2(RestAbstractNode<RestChainV14_2_2> node) : AbstractUsing<RestChainV14_2_2>(node)
 {
-    protected override string Version => "13.7";
+    protected override string Version => "14.2.2";
 
-    protected override async Task DoExtraExercisesAsync(RestAbstractNode<RestChainV13_7> node, RestChainV13_7 chain, bool write) {
-        await ExerciseJsonDocumentsV13_7Async(chain, node.Certificate, write);
-        await ExerciseOpaqueRecordsAsync(chain, write);
+    protected override async Task DoExtraExercisesAsync(RestAbstractNode<RestChainV14_2_2> node, RestChainV14_2_2 chain, bool write) {
+        await ExerciseJsonDocumentsV14_2_2Async(chain, node.Certificate, write).ConfigureAwait(false);
+        await ExerciseOpaqueRecordsAsync(chain, write).ConfigureAwait(false);
     }
 
-    private static async Task ExerciseJsonDocumentsV13_7Async(RestChainV13_7 chain, X509Certificate2 certificate, bool write) {
+    private static async Task ExerciseJsonDocumentsV14_2_2Async(RestChainV14_2_2 chain, X509Certificate2 certificate, bool write) {
         try {
             Console.WriteLine("  JsonDocuments:");
             if (write) {
                 // Add something
             }
-            await ReadSomeJsonDocumentsRecordsAsync(certificate, chain.JsonStore, chain.Records, chain.Id, 2100, "jsonDocuments", RetrieveAndDumpJsonDocumentsAsync);
-            var query = await chain.JsonStore.RetrieveAllowedReadersAsync(chain.Id);
+            await ReadSomeJsonDocumentsRecordsAsync(certificate, chain.JsonStore, chain.Records, chain.Id, 2100, "jsonDocuments", RetrieveAndDumpJsonDocumentsAsync).ConfigureAwait(false);
+            var query = await chain.JsonStore.RetrieveAllowedReadersAsync(chain.Id).ConfigureAwait(false);
             if (query.TotalNumberOfPages > 0) {
                 Console.WriteLine($"    RetrieveAllowedReadersAsync retrieved first page of {query.TotalNumberOfPages} pages with {query.Items.Count()} items");
                 Console.WriteLine(query.First()?.AsJson());
@@ -64,21 +64,21 @@ public class UsingV13_7(RestAbstractNode<RestChainV13_7> node) : AbstractUsing<R
         Console.WriteLine();
     }
 
-    private static async Task ExerciseOpaqueRecordsAsync(RestChainV13_7 chain, bool write) {
+    private static async Task ExerciseOpaqueRecordsAsync(RestChainV14_2_2 chain, bool write) {
         Console.WriteLine("  OpaqueRecords:");
         var opaqueStore = chain.OpaqueStore;
-        var query = await opaqueStore.QueryRecordsFromAsync(appId: 13);
-        Console.WriteLine($"    LastChangedRecordSerial {query.LastChangedRecordSerial} for {chain.Id}");
+        var query = await opaqueStore.QueryRecordsFromAsync(appId: 13).ConfigureAwait(false);
+        Console.WriteLine($"    LastChangedRecordSerial {query?.LastChangedRecordSerial} for {chain.Id}");
         try {
             ulong serialToRetrieve = 0;
             if (write) {
                 Console.WriteLine("    Trying to add an opaque payload #13,100");
-                var result = await opaqueStore.AddRecordAsync(appId: 13, payloadTypeId: 100, query.LastChangedRecordSerial, [1, 2, 3, 4]);
+                var result = await opaqueStore.AddRecordAsync(appId: 13, payloadTypeId: 100, query.LastChangedRecordSerial, [1, 2, 3, 4]).ConfigureAwait(false);
                 serialToRetrieve = result.Serial;
             } else {
                 serialToRetrieve = query.First()?.Serial ?? 0;
             }
-            var response = await opaqueStore.RetrieveSinglePayloadAsync(serialToRetrieve);
+            var response = await opaqueStore.RetrieveSinglePayloadAsync(serialToRetrieve).ConfigureAwait(false);
             if (response.HasValue) {
                 Console.WriteLine($"    Retrieved AppId: {response.Value.AppId}");
                 Console.WriteLine($"    Retrieved PayloadTypeId: {response.Value.PayloadTypeId}");

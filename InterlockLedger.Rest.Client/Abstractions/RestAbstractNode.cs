@@ -33,6 +33,7 @@
 
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
@@ -43,19 +44,19 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
 public abstract class RestAbstractNode<T> where T : IRestChain
 {
-    public RestAbstractNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
+    protected RestAbstractNode(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
         : this(x509Certificate, (ushort)networkId, address) { }
 
-    public RestAbstractNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost") {
+    protected RestAbstractNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost") {
         _certificate = x509Certificate;
         BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
         Network = new RestNetwork<T>(this);
     }
 
-    public RestAbstractNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
+    protected RestAbstractNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
         : this(certFile, certPassword, (ushort)networkId, address) { }
 
-    public RestAbstractNode(string certFile, string certPassword, ushort port, string address = "localhost")
+    protected RestAbstractNode(string certFile, string certPassword, ushort port, string address = "localhost")
         : this(GetCertFromFile(certFile, certPassword), port, address) { }
 
     public Uri BaseUri { get; }
@@ -69,16 +70,16 @@ public abstract class RestAbstractNode<T> where T : IRestChain
     public Task<ChainCreatedModel?> CreateChainAsync(ChainCreationModel model)
         => PostAsync<ChainCreatedModel>($"/chain", model);
 
-    public async Task<IEnumerable<T>> GetChainsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/chain")).Safe().Select(c => BuildChain(c));
+    public async Task<IEnumerable<T>> GetChainsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/chain").ConfigureAwait(false)).Safe().Select(c => BuildChain(c));
 
     public Task<NodeDetailsModel?> GetDetailsAsync() => GetAsync<NodeDetailsModel>("/");
 
-    public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors")).Safe().Select(c => BuildChain(c));
+    public async Task<IEnumerable<T>> GetMirrorsAsync() => (await GetAsync<IEnumerable<ChainIdModel>>("/mirrors").ConfigureAwait(false)).Safe().Select(c => BuildChain(c));
 
     public Task<IEnumerable<PeerModel>?> GetPeersAsync() => GetAsync<IEnumerable<PeerModel>>("/peers");
 
     public async Task<PageOf<InterlockingRecordModel>?> InterlocksOfAsync(string chain)
-        => await GetAsync<PageOf<InterlockingRecordModel>>($"/interlockings/{chain}");
+        => await GetAsync<PageOf<InterlockingRecordModel>>($"/interlockings/{chain}").ConfigureAwait(false);
 
     public override string ToString() => $"Node [{BaseUri}] connected with certificate '{CertificateName}'";
 
@@ -93,27 +94,26 @@ public abstract class RestAbstractNode<T> where T : IRestChain
     }
 
     protected internal static async Task<string> GetStringResponseAsync(HttpWebRequest req)
-        => (await IfOkOrCreatedReturnAsync(await GetResponseAsync(req), ReadAsStringAsync)).WithDefault(string.Empty);
+        => (await IfOkOrCreatedReturnAsync(await GetResponseAsync(req).ConfigureAwait(false), ReadAsStringAsync).ConfigureAwait(false)).WithDefault(string.Empty);
 
     private static async Task<TR?> IfOkOrCreatedReturnAsync<TR>(HttpWebResponse resp, Func<HttpWebResponse, Task<TR>> buildResult) {
         return resp.StatusCode switch {
-            HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(resp),
+            HttpStatusCode.OK or HttpStatusCode.Created => await buildResult(resp).ConfigureAwait(false),
             HttpStatusCode.NotFound => default,
-            _ => await CheckMessageAsync(resp)
+            _ => await CheckMessageAsync(resp).ConfigureAwait(false),
         };
 
         static async Task<TR?> CheckMessageAsync(HttpWebResponse resp) {
             string content = await ReadAsStringAsync(resp).ConfigureAwait(false);
             if (content.Safe().Contains("outstanding", StringComparison.OrdinalIgnoreCase))
                 return default;
-            else {
-                string exceptionMessage = $"{resp.StatusCode}(#{(int)resp.StatusCode}){Environment.NewLine}{content}";
-                return resp.StatusCode switch {
-                    HttpStatusCode.Unauthorized => throw new SecurityException(exceptionMessage),
-                    HttpStatusCode.Forbidden => throw new SecurityException(exceptionMessage),
-                    _ => throw new ApiException(exceptionMessage),
-                };
-            }
+
+            string exceptionMessage = $"{resp.StatusCode}(#{(int)resp.StatusCode}){Environment.NewLine}{content}";
+            return resp.StatusCode switch {
+                HttpStatusCode.Unauthorized => throw new SecurityException(exceptionMessage),
+                HttpStatusCode.Forbidden => throw new SecurityException(exceptionMessage),
+                _ => throw new ApiException(exceptionMessage),
+            };
         }
     }
 
@@ -122,19 +122,19 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         if (resp == null)
             return string.Empty;
         using var readStream = new StreamReader(resp.GetResponseStream());
-        return await readStream.ReadToEndAsync();
+        return await readStream.ReadToEndAsync().ConfigureAwait(false);
     }
 
     protected internal abstract T BuildChain(ChainIdModel c);
 
     protected internal async Task<string> CallApiAsync(string url, string method, string accept = "application/json")
-        => await GetStringResponseAsync(PrepareRequest(url, method, accept));
+        => await GetStringResponseAsync(PrepareRequest(url, method, accept)).ConfigureAwait(false);
 
     protected internal async Task<string> CallApiPlainDocAsync(string url, string method, string accept = "plain/text")
-        => await GetStringResponseAsync(PrepareRequest(url, method, accept));
+        => await GetStringResponseAsync(PrepareRequest(url, method, accept)).ConfigureAwait(false);
 
     protected internal async Task<RawDocumentModel?> CallApiRawDocAsync(string url, string method, string accept = "*")
-        => await GetRawResponseAsync(PrepareRequest(url, method, accept));
+        => await GetRawResponseAsync(PrepareRequest(url, method, accept)).ConfigureAwait(false);
 
     protected internal async Task<TR?> GetAsync<TR>(string url)
         => Deserialize<TR>(await CallApiAsync(url, "GET").ConfigureAwait(false));
@@ -146,26 +146,26 @@ public abstract class RestAbstractNode<T> where T : IRestChain
             throw new ArgumentException($"'{nameof(accept)}' cannot be null or empty", nameof(accept));
         if (string.IsNullOrWhiteSpace(method))
             throw new ArgumentException($"'{nameof(method)}' cannot be null or empty", nameof(method));
-        var resp = await GetResponseAsync(PrepareRequest(url, method, accept));
+        var resp = await GetResponseAsync(PrepareRequest(url, method, accept)).ConfigureAwait(false);
         return resp.StatusCode == HttpStatusCode.OK ? (ParseFileName(resp), resp.ContentType, resp.GetResponseStream()) : null;
     }
     protected internal async Task<(ulong AppId, ulong PayloadTypeId, DateTimeOffset? CreatedAt, Stream Content)?> GetOpaqueStreamAsync(string url) {
-        var resp = await GetResponseAsync(PrepareRequest(url.Required(), "GET", "application/octet-stream"));
+        var resp = await GetResponseAsync(PrepareRequest(url.Required(), "GET", "application/octet-stream")).ConfigureAwait(false);
         if (resp.StatusCode != HttpStatusCode.OK)
             return null;
-        DateTimeOffset? createdAt = DateTimeOffset.TryParse(resp.Headers["x-created-at"], out var parsedCreatedAt) ? parsedCreatedAt : null;
+        DateTimeOffset? createdAt = DateTimeOffset.TryParse(resp.Headers["x-created-at"], CultureInfo.InvariantCulture, out var parsedCreatedAt) ? parsedCreatedAt : null;
         return (ulong.Parse(resp.Headers["x-app-id"].WithDefault("0")), ulong.Parse(resp.Headers["x-payload-type-id"].WithDefault("0")), createdAt, resp.GetResponseStream());
     }
 
     protected internal async Task<TR?> PostAsync<TR>(string url, object? body)
-        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")));
+        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")).ConfigureAwait(false));
 
     protected internal async Task<TR?> PostRawAsync<TR>(string url, byte[] body, string contentType)
-        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)));
+        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)).ConfigureAwait(false));
 
     protected internal async Task<TR?> PostStreamAsync<TR>(string url, Stream body, string contentType) {
-        var resp = await GetResponseAsync(PreparePostStreamRequest(url, body, accept: "*/*", contentType));
-        return await IfOkOrCreatedReturnAsync(resp, async (rs) => Deserialize<TR>(await ReadAsStringAsync(rs)));
+        var resp = await GetResponseAsync(PreparePostStreamRequest(url, body, accept: "*/*", contentType)).ConfigureAwait(false);
+        return await IfOkOrCreatedReturnAsync(resp, async (rs) => Deserialize<TR>(await ReadAsStringAsync(rs).ConfigureAwait(false))).ConfigureAwait(false);
     }
 
     protected internal HttpWebRequest PrepareRequest(string url, string method, string accept) {
@@ -182,10 +182,10 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         return req;
     }
 
-    protected internal bool ServerCertificateValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+    protected internal static bool ServerCertificateValidation(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         => true;
 
-    private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(false);
+    private static readonly Encoding _utf8WithoutBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
     private static byte[] ArrayConcat(byte[] firstBuffer, Memory<byte> secondBuffer, int count) {
         var concatBuffer = new byte[firstBuffer.Length + count];
@@ -209,7 +209,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         => new(certPath, certPassword, X509KeyStorageFlags.PersistKeySet);
 
     private static async Task<RawDocumentModel?> GetRawResponseAsync(HttpWebRequest req) {
-        var response = await GetResponseAsync(req);
+        var response = await GetResponseAsync(req).ConfigureAwait(false);
         if (response is null)
             return null;
         using var resp = response;
@@ -217,7 +217,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         var fullBuffer = Array.Empty<byte>();
         var buffer = new byte[0x80000].AsMemory();
         while (true) {
-            var readCount = await readStream.ReadAsync(buffer, cancellationToken: CancellationToken.None);
+            var readCount = await readStream.ReadAsync(buffer, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             if (readCount == 0)
                 break;
             fullBuffer = ArrayConcat(fullBuffer, buffer, readCount);
@@ -233,7 +233,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         var filename = header.FileName;
         if (header.Parameters.ContainsKey("filename*")) {
             filename = header.Parameters["filename*"];
-            if (filename.Safe().StartsWith("UTF-8''"))
+            if (filename.Safe().StartsWith("UTF-8''", StringComparison.OrdinalIgnoreCase))
                 return WebUtility.UrlDecode(filename![7..]);
         }
         return filename.WithDefault("?");

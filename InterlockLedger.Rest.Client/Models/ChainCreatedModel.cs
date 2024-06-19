@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -40,5 +40,5 @@ public class ChainCreatedModel : ChainIdModel
     /// <summary>
     /// Emergency key file names
     /// </summary>
-    public List<ExportedKeyFile> KeyFiles { get; set; } = [];
+    public IReadOnlyList<ExportedKeyFile> KeyFiles { get; set; } = [];
 }

@@ -30,7 +30,7 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public interface IDocumentRegistry
 {
@@ -44,13 +44,13 @@ public interface IDocumentRegistry
 
     Task<(string Name, string ContentType, Stream Content)?> RetrieveSingleAsync(string locator, int index);
 
-    Task<(string Name, string ContentType, Stream Content)?> RetrieveZipAsync(string locator);
+    Task<(string Name, string ContentType, Stream Content)?> RetrieveZipAsync(string locator, bool omitFromParentControlFile = false, bool omitToChildrenControlFile = false);
 
     Task<DocumentsTransactionModel?> TransactionAddItemAsync(string transactionId, string path, string name, string? comment, string contentType, Stream source);
 
     Task<DocumentsTransactionModel?> TransactionAddItemAsync(string transactionId, DirectoryInfo baseDirectory, FileInfo file, string? comment, string contentType)
         => !file.Required().FullName.StartsWith(baseDirectory.Required().FullName, StringComparison.InvariantCultureIgnoreCase)
-            ? throw new ArgumentException(message: $"File ´{file.FullName}´ is not inside directory '{baseDirectory.FullName}' ")
+            ? throw new ArgumentException(message: $"File ´{file.FullName}´ is not inside directory '{baseDirectory.FullName}' ", nameof(file))
             : TransactionAddItemAsync(transactionId.Required(),
                                       Path.GetRelativePath(baseDirectory.FullName, file.DirectoryName.Required()),
                                       file.Name,

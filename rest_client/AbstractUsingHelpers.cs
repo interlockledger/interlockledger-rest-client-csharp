@@ -30,59 +30,9 @@
 //
 // ******************************************************************************************************************************
 
+namespace rest_client;
 
-namespace InterlockLedger.Rest.Client.V13_7;
-
-/// <summary>
-/// Generic opaque record
-/// </summary>
-public class OpaqueRecordModel
+internal static class AbstractUsingHelpers
 {
-    /// <summary>
-    /// Network the chain that contains this record belongs to
-    /// </summary>
-    public required string Network { get; set; }
-
-    /// <summary>
-    /// chain id that owns this record
-    /// </summary>
-    public required string ChainId { get; set; }
-
-    /// <summary>
-    /// Block serial number.
-    /// For the first record this value is zero (0)
-    /// </summary>
-    public ulong Serial { get; set; }
-
-    /// <summary>
-    /// Application id this record is associated with
-    /// </summary>
-    public ulong ApplicationId { get; set; }
-
-    /// <summary>
-    /// The payload's TagId - DEPRECATED: Misnomer - Use PayloadTypeId instead
-    /// </summary>
-    [Obsolete("Misnomer - Use PayloadTypeId instead")]
-    public ulong? PayloadTagId {
-        get => PayloadTypeId;
-        set {
-            if (PayloadTypeId == 0 && value.HasValue && value.Value > 0)
-                PayloadTypeId = value.Value;
-        }
-    }
-
-    /// <summary>
-    /// The payload's TypeId
-    /// </summary>
-    public ulong PayloadTypeId { get; set; }
-
-    /// <summary>
-    /// The opaque payload length in bytes;
-    /// </summary>
-    public int PayloadLength { get; }
-
-    /// <summary>
-    /// Time of record creation
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public static byte[] Content { get; } = Encoding.UTF8.GetBytes("Nothing to see here");
 }

@@ -30,15 +30,17 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public sealed class ReadingKeyModel
+public sealed class JsonDocumentModel : RecordModelBase
 {
-    public byte[]? EncryptedIV { get; set; }
+    /// <summary>
+    /// Encrypted Blob
+    /// </summary>
+    public EncryptedTextModel? EncryptedJson { get; set; }
 
-    public byte[]? EncryptedKey { get; set; }
-
-    public string? PublicKeyHash { get; set; }
-
-    public string? ReaderId { get; set; }
+    /// <summary>
+    /// Stored JsonDocument
+    /// </summary>
+    public string? JsonText { get; set; }
 }

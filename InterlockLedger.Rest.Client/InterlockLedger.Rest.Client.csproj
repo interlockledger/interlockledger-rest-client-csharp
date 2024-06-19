@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
-        <Version>13.7.3</Version>
+        <Version>14.2.2</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
@@ -13,7 +13,7 @@
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Update to last changes in node v13.7.3</PackageReleaseNotes>
+        <PackageReleaseNotes>Update to last changes in node v14.2.2</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
@@ -35,13 +35,17 @@
         <Using Include="System.Web" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="InterlockLedger.Commons" Version="18.2.0" />
+        <PackageReference Include="InterlockLedger.Commons" Version="18.2.1" />
         <PackageReference Include="InterlockLedger.Tags.ILInt" Version="14.0.0" />
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.158">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -40,5 +40,5 @@ public enum Algorithms : ushort
     DSA,
     ElGamal, // Signature
     EcDSA,
-    EdDSA
+    EdDSA,
 }

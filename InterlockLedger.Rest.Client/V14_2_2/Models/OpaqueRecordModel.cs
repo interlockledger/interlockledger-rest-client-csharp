@@ -1,5 +1,5 @@
 // ******************************************************************************************************************************
-//
+//  
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
 //
@@ -30,68 +30,59 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
 
-public class DocumentsTransactionModel
+namespace InterlockLedger.Rest.Client.V14_2_2;
+
+/// <summary>
+/// Generic opaque record
+/// </summary>
+public class OpaqueRecordModel
 {
     /// <summary>
-    /// If no files/documents are still uploading
+    /// Network the chain that contains this record belongs to
     /// </summary>
-    public bool CanCommitNow { get; set; }
+    public required string Network { get; set; }
 
     /// <summary>
-    /// Id of chain where the transaction data will be stored
+    /// chain id that owns this record
     /// </summary>
-    public required string Chain { get; set; }
+    public required string ChainId { get; set; }
 
     /// <summary>
-    /// Any additional information about the set of documents to be stored
+    /// Block serial number.
+    /// For the first record this value is zero (0)
     /// </summary>
-    public string? Comment { get; set; }
+    public ulong Serial { get; set; }
 
     /// <summary>
-    /// Compression algorithm can be:
-    ///     <list type="table">
-    ///        <item><br/><code>NONE</code><description><para>No compression. Simply store the bytes</para></description></item>
-    ///        <item><br/><code>GZIP</code><description><para>Compression of the data using the gzip standard</para></description></item>
-    ///        <item><br/><code>BROTLI</code><description><para>Compression of the data using the brotli standard</para></description></item>
-    ///        <item><br/><code>ZSTD</code><description><para>Compression of the data using the ZStandard from Facebook (In the future)</para></description></item>
-    ///     </list>
+    /// Application id this record is associated with
     /// </summary>
-    public string? Compression { get; set; }
+    public ulong ApplicationId { get; set; }
 
     /// <summary>
-    /// Total count of uploaded documents for this transaction
+    /// The payload's TagId - DEPRECATED: Misnomer - Use PayloadTypeId instead
     /// </summary>
-    public int CountOfUploadedDocuments { get; set; }
+    [Obsolete("Misnomer - Use PayloadTypeId instead")]
+    public ulong? PayloadTagId {
+        get => PayloadTypeId;
+        set {
+            if (PayloadTypeId == 0 && value.HasValue && value.Value > 0)
+                PayloadTypeId = value.Value;
+        }
+    }
 
     /// <summary>
-    /// Names of documents already uploaded
+    /// The payload's TypeId
     /// </summary>
-    public IEnumerable<string> DocumentNames { get; set; } = [];
+    public ulong PayloadTypeId { get; set; }
 
     /// <summary>
-    /// The encryption descriptor in the &amp;lt;pbe&amp;gt;-&amp;lt;hash&amp;gt;-&amp;lt;cipher&amp;gt;-&amp;lt;level&amp;gt; format
+    /// The opaque payload length in bytes;
     /// </summary>
-    public string? Encryption { get; set; }
+    public int PayloadLength { get; }
 
     /// <summary>
-    /// If the publically viewable PublicDirectory field should be created
+    /// Time of record creation
     /// </summary>
-    public bool GeneratePublicDirectory { get; set; }
-
-    /// <summary>
-    /// Locator for the previous version of this set
-    /// </summary>
-    public string? Previous { get; set; }
-
-    /// <summary>
-    /// The transaction will be aborted if not completed until this timeout
-    /// </summary>
-    public DateTimeOffset TimeOutLimit { get; set; }
-
-    /// <summary>
-    /// Id of the transaction to use when uploading each file and committing the transaction
-    /// </summary>
-    public string? TransactionId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

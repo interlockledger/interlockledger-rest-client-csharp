@@ -35,10 +35,10 @@ using System.Diagnostics.CodeAnalysis;
 namespace InterlockLedger.Rest.Client;
 
 [method: SetsRequiredMembers]
-public class CertificatePermitModel(byte[] certificateInX509, IEnumerable<AppPermissions> permissions, KeyPurpose[] purposes) : KeyPermitBaseModel(permissions, purposes)
+public class CertificatePermitModel(X509Certificate2 certificate, IEnumerable<AppPermissions> permissions, KeyPurpose[] purposes) : KeyPermitBaseModel(permissions, purposes)
 {
     /// <summary>
     /// Certificate in X509 bytes
     /// </summary>
-    public required byte[] CertificateInX509 { get; set; } = certificateInX509;
+    public required byte[] CertificateInX509 { get; set; } = certificate.RawData;
 }

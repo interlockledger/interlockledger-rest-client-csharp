@@ -40,5 +40,5 @@ public enum HashAlgorithms : ushort
     SHA512,
     SHA3_256,
     SHA3_512,
-    Copy
+    Copy,
 }

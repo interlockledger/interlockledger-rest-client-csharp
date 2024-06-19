@@ -32,7 +32,7 @@
 
 
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
 /// <summary>
 /// Model for metadata associated to a Multi-Document Storage Locator
@@ -42,7 +42,7 @@ public class DocumentsMetadataModel
     /// <summary>
     /// Replicates RecordReference record info to simplify REST API usage
     /// </summary>
-    public string? RecordReference { get; }
+    public string? RecordReference { get; set; }
 
     /// <summary>
     /// Replicates CreationTime record info to simplify REST API usage
@@ -80,13 +80,18 @@ public class DocumentsMetadataModel
     /// </summary>
     public IEnumerable<DirectoryEntry>? PublicDirectory { get; set; }
 
-    public override string ToString() => $@"{nameof(DocumentsMetadataModel)}
-    {nameof(Comment)} : {Comment}
-    {nameof(Compression)} : {Compression}
-    {nameof(Encryption)} : {Encryption}
-    {nameof(EncryptionParameters)} : {EncryptionParameters}
-    {nameof(PublicDirectory)} : [{_joiner}{PublicDirectory.JoinedBy(_joiner)}
-    ]";
+    public override string ToString() => $$"""
+        {{nameof(DocumentsMetadataModel)}} : {
+            {{nameof(Comment)}} : {{Comment}}
+            {{nameof(Compression)}} : {{Compression}}
+            {{nameof(Encryption)}} : {{Encryption}}
+            {{nameof(EncryptionParameters)}} : {{EncryptionParameters}}
+            {{nameof(PublicDirectory)}} : [{{_joiner}}{{PublicDirectory.JoinedBy(_joiner)}}
+            ]
+            {{nameof(CreationTime)}} : {{CreationTime:u}}
+            {{nameof(RecordReference)}} : {{RecordReference}}
+        }
+        """;
 
     /// <summary>
     /// Entry for each stored document in this MultiDocument set
@@ -116,15 +121,23 @@ public class DocumentsMetadataModel
         /// <summary>
         /// Hash SHA256 of Document (file) content
         /// </summary>
-        public byte[]? HashSHA256 { get; }
+        public byte[]? HashSHA256 { get; set; }
 
         /// <summary>
         /// Size in bytes of Document (file)
         /// </summary>
-        public ulong? Size { get; }
+        public ulong? Size { get; set; }
 
-        public override string ToString() => $@"{nameof(DirectoryEntry)} {{{_joiner}    {nameof(Comment)} : {Comment}{_joiner}    {nameof(MimeType)} : {MimeType}{_joiner}    {nameof(Name)} : {Name}{_joiner}    {nameof(Path)} : {Path}{_joiner}}}
-";
+        public override string ToString() => $$"""
+            {{nameof(DirectoryEntry)}}: {
+                      {{nameof(Comment)}} : {{Comment}}
+                      {{nameof(MimeType)}} : {{MimeType}}
+                      {{nameof(Name)}} : {{Name}}
+                      {{nameof(Path)}} : {{Path}}
+                      {{nameof(HashSHA256)}} : {{HashSHA256}}
+                      {{nameof(Size)}} : {{Size}}
+                  }
+            """;
     }
 
     /// <summary>
@@ -142,8 +155,12 @@ public class DocumentsMetadataModel
         /// </summary>
         public byte[]? Salt { get; set; }
 
-        public override string ToString() => $@"{nameof(Parameters)} {{{_joiner}    {nameof(Iterations)} : {Iterations}{_joiner}    {nameof(Salt)} : '{Convert.ToBase64String(Salt ?? [])}'{_joiner}}}
-";
+        public override string ToString() => $$"""
+            {{nameof(Parameters)}} {
+                      {{nameof(Iterations)}} : {{Iterations}}
+                      {{nameof(Salt)}} : '{{Convert.ToBase64String(Salt ?? [])}}'
+                  }
+            """;
     }
 
     private static readonly string _joiner = Environment.NewLine + "      ";

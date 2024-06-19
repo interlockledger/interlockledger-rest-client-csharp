@@ -30,7 +30,7 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public static class EncryptedTextModelExtensions
 {
@@ -45,11 +45,11 @@ public static class EncryptedTextModelExtensions
             return "ERROR: Non-RSA certificate is not currently supported";
         if (model.ReadingKeys.SkipNulls().None())
             return "ERROR: No reading keys able to decode EncryptedText";
-        var authorizedKey = model.ReadingKeys.FirstOrDefault(rk => rk.PublicKeyHash == pubKeyHash && rk.ReaderId == certKeyId);
+        var authorizedKey = model.ReadingKeys.FirstOrDefault(rk => string.Equals(rk.PublicKeyHash, pubKeyHash, StringComparison.OrdinalIgnoreCase) && string.Equals(rk.ReaderId, certKeyId, StringComparison.OrdinalIgnoreCase));
         if (authorizedKey is null)
             return "ERROR: Your key does not match one of the authorized reading keys";
         string cipher = model.Cipher.WithDefault("AES256").ToUpperInvariant();
-        if (cipher != "AES256")
+        if (!string.Equals(cipher, "AES256", StringComparison.OrdinalIgnoreCase))
             return $"ERROR: Cipher {cipher} is not currently supported";
         if (model.CipherText.None())
             return null;
@@ -63,35 +63,35 @@ public static class EncryptedTextModelExtensions
             return "ERROR: Something went wrong while decrypting the content. Unexpected initial bytes";
         var skipTagAndSize = jsonBytes[1..].ILIntDecode().ILIntSize() + 1;
         return jsonBytes[skipTagAndSize..].AsUTF8String();
+    }
 
-        static byte[] RSADecrypt(RSA rsaAlgo, byte[] data, int maxRetries = 3) {
-            int retries = maxRetries;
-            while (true)
+    private static byte[] AES256Decrypt(byte[] cipherData, byte[] key, byte[] iv) {
+        using var source = new MemoryStream(cipherData.Required());
+        using var algorithm = Aes.Create();
+        algorithm.KeySize = 256;
+        algorithm.BlockSize = 128;
+        algorithm.Mode = CipherMode.CBC;
+        algorithm.Key = key;
+        algorithm.IV = iv;
+        algorithm.Padding = PaddingMode.Zeros;
+        using var cs = new CryptoStream(source, algorithm.CreateDecryptor(), CryptoStreamMode.Read);
+        using var dest = new MemoryStream();
+        cs.CopyTo(dest);
+        return dest.ToArray();
+    }
+
+    private static byte[] RSADecrypt(RSA rsaAlgo, byte[] data, int maxRetries = 3) {
+        int retries = maxRetries;
+        while (true)
+            try {
                 try {
-                    try {
-                        return rsaAlgo.Decrypt(data, RSAEncryptionPadding.OaepSHA1);
-                    } catch (CryptographicException) {
-                        return rsaAlgo.Decrypt(data, RSAEncryptionPadding.CreateOaep(HashAlgorithmName.MD5));
-                    }
-                } catch (CryptographicException e) {
-                    if (retries-- <= 0)
-                        throw new InvalidOperationException($"Failed to decrypt data with current parameters after {maxRetries} retries", e);
+                    return rsaAlgo.Decrypt(data, RSAEncryptionPadding.OaepSHA1);
+                } catch (CryptographicException) {
+                    return rsaAlgo.Decrypt(data, RSAEncryptionPadding.CreateOaep(HashAlgorithmName.MD5));
                 }
-        }
-
-        static byte[] AES256Decrypt(byte[] cipherData, byte[] key, byte[] iv) {
-            using var source = new MemoryStream(cipherData.Required());
-            using var algorithm = Aes.Create();
-            algorithm.KeySize = 256;
-            algorithm.BlockSize = 128;
-            algorithm.Mode = CipherMode.CBC;
-            algorithm.Key = key;
-            algorithm.IV = iv;
-            algorithm.Padding = PaddingMode.Zeros;
-            using var cs = new CryptoStream(source, algorithm.CreateDecryptor(), CryptoStreamMode.Read);
-            using var dest = new MemoryStream();
-            cs.CopyTo(dest);
-            return dest.ToArray();
-        }
+            } catch (CryptographicException e) {
+                if (retries-- <= 0)
+                    throw new InvalidOperationException($"Failed to decrypt data with current parameters after {maxRetries} retries", e);
+            }
     }
 }

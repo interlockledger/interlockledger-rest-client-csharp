@@ -37,6 +37,7 @@ public sealed partial class ChainSummaryModel : ChainIdModel
     /// <summary>
     /// List of active apps (only the numeric ids)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0016:Prefer using collection abstraction instead of implementation", Justification = "<Pending>")]
     public List<ulong> ActiveApps { get; set; } = [];
 
     /// <summary>
@@ -89,6 +90,6 @@ public sealed partial class ChainSummaryModel : ChainIdModel
     /// </summary>
     public ulong? SizeInBytes { get; set; }
 
-    [GeneratedRegex(@"Apps: \[([\d,]+)\]")]
+    [GeneratedRegex(@"Apps: \[([\d,]+)\]", RegexOptions.None, matchTimeoutMilliseconds: 100)]
     private static partial Regex LicensedAppsRegex();
 }

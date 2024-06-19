@@ -37,7 +37,7 @@ namespace InterlockLedger.Rest.Client;
 /// </summary>
 public class KeyModel
 {
-    public bool Actionable => Purposes.Contains("Action");
+    public bool Actionable => Purposes.Contains("Action", StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Unique key id
@@ -70,5 +70,5 @@ public class KeyModel
     private static readonly string _indent2 = _indent + "  ";
 
     private string _actionsFor => Permissions is null ? "No actions permitted!" : $"Actions permitted:{_indent2}{Permissions.JoinedBy(_indent2)}";
-    private string _displayablePurposes => Purposes.OrderBy(p => p).WithCommas();
+    private string _displayablePurposes => Purposes.Order(StringComparer.Ordinal).WithCommas();
 }

@@ -64,7 +64,7 @@ public abstract class RestAbstractChain<T> : IRestChain where T : IRestChain
 
     internal readonly RestAbstractNode<T> _node;
 
-    internal RestAbstractChain(RestAbstractNode<T> node, ChainIdModel chainId) {
+    protected RestAbstractChain(RestAbstractNode<T> node, ChainIdModel chainId) {
         _node = node.Required();
         Id = chainId.Required().Id.Required();
         Name = chainId.Name;

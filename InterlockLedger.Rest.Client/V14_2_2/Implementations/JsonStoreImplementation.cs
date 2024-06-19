@@ -30,16 +30,23 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public class RestChainV13_7 : RestAbstractChain<RestChainV13_7>
+internal sealed class JsonStoreImplementation :  IJsonStore
 {
-    public IJsonStore JsonStore { get; }
-
-    public IOpaqueStore OpaqueStore { get; }
-
-    internal RestChainV13_7(RestNodeV13_7 node, ChainIdModel chainId) : base(node, chainId) {
-        JsonStore = new JsonStoreImplementation(this);
-        OpaqueStore = new OpaqueStoreImplementation(node, this);
+    public JsonStoreImplementation(RestChainV14_2_2 parent) {
+        _parent = parent.Required();
+        _node = _parent._node;
+        _id = _parent.Id;
     }
+
+    public Task<JsonDocumentModel?> RetrieveAsync(ulong serial)
+        => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/{serial}");
+
+    public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
+        => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
+
+    private readonly string _id;
+    private readonly RestChainV14_2_2 _parent;
+    private readonly RestAbstractNode<RestChainV14_2_2> _node;
 }

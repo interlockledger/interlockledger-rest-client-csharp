@@ -92,7 +92,7 @@ public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
     /// </summary>
     /// <param name="other"></param>
     /// <returns>True if other is equal to this</returns>
-    public bool Equals(ChainIdModel? other) => other is not null && Id == other.Id;
+    public bool Equals(ChainIdModel? other) => other is not null && string.Equals(Id, other.Id, StringComparison.Ordinal);
 
     /// <summary>Calculate the hash</summary>
     /// <returns>A hash code for the current instance</returns>

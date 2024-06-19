@@ -30,16 +30,28 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V13_7;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public sealed class EncryptedTextModel
+public sealed record DocumentsUploadConfiguration
 {
-    public required string Cipher { get; set; }
+    public DocumentsUploadConfiguration() { }
 
-    public required byte[] CipherText { get; set; }
-
-    public required IEnumerable<ReadingKeyModel> ReadingKeys { get; set; }
+    public string? DefaultCompression { get; set; }
+    public string? DefaultEncryption { get; set; }
+    public long FileSizeLimit { get; set; }
+    public int? Iterations { get; set; }
+    public IEnumerable<string> PermittedContentTypes { get; set; } = [];
+    public ushort TimeOutInMinutes { get; set; }
 
     public override string ToString()
-        => $"Encrypted Json with {Cipher} for {ReadingKeys?.Count()} keys with content \"{CipherText.ToSafeBase64().Ellipsis(135)}\"";
+        => $@"{nameof(DocumentsUploadConfiguration)}
+    {nameof(DefaultCompression)} : {DefaultCompression}
+    {nameof(DefaultEncryption)} : {DefaultEncryption}
+    {nameof(FileSizeLimit)} : {FileSizeLimit}
+    {nameof(Iterations)} : {Iterations}
+    {nameof(PermittedContentTypes)} :{_joiner}{PermittedContentTypes.JoinedBy(_joiner)}
+    {nameof(TimeOutInMinutes)} : {TimeOutInMinutes}
+";
+
+    private static readonly string _joiner = $"{Environment.NewLine}        ";
 }

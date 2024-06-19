@@ -41,5 +41,5 @@ public enum KeyStrength
     MegaStrong,     // RSA 5120
     SuperStrong,    // RSA 6144
     HyperStrong,    // RSA 7172
-    UltraStrong     // RSA 8192
+    UltraStrong,     // RSA 8192
 }
