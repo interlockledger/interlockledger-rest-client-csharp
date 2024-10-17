@@ -45,7 +45,6 @@ public class NodeDetailsModel : NodeCommonModel
     /// <summary>
     /// Other properties the node may have
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0016:Prefer using collection abstraction instead of implementation", Justification = "<Pending>")]
     public Dictionary<string, string> Extensions { get; set; } = [];
 
     private static string ToLine(KeyValuePair<string, string> x) => $"{x.Key}: {x.Value}";

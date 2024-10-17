@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -30,8 +30,11 @@
 //
 // ******************************************************************************************************************************
 
+
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public class PageOfAllowedReadersRecordModel : PageOf<AllowedReadersRecordModel>
+public record PageOfAllowedReadersRecordModel : PageOf<AllowedReadersRecordModel>
 {
+    public PageOfAllowedReadersRecordModel(IEnumerable<AllowedReadersRecordModel> Items, ushort Page, byte PageSize, ushort TotalNumberOfPages, bool LastToFirst) : base(Items, Page, PageSize, TotalNumberOfPages, LastToFirst) {
+    }
 }

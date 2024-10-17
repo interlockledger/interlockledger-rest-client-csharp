@@ -52,8 +52,7 @@ public abstract class KeyPermitBaseModel
     public required KeyPurpose[] Purposes { get; set; }
 
     [SetsRequiredMembers]
-    protected KeyPermitBaseModel(IEnumerable<AppPermissions> permissions, KeyPurpose[] purposes, string? name = null)
-    {
+    protected KeyPermitBaseModel(IEnumerable<AppPermissions> permissions, KeyPurpose[] purposes, string? name = null) {
         if (permissions.None())
             throw new InvalidDataException("This key doesn't have at least one action to be permitted");
         Permissions = permissions.Required();

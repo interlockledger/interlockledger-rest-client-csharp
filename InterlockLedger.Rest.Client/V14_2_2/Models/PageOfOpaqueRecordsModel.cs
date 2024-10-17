@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //  
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -31,9 +31,13 @@
 // ******************************************************************************************************************************
 
 
+
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public class PageOfOpaqueRecordsModel : PageOf<OpaqueRecordModel>
+public record PageOfOpaqueRecordsModel : PageOf<OpaqueRecordModel>
 {
+    public PageOfOpaqueRecordsModel(IEnumerable<OpaqueRecordModel> Items, ushort Page, byte PageSize, ushort TotalNumberOfPages, bool LastToFirst, ulong LastChangedRecordSerial) : base(Items, Page, PageSize, TotalNumberOfPages, LastToFirst) =>
+        this.LastChangedRecordSerial = LastChangedRecordSerial;
+
     public ulong LastChangedRecordSerial { get; set; }
 }

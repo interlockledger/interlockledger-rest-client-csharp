@@ -32,8 +32,6 @@
 
 
 using System.Globalization;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
@@ -86,7 +84,7 @@ internal class DocumentRegistryImplementation<ChainType>(RestAbstractNode<ChainT
     public static string UrlFromParts(string urlPrefix, string id, string? selector = null, Dictionary<string, string>? queryItems = null) {
         var urlBuilder = new StringBuilder(urlPrefix).Append('/')
                                                      .Append(HttpUtility.UrlEncode(id.Required()));
-        if (selector.IsNonBlank())
+        if (!string.IsNullOrWhiteSpace(selector))
             urlBuilder.Append('/')
                       .Append(HttpUtility.UrlEncode(selector));
         if (queryItems.SafeAny()) {

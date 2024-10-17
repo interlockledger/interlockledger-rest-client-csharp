@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
-internal sealed class InterlockingsImplementation<T> : IInterlockings where T: IRestChain
+internal sealed class InterlockingsImplementation<T> : IInterlockings where T : IRestChain
 {
     public InterlockingsImplementation(RestAbstractChain<T> parent) {
         _parent = parent.Required();

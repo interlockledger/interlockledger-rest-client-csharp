@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
-public class RestNetwork<T> where T: IRestChain
+public class RestNetwork<T> where T : IRestChain
 {
     public Task<AppsModel?> GetAppsAsync() => _node.GetAsync<AppsModel>("/apps");
 

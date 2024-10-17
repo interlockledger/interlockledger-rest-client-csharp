@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
-internal sealed class RecordsStoreImplementation<T> : IRecordsStore where T: IRestChain
+internal sealed class RecordsStoreImplementation<T> : IRecordsStore where T : IRestChain
 {
     public RecordsStoreImplementation(RestAbstractChain<T> parent) {
         _parent = parent.Required();

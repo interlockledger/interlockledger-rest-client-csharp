@@ -78,7 +78,7 @@ public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
     ///         This instance follows <paramref name="other">other</paramref> in the sort order.
     /// </para>
     ///  </returns>
-    public int CompareTo(ChainIdModel? other) => Id is null ? -1 : Id.CompareTo(other?.Id) ;
+    public int CompareTo(ChainIdModel? other) => Id is null ? -1 : Id.CompareTo(other?.Id);
 
     /// <summary>
     /// Compares this ChainIdModel to other object
@@ -96,7 +96,7 @@ public class ChainIdModel : IComparable<ChainIdModel>, IEquatable<ChainIdModel>
 
     /// <summary>Calculate the hash</summary>
     /// <returns>A hash code for the current instance</returns>
-    public override int GetHashCode() =>HashCode.Combine(Id);
+    public override int GetHashCode() => HashCode.Combine(Id);
 
     public override string ToString() => $"Chain '{Name}' #{Id}";
 }

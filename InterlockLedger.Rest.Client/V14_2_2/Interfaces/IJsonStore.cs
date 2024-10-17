@@ -32,7 +32,7 @@
 
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
-public interface IJsonStore 
+public interface IJsonStore
 {
     Task<JsonDocumentModel?> RetrieveAsync(ulong serial);
 
