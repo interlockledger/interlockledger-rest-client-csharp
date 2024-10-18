@@ -34,6 +34,7 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public class RestNodeV14_2_2 : RestAbstractNode<RestChainV14_2_2>, INodeWithDocumentRegistry
 {
+    public RestNodeV14_2_2(ConfigurationOptions options) : this(options.ClientCertificateFilePath.Required(), options.ClientCertificatePassword.Required(), options.Port, options.Host.Required()) { }
     public RestNodeV14_2_2(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
         : base(x509Certificate, networkId, address) { }
 
