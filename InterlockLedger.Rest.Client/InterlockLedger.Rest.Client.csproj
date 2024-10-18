@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
-        <Version>15.1.0</Version>
+        <Version>15.1.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
@@ -14,7 +14,7 @@
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Update to last changes in node v14.2.2</PackageReleaseNotes>
+        <PackageReleaseNotes>Add MUTABLE ConfigurationOptions with parsing from connectionString</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

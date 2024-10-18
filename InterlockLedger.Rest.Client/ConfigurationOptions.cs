@@ -34,8 +34,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace InterlockLedger.Rest.Client;
 
-public record ConfigurationOptions(string Host, ushort Port, string? ClientCertificateFilePath, string? ClientCertificatePassword) : IParsable<ConfigurationOptions>
+public class ConfigurationOptions(string host, ushort port, string? clientCertificateFilePath = null, string? clientCertificatePassword = null) : IParsable<ConfigurationOptions>
 {
+    public string Host { get; set; } = host;
+    public ushort Port { get; set; } = port;
+    public string? ClientCertificateFilePath { get; set; } = clientCertificateFilePath;
+    public string? ClientCertificatePassword { get; set; } = clientCertificatePassword;
 
     /// <summary>
     /// Parses a connection string to InterlockLedger REST Client ConfigurationOptions
