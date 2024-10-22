@@ -34,12 +34,12 @@ namespace InterlockLedger.Rest.Client;
 
 public enum NetworkPredefinedPorts : ushort
 {
-    TestNet_Apollo = 32020,
-    TestNet_Janus = 32022,
-    TestNet_Minerva = 32024,
-    TestNet_Neptune = 32026,
-    TestNet_Saturn = 32028,
-    TestNet_Jupiter = 32030,
+    Apollo = 32020,
+    Janus = 32022,
+    Minerva = 32024,
+    Neptune = 32026,
+    Saturn = 32028,
+    Jupiter = 32030,
     MainNet = 32032,
     MetaNet = 32036,
     Paperless = 29720,

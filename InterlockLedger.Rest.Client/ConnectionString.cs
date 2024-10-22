@@ -34,66 +34,97 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace InterlockLedger.Rest.Client;
 
-public class ConfigurationOptions(string host, ushort port, string? clientCertificateFilePath = null, string? clientCertificatePassword = null) : IParsable<ConfigurationOptions>
+[JsonConverter(typeof(Converter))]
+public class ConnectionString : IParsable<ConnectionString>
 {
-    public string Host { get; set; } = host;
-    public ushort Port { get; set; } = port;
-    public string? ClientCertificateFilePath { get; set; } = clientCertificateFilePath;
-    public string? ClientCertificatePassword { get; set; } = clientCertificatePassword;
+    public sealed class Converter : JsonConverter<ConnectionString>
+    {
+        public override ConnectionString? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => Parse(reader.GetString().Required());
+        public override void Write(Utf8JsonWriter writer, ConnectionString value, JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+    }
+
+    public KnownNetworks Network { get; set; }
+    public string Host { get; set; }
+    public ushort Port { get; set; }
+    public string? ClientCertificateFilePath { get; set; }
+    public string? ClientCertificatePassword { get; set; }
+
+    public ConnectionString(string host, ushort? port = null, string? clientCertificateFilePath = null, string? clientCertificatePassword = null, string? network = null) {
+        Network = new(network);
+        Host = host.Required().ToLowerInvariant();
+        Port = port.GetValueOrDefault(Network.DefaultPort);
+        ClientCertificateFilePath = clientCertificateFilePath;
+        ClientCertificatePassword = clientCertificatePassword;
+    }
+
+    public override string ToString() {
+        var sb =
+            new StringBuilder("ilkl-")
+            .Append(Network)
+            .Append("://")
+            .Append(Host)
+            .Append(':')
+            .Append(Port);
+        if (!ClientCertificateFilePath.IsBlank()) {
+            sb.Append(',').Append(ClientCertificateFilePath);
+            if (!ClientCertificatePassword.IsBlank()) {
+                sb.Append(',').Append(ClientCertificatePassword);
+            }
+        }
+        return sb.ToString();
+    }
 
     /// <summary>
-    /// Parses a connection string to InterlockLedger REST Client ConfigurationOptions
+    /// Parses a connection string to InterlockLedger REST Client ConnectionString
     /// </summary>
     /// <param name="connectionString">Connection string in the form "ilkl-minerva://minerva-data.il2.io[:32067],/absolute/path/to/clientcertificate.pfx,clientCertificatePassword"</param>
-    /// <returns>Parsed ConfigurationOptions</returns>
+    /// <returns>Parsed ConnectionString</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static ConfigurationOptions Parse(string connectionString) => Parse(connectionString, null);
+    public static ConnectionString Parse(string connectionString) => Parse(connectionString, null);
 
     /// <summary>
-    /// Parses a connection string to InterlockLedger REST Client ConfigurationOptions
+    /// Parses a connection string to InterlockLedger REST Client ConnectionString
     /// </summary>
     /// <param name="connectionString">Connection string in the form "ilkl-minerva://minerva-data.il2.io[:32067],/absolute/path/to/clientcertificate.pfx,clientCertificatePassword"</param>
     /// <param name="provider">[Ignored] Format provider</param>
-    /// <returns>Parsed ConfigurationOptions</returns>
+    /// <returns>Parsed ConnectionString</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static ConfigurationOptions Parse(string connectionString, IFormatProvider? provider) =>
+    public static ConnectionString Parse(string connectionString, IFormatProvider? provider) =>
         TryParse(connectionString, provider, out var result)
             ? result
             : throw new ArgumentException("Malformed connection string", nameof(connectionString));
 
     /// <summary>
-    /// Try to parse a connection string to InterlockLedger REST Client ConfigurationOptions
+    /// Try to parse a connection string to InterlockLedger REST Client ConnectionString
     /// </summary>
     /// <param name="connectionString">Connection string in the form "ilkl-minerva://minerva-data.il2.io[:32067],/absolute/path/to/clientcertificate.pfx,clientCertificatePassword"</param>
     /// <param name="provider"></param>
     /// <param name="result"></param>
     /// <returns>True if correctly parsed</returns>
-    public static bool TryParse([NotNullWhen(true)] string? connectionString, IFormatProvider? provider, [MaybeNullWhen(false)] out ConfigurationOptions result) {
+    public static bool TryParse([NotNullWhen(true)] string? connectionString, IFormatProvider? provider, [MaybeNullWhen(false)] out ConnectionString result) {
         if (!string.IsNullOrWhiteSpace(connectionString)) {
             var match = ConfigurationOptionsParsingHelper.ConnectionStringRegex().Match(connectionString);
             var groups = match.Groups;
             if (match.Success && groups.Count >= 8 && ParsePort(groups[4], groups[1].Value, out ushort port)) {
-                result = new ConfigurationOptions(groups[2].Value, port, GetValueOrDefault(groups[6]), GetValueOrDefault(groups[7]));
+                result = new ConnectionString(groups[2].Value, port, GetValueOrDefault(groups[6]), GetValueOrDefault(groups[7]), groups[1].Value);
                 return true;
             }
         }
         result = null;
         return false;
     }
-
     private static string? GetValueOrDefault(Group group) => group.Success ? group.Value : null;
-
     private static bool ParsePort(Group group, string network, out ushort port) {
         if (group.Success)
             return ushort.TryParse(group.Value, null, out port);
-        port = ConfigurationOptionsParsingHelper.GetDefaultPortFor(network);
+        port = new KnownNetworks(network).DefaultPort;
         return true;
     }
+
 }
 
 internal static partial class ConfigurationOptionsParsingHelper
 {
     [GeneratedRegex(@"^ilkl-(\w+)://([^:,]+)(:(\d+))?(,([^,]+),([^,]+))?$")]
     public static partial Regex ConnectionStringRegex();
-    public static ushort GetDefaultPortFor(string network) => 0;
 }

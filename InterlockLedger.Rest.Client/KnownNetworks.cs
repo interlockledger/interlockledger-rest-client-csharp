@@ -1,4 +1,4 @@
-// ******************************************************************************************************************************
+﻿// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -30,25 +30,26 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client.V14_2_2;
+namespace InterlockLedger.Rest.Client;
 
-public class RestNodeV14_2_2 : RestAbstractNode<RestChainV14_2_2>, INodeWithDocumentRegistry
+[JsonConverter(typeof(Converter))]
+public sealed class KnownNetworks
 {
-    public RestNodeV14_2_2(ConnectionString options) : this(options.ClientCertificateFilePath.Required(), options.ClientCertificatePassword.Required(), options.Port, options.Host.Required()) { }
-    public RestNodeV14_2_2(X509Certificate2 x509Certificate, NetworkPredefinedPorts networkId, string address)
-        : base(x509Certificate, networkId, address) { }
+    public sealed class Converter : JsonConverter<KnownNetworks>
+    {
+        public override KnownNetworks? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => new(reader.GetString());
+        public override void Write(Utf8JsonWriter writer, KnownNetworks value, JsonSerializerOptions options) => writer.WriteStringValue(value.TextualRepresentation);
+    }
+    public KnownNetworks() : this(NetworkPredefinedPorts.MainNet) { }
+    public KnownNetworks(string? value) : this(Enum.TryParse(value, ignoreCase: true, out NetworkPredefinedPorts network) ? network : NetworkPredefinedPorts.MainNet) { }
 
-    public RestNodeV14_2_2(X509Certificate2 x509Certificate, ushort port, string address)
-        : base(x509Certificate, port, address) { }
-
-    public RestNodeV14_2_2(string certFile, string certPassword, NetworkPredefinedPorts networkId, string address)
-        : base(certFile, certPassword, networkId, address) { }
-
-    public RestNodeV14_2_2(string certFile, string certPassword, ushort port, string address)
-        : base(certFile, certPassword, port, address) { }
-    protected internal override RestChainV14_2_2 BuildChain(ChainIdModel c) => new(this, c.Required());
-    public IDocumentRegistry DocumentRegistry => _documentRegistry ??= new DocumentRegistryImplementation<RestChainV14_2_2>(this);
-
-    private IDocumentRegistry? _documentRegistry;
-
+    private KnownNetworks(NetworkPredefinedPorts network) {
+        Network = network;
+        TextualRepresentation = Enum.GetName(Network).Required().ToLowerInvariant();
+        DefaultPort = (ushort)Network;
+    }
+    public ushort DefaultPort { get; }
+    public NetworkPredefinedPorts Network { get; }
+    public string TextualRepresentation { get; }
+    public override string ToString() => TextualRepresentation;
 }
