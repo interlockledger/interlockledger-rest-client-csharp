@@ -1,8 +1,8 @@
 {
   "profiles": {
     "rest_client": {
-      "commandName": "Project",
-      "commandLineArgs": "D:\\vault\\clients\\minerva-debug\\certificates\\rest.api.pfx  DebugKey 32024 node.il2 \r\n--writeable"
+        "commandName": "Project",
+        "commandLineArgs": "https://node.il2:32024,D:\\vault\\clients\\minerva-debug\\certificates\\rest.api.pfx,DebugKey,Minerva \r\n--writeable"
     },
     "rest_client Help": {
       "commandName": "Project",

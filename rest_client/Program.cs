@@ -31,23 +31,16 @@
 // ******************************************************************************************************************************
 
 using Cocona;
+using InterlockLedger.Rest.Client;
 using InterlockLedger.Rest.Client.V14_2_2;
 using rest_client;
 
-await CoconaLiteApp.RunAsync((
-    [Argument(Description = "Path to file containing client certificate in .pfx format")] string pathToCertificatePfxFile,
-    [Argument(Description = "Password to open file containing client certificate")] string certificatePassword,
-    [Argument(Description = "Port to access the node API (ex.: 32032)")] ushort apiPort,
-    [Argument(Description = "Address to access the node API (ex.: node.il2, localhost)")] string restURL,
+await CoconaLiteApp.RunAsync(static async (
+    [Argument(Description = "Connection string in the form \"https://minerva-data.il2.io[:32067],/absolute/path/to/clientcertificate.pfx,clientCertificatePassword[,minerva]\"")] string connectionString,
     [Option(Description = "Try to write into the node (Default: false)")] bool writeable = false) => {
         try {
-            var pathToCertificatePfxFileInfo = new FileInfo(pathToCertificatePfxFile);
-            if (!pathToCertificatePfxFileInfo.Exists) {
-                Console.WriteLine($"File {pathToCertificatePfxFile} not found!");
-                return 2;
-            }
-            var client = new RestNodeV14_2_2(pathToCertificatePfxFileInfo.FullName, certificatePassword, apiPort, restURL);
-            new UsingV14_2_2(client).ExerciseAsync(writeable).Wait();
+            var client = new RestNodeV14_2_2(new ConnectionString(connectionString));
+            await new UsingV14_2_2(client).ExerciseAsync(writeable).ConfigureAwait(false);
             return 0;
         } catch (Exception e) {
             Console.WriteLine(e);

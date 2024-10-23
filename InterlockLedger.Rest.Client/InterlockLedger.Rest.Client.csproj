@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
-        <Version>15.2.0</Version>
+        <Version>15.3.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
@@ -14,7 +14,7 @@
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>Change ConfigurationOptions into ConnectionString with IL2 Network Parsing</PackageReleaseNotes>
+        <PackageReleaseNotes>DRYed ConnectionString - also fixed it to require 'https' scheme</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

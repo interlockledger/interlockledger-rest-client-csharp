@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -32,24 +32,19 @@
 
 namespace InterlockLedger.Rest.Client;
 
-[JsonConverter(typeof(Converter))]
 public sealed class KnownNetworks
 {
-    public sealed class Converter : JsonConverter<KnownNetworks>
-    {
-        public override KnownNetworks? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => new(reader.GetString());
-        public override void Write(Utf8JsonWriter writer, KnownNetworks value, JsonSerializerOptions options) => writer.WriteStringValue(value.TextualRepresentation);
-    }
     public KnownNetworks() : this(NetworkPredefinedPorts.MainNet) { }
-    public KnownNetworks(string? value) : this(Enum.TryParse(value, ignoreCase: true, out NetworkPredefinedPorts network) ? network : NetworkPredefinedPorts.MainNet) { }
-
-    private KnownNetworks(NetworkPredefinedPorts network) {
-        Network = network;
-        TextualRepresentation = Enum.GetName(Network).Required().ToLowerInvariant();
-        DefaultPort = (ushort)Network;
-    }
+    public KnownNetworks(string? value) : this(Parse(value)) { }
     public ushort DefaultPort { get; }
-    public NetworkPredefinedPorts Network { get; }
-    public string TextualRepresentation { get; }
-    public override string ToString() => TextualRepresentation;
+    public override string ToString() => _textualRepresentation;
+    private KnownNetworks(NetworkPredefinedPorts network) {
+        _network = network;
+        _textualRepresentation = Enum.GetName(_network).Required().ToLowerInvariant();
+        DefaultPort = (ushort)_network;
+    }
+    private readonly NetworkPredefinedPorts _network;
+    private readonly string _textualRepresentation;
+    private static NetworkPredefinedPorts Parse(string? value) =>
+        Enum.TryParse(value, ignoreCase: true, out NetworkPredefinedPorts network) ? network : NetworkPredefinedPorts.MainNet;
 }
