@@ -1,4 +1,4 @@
-// ******************************************************************************************************************************
+﻿// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -30,59 +30,36 @@
 //
 // ******************************************************************************************************************************
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace InterlockLedger.Rest.Client;
 
 /// <summary>
-/// Base class for RecordModel
+/// Universal reference to a record
 /// </summary>
-public abstract class RecordModelBase
+/// <param name="network">Network name where the chain is located</param>
+/// <param name="chainId"><inheritdoc/></param>
+/// <param name="serial"><inheritdoc/></param>
+[JsonConverter(typeof(JsonConverterFor<UniversalRecordReference>))]
+public class UniversalRecordReference(string network, string chainId, ulong serial) : RecordReference(chainId, serial), IParsable<UniversalRecordReference>
 {
-    /// <summary>
-    /// Application id this record is associated with
-    /// </summary>
-    public ulong ApplicationId { get; set; }
+    public  string Network { get;  } = network;
 
-    /// <summary>
-    /// chain id that owns this record
-    /// </summary>
-    public required string ChainId { get; set; }
+    private UniversalRecordReference(string network, RecordReference recordReference) : this(network, recordReference.ChainId, recordReference.Serial) { }
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out UniversalRecordReference result) {
+        if (!string.IsNullOrWhiteSpace(s)) {
+            var parts = s.Split(_separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length == 2 && RecordReference.TryParse(parts[1], provider, out var recordReference)) {
+                result = new UniversalRecordReference(parts[0], recordReference);
+                return true;
+            }
+        }
+        result = null;
+        return false;
+    }
+    static UniversalRecordReference IParsable<UniversalRecordReference>.Parse(string s, IFormatProvider? provider) =>
+        TryParse(s, provider, out var result) ? result : throw new FormatException($"Invalid string '{s}' to parse as an UniversalRecordReference");
 
-    /// <summary>
-    /// Time of record creation
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
-
-    /// <summary>
-    /// IL2 Network
-    /// </summary>
-    public required string Network { get; set; }
-
-    /// <summary>
-    /// The payload's TagId
-    /// </summary>
-    public ulong PayloadTagId { get; set; }
-
-    /// <summary>
-    /// Record universal reference [Network]:[ChainId]@[Serial]
-    /// </summary>
-    public required UniversalRecordReference Reference { get; set; }
-
-    /// <summary>
-    /// Record serial number.
-    /// For the first record this value is zero (0)
-    /// </summary>
-    public ulong Serial { get; set; }
-
-
-    /// <summary>
-    /// Block type
-    /// Most records are of the type 'Data'
-    /// </summary>
-    public RecordType Type { get; set; }
-
-    /// <summary>
-    /// Version of this record structure
-    /// </summary>
-    public ushort Version { get; set; }
+    private const char _separator = ':';
 
 }

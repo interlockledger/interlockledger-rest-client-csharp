@@ -38,7 +38,7 @@ namespace InterlockLedger.Rest.Client;
 public class RecordModelAsJson : RecordModelBase
 {
     /// <summary>
-    /// The payload's bytes
+    /// The payload's json representation
     /// </summary>
     public object? Payload { get; set; }
     public override string ToString() => JsonSerializer.Serialize(this, Globals.JsonSettings);

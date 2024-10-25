@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -35,9 +35,7 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 /// <summary>
 /// Simplified model for allowed readers record
 /// </summary>
-public class AllowedReadersRecordModel
-{
-    public required string RecordReference { get; set; }
-    public string? ContextId { get; set; }
-    public IEnumerable<ReaderModel>? Readers { get; set; }
-}
+/// <param name="ContextId"><inheritdoc/></param>
+/// <param name="Readers"><inheritdoc/></param>
+/// <param name="RecordReference">Reference to added record</param>
+public record AllowedReadersRecordModel(string? ContextId, IEnumerable<ReaderModel> Readers, RecordReference RecordReference) : AllowedReadersModel(ContextId, Readers);

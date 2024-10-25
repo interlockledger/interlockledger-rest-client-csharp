@@ -30,59 +30,11 @@
 //
 // ******************************************************************************************************************************
 
-namespace InterlockLedger.Rest.Client;
+namespace InterlockLedger.Rest.Client.V14_2_2;
 
 /// <summary>
-/// Base class for RecordModel
+/// Model to insert sets of allowed readers
 /// </summary>
-public abstract class RecordModelBase
-{
-    /// <summary>
-    /// Application id this record is associated with
-    /// </summary>
-    public ulong ApplicationId { get; set; }
-
-    /// <summary>
-    /// chain id that owns this record
-    /// </summary>
-    public required string ChainId { get; set; }
-
-    /// <summary>
-    /// Time of record creation
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
-
-    /// <summary>
-    /// IL2 Network
-    /// </summary>
-    public required string Network { get; set; }
-
-    /// <summary>
-    /// The payload's TagId
-    /// </summary>
-    public ulong PayloadTagId { get; set; }
-
-    /// <summary>
-    /// Record universal reference [Network]:[ChainId]@[Serial]
-    /// </summary>
-    public required UniversalRecordReference Reference { get; set; }
-
-    /// <summary>
-    /// Record serial number.
-    /// For the first record this value is zero (0)
-    /// </summary>
-    public ulong Serial { get; set; }
-
-
-    /// <summary>
-    /// Block type
-    /// Most records are of the type 'Data'
-    /// </summary>
-    public RecordType Type { get; set; }
-
-    /// <summary>
-    /// Version of this record structure
-    /// </summary>
-    public ushort Version { get; set; }
-
-}
+/// <param name="ContextId">[Optional] Context identifier, to group multiple sets</param>
+/// <param name="Readers">List of readers</param>
+public record AllowedReadersModel(string? ContextId, IEnumerable<ReaderModel> Readers);

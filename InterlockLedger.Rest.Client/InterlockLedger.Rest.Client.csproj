@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
-        <Version>15.3.0</Version>
+        <Version>16.0.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>
@@ -14,7 +14,7 @@
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageTags>REST Client InterlockLedger</PackageTags>
-        <PackageReleaseNotes>DRYed ConnectionString - also fixed it to require 'https' scheme</PackageReleaseNotes>
+        <PackageReleaseNotes>Add methods to JsonStore, to actually store some data</PackageReleaseNotes>
         <PackageIcon>il2.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

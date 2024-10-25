@@ -157,8 +157,8 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         return (ulong.Parse(resp.Headers["x-app-id"].WithDefault("0")), ulong.Parse(resp.Headers["x-payload-type-id"].WithDefault("0")), createdAt, resp.GetResponseStream());
     }
 
-    protected internal async Task<TR?> PostAsync<TR>(string url, object? body)
-        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json")).ConfigureAwait(false));
+    protected internal async Task<TR?> PostAsync<TR>(string url, object? body, string[]? extraHeaders = null)
+        => Deserialize<TR>(await GetStringResponseAsync(PreparePostRequest(url, body, accept: "application/json", extraHeaders)).ConfigureAwait(false));
 
     protected internal async Task<TR?> PostRawAsync<TR>(string url, byte[] body, string contentType)
         => Deserialize<TR>(await GetStringResponseAsync(PreparePostRawRequest(url, body, accept: "application/json", contentType)).ConfigureAwait(false));
@@ -251,9 +251,12 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         return request;
     }
 
-    private HttpWebRequest PreparePostRequest(string url, object? body, string accept) {
+    private HttpWebRequest PreparePostRequest(string url, object? body, string accept, string[]? extraHeaders) {
         var request = PrepareRequest(url, "POST", accept);
         request.ContentType = "application/json; charset=utf-8";
+        if (extraHeaders != null)
+            foreach (var extraHeader in extraHeaders)
+                request.Headers.Add(extraHeader);
         using (var stream = request.GetRequestStream()) {
             var json = JsonSerializer.Serialize(body, Globals.JsonSettings);
             using var writer = new StreamWriter(stream, _utf8WithoutBOM);

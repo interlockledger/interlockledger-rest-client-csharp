@@ -45,6 +45,23 @@ internal sealed class JsonStoreImplementation : IJsonStore
 
     public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
         => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
+    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/", jsonDocument);
+    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, PublicKey readerKey, string readerKeyId)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withKey",
+                                              jsonDocument,
+                                              extraHeaders: [$"X-PubKey: {readerKey.ToInterlockLedgerPublicKeyRepresentation()}", $"X-PubKeyId: {readerKeyId}"]);
+    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, RecordReference[] allowedReadersReferences) =>
+        _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withIndirectKeys",
+                                           jsonDocument,
+                                           extraHeaders: [$"X-PubKeyReferences: {allowedReadersReferences.NonEmpty().JoinedBy(",")}"]);
+
+    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withChainKeys",
+                                              jsonDocument,
+                                              extraHeaders: [$"X-PubKeyChains: {idOfChainsWithAllowedReaders.NonEmpty().JoinedBy(",")}"]);
+    public Task<AllowedReadersRecordModel?> AddAllowedReadersAsync(AllowedReadersModel allowedReaders)
+        => _node.PostAsync<AllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow", allowedReaders);
 
     private readonly string _id;
     private readonly RestChainV14_2_2 _parent;

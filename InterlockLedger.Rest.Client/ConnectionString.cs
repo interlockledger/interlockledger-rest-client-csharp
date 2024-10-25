@@ -33,8 +33,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Net;
-using System.Xml.Linq;
 
 namespace InterlockLedger.Rest.Client;
 

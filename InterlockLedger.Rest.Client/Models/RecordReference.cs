@@ -30,59 +30,33 @@
 //
 // ******************************************************************************************************************************
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace InterlockLedger.Rest.Client;
 
 /// <summary>
-/// Base class for RecordModel
+/// Network-local reference to a record
 /// </summary>
-public abstract class RecordModelBase
+/// <param name="chainId">Id of the chain containing the record</param>
+/// <param name="serial">Serial numbr of the record in the chain (zero-based)</param>
+[JsonConverter(typeof(JsonConverterFor<RecordReference>))]
+public class RecordReference(string chainId, ulong serial) : IParsable<RecordReference>
 {
-    /// <summary>
-    /// Application id this record is associated with
-    /// </summary>
-    public ulong ApplicationId { get; set; }
+    public static RecordReference Parse(string s, IFormatProvider? provider) => TryParse(s, provider, out var result) ? result : throw new FormatException($"Invalid string '{s}' to parse as a RecordReference");
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out RecordReference result) {
+        if (!string.IsNullOrWhiteSpace(s)) {
+            var parts = s.Split(_separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length == 2 && ulong.TryParse(parts[1], provider, out ulong serial)) {
+                result = new RecordReference(parts[0], serial);
+                return true;
+            }
+        }
+        result = null;
+        return false;
+    }
+    public override string ToString() => $"{ChainId}{_separator}{Serial:0}";
+    private const char _separator = '@';
 
-    /// <summary>
-    /// chain id that owns this record
-    /// </summary>
-    public required string ChainId { get; set; }
-
-    /// <summary>
-    /// Time of record creation
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
-
-    /// <summary>
-    /// IL2 Network
-    /// </summary>
-    public required string Network { get; set; }
-
-    /// <summary>
-    /// The payload's TagId
-    /// </summary>
-    public ulong PayloadTagId { get; set; }
-
-    /// <summary>
-    /// Record universal reference [Network]:[ChainId]@[Serial]
-    /// </summary>
-    public required UniversalRecordReference Reference { get; set; }
-
-    /// <summary>
-    /// Record serial number.
-    /// For the first record this value is zero (0)
-    /// </summary>
-    public ulong Serial { get; set; }
-
-
-    /// <summary>
-    /// Block type
-    /// Most records are of the type 'Data'
-    /// </summary>
-    public RecordType Type { get; set; }
-
-    /// <summary>
-    /// Version of this record structure
-    /// </summary>
-    public ushort Version { get; set; }
-
+    public  string ChainId { get; } = chainId;
+    public ulong Serial { get;  } = serial;
 }

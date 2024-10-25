@@ -32,57 +32,10 @@
 
 namespace InterlockLedger.Rest.Client;
 
-/// <summary>
-/// Base class for RecordModel
-/// </summary>
-public abstract class RecordModelBase
+public class JsonConverterFor<T> : JsonConverter<T> where T : class, IParsable<T>
 {
-    /// <summary>
-    /// Application id this record is associated with
-    /// </summary>
-    public ulong ApplicationId { get; set; }
-
-    /// <summary>
-    /// chain id that owns this record
-    /// </summary>
-    public required string ChainId { get; set; }
-
-    /// <summary>
-    /// Time of record creation
-    /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
-
-    /// <summary>
-    /// IL2 Network
-    /// </summary>
-    public required string Network { get; set; }
-
-    /// <summary>
-    /// The payload's TagId
-    /// </summary>
-    public ulong PayloadTagId { get; set; }
-
-    /// <summary>
-    /// Record universal reference [Network]:[ChainId]@[Serial]
-    /// </summary>
-    public required UniversalRecordReference Reference { get; set; }
-
-    /// <summary>
-    /// Record serial number.
-    /// For the first record this value is zero (0)
-    /// </summary>
-    public ulong Serial { get; set; }
-
-
-    /// <summary>
-    /// Block type
-    /// Most records are of the type 'Data'
-    /// </summary>
-    public RecordType Type { get; set; }
-
-    /// <summary>
-    /// Version of this record structure
-    /// </summary>
-    public ushort Version { get; set; }
-
+    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        T.TryParse(reader.GetString(), null, out var recordReference) ? recordReference : null;
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value?.ToString());
 }
