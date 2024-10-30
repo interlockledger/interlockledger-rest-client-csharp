@@ -1,4 +1,4 @@
-﻿// ******************************************************************************************************************************
+// ******************************************************************************************************************************
 //
 // Copyright (c) 2018-2022 InterlockLedger Network
 // All rights reserved.
@@ -43,7 +43,7 @@ namespace InterlockLedger.Rest.Client;
 [JsonConverter(typeof(JsonConverterFor<UniversalRecordReference>))]
 public class UniversalRecordReference(string network, string chainId, ulong serial) : RecordReference(chainId, serial), IParsable<UniversalRecordReference>
 {
-    public  string Network { get;  } = network;
+    public string Network { get; } = network;
 
     private UniversalRecordReference(string network, RecordReference recordReference) : this(network, recordReference.ChainId, recordReference.Serial) { }
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out UniversalRecordReference result) {
@@ -61,5 +61,7 @@ public class UniversalRecordReference(string network, string chainId, ulong seri
         TryParse(s, provider, out var result) ? result : throw new FormatException($"Invalid string '{s}' to parse as an UniversalRecordReference");
 
     private const char _separator = ':';
+
+    public override string ToString() => $"{Network}{_separator}{base.ToString()}";
 
 }
