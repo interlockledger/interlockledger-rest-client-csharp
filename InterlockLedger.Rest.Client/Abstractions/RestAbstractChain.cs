@@ -71,7 +71,7 @@ public abstract class RestAbstractChain<T> : IRestChain where T : IRestChain
         return keys.Safe().FirstOrDefault(k => k.Id == _node.CertificateKeyId) != null;
     }
     internal async Task<bool> MayHaveAppAsync(ulong appId) {
-        var page = await Records.RecordsForAppFromAsync(appId, pageSize:1, ommitPayload:true);
+        var page = await Records.RecordsForAppFromAsync(appId, pageSize:2, ommitPayload:true);
         return page is not null && page.Items.Any();
     }
 

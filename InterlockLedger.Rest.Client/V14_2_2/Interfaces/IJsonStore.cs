@@ -37,7 +37,6 @@ public interface IJsonStore
 {
     string NetworkName { get; }
     string ChainId { get; }
-    bool HasData { get; }
     bool IsWritable { get; }
     Task<JsonDocumentModel?> Add<T>(T jsonDocument);
     Task<JsonDocumentModel?> Add<T>(T jsonDocument, PublicKey readerKey, string readerKeyId);

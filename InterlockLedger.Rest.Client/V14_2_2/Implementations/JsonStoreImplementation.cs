@@ -41,7 +41,6 @@ internal sealed class JsonStoreImplementation : IJsonStore {
     public bool IsWritable => _chain.CanWriteForAppAsync(8).Result;
     public string NetworkName => _node.NetworkName;
     public string ChainId { get; }
-    public bool HasData => _chain.MayHaveAppAsync(8).Result;
 
     public Task<JsonDocumentModel?> Retrieve(ulong serial)
         => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/{serial}");
