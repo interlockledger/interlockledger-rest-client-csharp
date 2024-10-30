@@ -34,6 +34,15 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public static class EncryptedTextModelExtensions
 {
+    public static T? DecodedAs<T>(this EncryptedTextModel model, X509Certificate2 certificate) {
+        string? clearText = DecodedWith(model, certificate);
+        if (clearText.IsBlank())
+            return default;
+        if (clearText.StartsWith("ERROR: "))
+            throw new InvalidOperationException(clearText);
+        return JsonSerializer.Deserialize<T>(clearText, Globals.JsonSettings);
+    }
+
     public static string? DecodedWith(this EncryptedTextModel model, X509Certificate2 certificate) {
         if (certificate is null)
             return "ERROR: No key provided to decode EncryptedText";
@@ -62,7 +71,7 @@ public static class EncryptedTextModelExtensions
         if (jsonBytes[0] != 17)
             return "ERROR: Something went wrong while decrypting the content. Unexpected initial bytes";
         var skipTagAndSize = jsonBytes[1..].ILIntDecode().ILIntSize() + 1;
-        return jsonBytes[skipTagAndSize..].AsUTF8String();
+        return jsonBytes[skipTagAndSize..].AsUTF8String().TrimEnd('\0');
     }
 
     private static byte[] AES256Decrypt(byte[] cipherData, byte[] key, byte[] iv) {

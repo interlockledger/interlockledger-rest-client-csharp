@@ -32,16 +32,20 @@
 
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
-internal sealed class JsonStoreImplementation : IJsonStore
-{
+internal sealed class JsonStoreImplementation : IJsonStore {
     public JsonStoreImplementation(RestChainV14_2_2 parent) {
-        _parent = parent.Required();
-        _node = _parent._node;
-        _id = _parent.Id;
+        _chain = parent.Required();
+        _node = _chain._node;
+        _id = _chain.Id;
     }
 
     public Task<JsonDocumentModel?> RetrieveAsync(ulong serial)
         => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/{serial}");
+
+    public async Task<T?> RetrieveAsyncAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class {
+        var jsonDocument = await RetrieveAsync(serial).ConfigureAwait(false);
+        return jsonDocument?.EncryptedJson?.DecodedAs<T?>(certificate ?? _node.Certificate);
+    }
 
     public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
         => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
@@ -63,7 +67,11 @@ internal sealed class JsonStoreImplementation : IJsonStore
     public Task<AllowedReadersRecordModel?> AddAllowedReadersAsync(AllowedReadersModel allowedReaders)
         => _node.PostAsync<AllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow", allowedReaders);
 
+
     private readonly string _id;
-    private readonly RestChainV14_2_2 _parent;
+    private readonly RestChainV14_2_2 _chain;
     private readonly RestAbstractNode<RestChainV14_2_2> _node;
+
+    public bool IsWritable => _chain.CanWriteForAppAsync(8).Result;
+
 }

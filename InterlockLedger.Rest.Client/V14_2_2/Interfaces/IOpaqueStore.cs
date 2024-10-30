@@ -35,8 +35,10 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public interface IOpaqueStore
 {
+    
     Task<OpaqueRecordModel?> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, Stream source);
     Task<OpaqueRecordModel?> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, byte[] bytes);
+    bool IsWritableForApp(ulong appId);
     Task<PageOfOpaqueRecordsModel?> QueryRecordsFromAsync(ulong appId, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, ulong[]? payloadTypeIds = null, ulong? howMany = null);
     Task<(ulong AppId, ulong PayloadTypeId, DateTimeOffset? CreatedAt, Stream Content)?> RetrieveSinglePayloadAsync(ulong serial);
 }

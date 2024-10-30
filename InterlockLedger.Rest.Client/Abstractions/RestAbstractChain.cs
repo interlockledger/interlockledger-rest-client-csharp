@@ -31,6 +31,7 @@
 // ******************************************************************************************************************************
 
 using System.Diagnostics;
+using InterlockLedger.Rest.Client.V14_2_2;
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
@@ -63,6 +64,12 @@ public abstract class RestAbstractChain<T> : IRestChain where T : IRestChain
     public override string ToString() => $"Chain '{Name}' #{Id}";
 
     internal readonly RestAbstractNode<T> _node;
+    internal async Task<bool> CanWriteForAppAsync(ulong jsonApp) {
+        var summary = await GetSummaryAsync().ConfigureAwait(false);
+        if (summary is null || summary.IsClosedForNewTransactions || summary.ActiveApps.None(a => a == jsonApp) || summary.LicensedApps.None(a => a == jsonApp)) return false;
+        var keys = await GetPermittedKeysAsync().ConfigureAwait(false);
+        return keys.Safe().FirstOrDefault(k => k.Id == _node.CertificateKeyId) != null;
+    }
 
     protected RestAbstractChain(RestAbstractNode<T> node, ChainIdModel chainId) {
         _node = node.Required();

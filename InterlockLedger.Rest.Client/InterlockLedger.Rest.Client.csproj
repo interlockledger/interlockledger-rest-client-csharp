@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
-        <Version>16.0.0</Version>
+        <Version>16.1.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
         <Description>

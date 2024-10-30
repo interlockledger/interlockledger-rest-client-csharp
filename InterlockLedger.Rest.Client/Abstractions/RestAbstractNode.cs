@@ -38,6 +38,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
 using System.Security;
+using InterlockLedger.Rest.Client.V14_2_2;
 
 namespace InterlockLedger.Rest.Client.Abstractions;
 
@@ -49,6 +50,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
 
     protected RestAbstractNode(X509Certificate2 x509Certificate, ushort port, string address = "localhost") {
         _certificate = x509Certificate;
+        CertificateKeyId = _certificate.ToKeyId();
         BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
         Network = new RestNetwork<T>(this);
     }
@@ -62,6 +64,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
     public Uri BaseUri { get; }
     public X509Certificate2 Certificate => _certificate;
     public string CertificateName => _certificate.FriendlyName.WithDefault(_certificate.Subject);
+    public string CertificateKeyId { get; }
     public RestNetwork<T> Network { get; }
 
     public Task<IEnumerable<ChainIdModel>?> AddMirrorsOfAsync(IEnumerable<string> newMirrors)
@@ -84,6 +87,7 @@ public abstract class RestAbstractNode<T> where T : IRestChain
     public override string ToString() => $"Node [{BaseUri}] connected with certificate '{CertificateName}'";
 
     protected internal readonly X509Certificate2 _certificate;
+
 
     protected internal static async Task<HttpWebResponse> GetResponseAsync(HttpWebRequest req) {
         try {

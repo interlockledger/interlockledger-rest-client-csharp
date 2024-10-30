@@ -40,6 +40,6 @@ public class RestChainV14_2_2 : RestAbstractChain<RestChainV14_2_2>
 
     internal RestChainV14_2_2(RestNodeV14_2_2 node, ChainIdModel chainId) : base(node, chainId) {
         JsonStore = new JsonStoreImplementation(this);
-        OpaqueStore = new OpaqueStoreImplementation(node, this);
+        OpaqueStore = new OpaqueStoreImplementation(this);
     }
 }

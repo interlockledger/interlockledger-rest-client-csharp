@@ -35,11 +35,13 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 internal sealed class OpaqueStoreImplementation : IOpaqueStore
 {
-    public OpaqueStoreImplementation(RestAbstractNode<RestChainV14_2_2> node, RestChainV14_2_2 chain) {
+    public OpaqueStoreImplementation(RestChainV14_2_2 chain) {
         _chain = chain.Required();
-        _node = node;
+        _node = chain._node;
         _id = _chain.Id;
     }
+
+    public bool IsWritableForApp(ulong appId) => _chain.CanWriteForAppAsync(appId).Result;
 
     public Task<OpaqueRecordModel?> AddRecordAsync(ulong appId, ulong payloadTypeId, ulong lastChangedRecordSerial, Stream source)
         => _node.PostStreamAsync<OpaqueRecordModel>($"/opaque/{_id}?appId={appId}&payloadTypeId={payloadTypeId}&lastChangedRecordSerial={lastChangedRecordSerial}", source.Required(), contentType: "application/octet-stream");
@@ -63,7 +65,6 @@ internal sealed class OpaqueStoreImplementation : IOpaqueStore
         }
         return _node.GetAsync<PageOfOpaqueRecordsModel>(url);
     }
-
 
     private readonly string _id;
     private readonly RestChainV14_2_2 _chain;

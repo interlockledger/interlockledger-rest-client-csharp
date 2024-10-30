@@ -35,12 +35,13 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public interface IJsonStore
 {
+    bool IsWritable { get; }
     Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument);
     Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, PublicKey readerKey, string readerKeyId);
     Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, RecordReference[] allowedReadersReferences);
     Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders);
     Task<JsonDocumentModel?> RetrieveAsync(ulong serial);
-
+    Task<T?> RetrieveAsyncAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class;
     Task<AllowedReadersRecordModel?> AddAllowedReadersAsync(AllowedReadersModel allowedReaders);
     Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10);
 }
