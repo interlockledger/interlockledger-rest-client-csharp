@@ -64,11 +64,15 @@ public abstract class RestAbstractChain<T> : IRestChain where T : IRestChain
     public override string ToString() => $"Chain '{Name}' #{Id}";
 
     internal readonly RestAbstractNode<T> _node;
-    internal async Task<bool> CanWriteForAppAsync(ulong jsonApp) {
+    internal async Task<bool> CanWriteForAppAsync(ulong appId) {
         var summary = await GetSummaryAsync().ConfigureAwait(false);
-        if (summary is null || summary.IsClosedForNewTransactions || summary.ActiveApps.None(a => a == jsonApp) || summary.LicensedApps.None(a => a == jsonApp)) return false;
+        if (summary is null || summary.IsClosedForNewTransactions || summary.ActiveApps.None(a => a == appId) || summary.LicensedApps.None(a => a == appId)) return false;
         var keys = await GetPermittedKeysAsync().ConfigureAwait(false);
         return keys.Safe().FirstOrDefault(k => k.Id == _node.CertificateKeyId) != null;
+    }
+    internal async Task<bool> MayHaveAppAsync(ulong appId) {
+        var page = await Records.RecordsForAppFromAsync(appId, pageSize:1, ommitPayload:true);
+        return page is not null && page.Items.Any();
     }
 
     protected RestAbstractChain(RestAbstractNode<T> node, ChainIdModel chainId) {

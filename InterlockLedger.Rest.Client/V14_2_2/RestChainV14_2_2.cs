@@ -30,6 +30,7 @@
 //
 // ******************************************************************************************************************************
 
+
 namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public class RestChainV14_2_2 : RestAbstractChain<RestChainV14_2_2>
@@ -42,4 +43,5 @@ public class RestChainV14_2_2 : RestAbstractChain<RestChainV14_2_2>
         JsonStore = new JsonStoreImplementation(this);
         OpaqueStore = new OpaqueStoreImplementation(this);
     }
+
 }

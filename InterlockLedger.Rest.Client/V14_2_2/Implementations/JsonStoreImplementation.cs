@@ -36,42 +36,42 @@ internal sealed class JsonStoreImplementation : IJsonStore {
     public JsonStoreImplementation(RestChainV14_2_2 parent) {
         _chain = parent.Required();
         _node = _chain._node;
-        _id = _chain.Id;
+        ChainId = _chain.Id;
     }
+    public bool IsWritable => _chain.CanWriteForAppAsync(8).Result;
+    public string NetworkName => _node.NetworkName;
+    public string ChainId { get; }
+    public bool HasData => _chain.MayHaveAppAsync(8).Result;
 
-    public Task<JsonDocumentModel?> RetrieveAsync(ulong serial)
-        => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/{serial}");
+    public Task<JsonDocumentModel?> Retrieve(ulong serial)
+        => _node.GetAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/{serial}");
 
-    public async Task<T?> RetrieveAsyncAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class {
-        var jsonDocument = await RetrieveAsync(serial).ConfigureAwait(false);
+    public async Task<T?> RetrieveDecodedAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class {
+        var jsonDocument = await Retrieve(serial).ConfigureAwait(false);
         return jsonDocument?.EncryptedJson?.DecodedAs<T?>(certificate ?? _node.Certificate);
     }
 
-    public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
-        => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
-    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument)
-        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/", jsonDocument);
-    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, PublicKey readerKey, string readerKeyId)
-        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withKey",
+    public Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReaders(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10)
+        => _node.GetAsync<PageOfAllowedReadersRecordModel>($"/jsonDocuments@{ChainId}/allow?lastToFirst={lastToFirst}&page={page}&pageSize={pageSize}&contextId={contextId}");
+    public Task<JsonDocumentModel?> Add<T>(T jsonDocument)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/", jsonDocument);
+    public Task<JsonDocumentModel?> Add<T>(T jsonDocument, PublicKey readerKey, string readerKeyId)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/withKey",
                                               jsonDocument,
                                               extraHeaders: [$"X-PubKey: {readerKey.ToInterlockLedgerPublicKeyRepresentation()}", $"X-PubKeyId: {readerKeyId}"]);
-    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, RecordReference[] allowedReadersReferences) =>
-        _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withIndirectKeys",
+    public Task<JsonDocumentModel?> Add<T>(T jsonDocument, RecordReference[] allowedReadersReferences) =>
+        _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/withIndirectKeys",
                                            jsonDocument,
                                            extraHeaders: [$"X-PubKeyReferences: {allowedReadersReferences.NonEmpty().JoinedBy(",")}"]);
 
-    public Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders)
-        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{_id}/withChainKeys",
+    public Task<JsonDocumentModel?> Add<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders)
+        => _node.PostAsync<JsonDocumentModel>($"/jsonDocuments@{ChainId}/withChainKeys",
                                               jsonDocument,
                                               extraHeaders: [$"X-PubKeyChains: {idOfChainsWithAllowedReaders.NonEmpty().JoinedBy(",")}"]);
-    public Task<AllowedReadersRecordModel?> AddAllowedReadersAsync(AllowedReadersModel allowedReaders)
-        => _node.PostAsync<AllowedReadersRecordModel>($"/jsonDocuments@{_id}/allow", allowedReaders);
+    public Task<AllowedReadersRecordModel?> AddAllowedReaders(AllowedReadersModel allowedReaders)
+        => _node.PostAsync<AllowedReadersRecordModel>($"/jsonDocuments@{ChainId}/allow", allowedReaders);
 
-
-    private readonly string _id;
     private readonly RestChainV14_2_2 _chain;
     private readonly RestAbstractNode<RestChainV14_2_2> _node;
-
-    public bool IsWritable => _chain.CanWriteForAppAsync(8).Result;
 
 }

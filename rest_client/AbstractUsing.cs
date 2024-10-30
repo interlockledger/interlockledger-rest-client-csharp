@@ -315,7 +315,7 @@ public abstract class AbstractUsing<T>(RestAbstractNode<T> node) where T : IRest
     }
 
     protected static async Task RetrieveAndDumpJsonDocumentsAsync<TJson>(X509Certificate2 certificate, TJson jsonStore, string chainId, ulong serial) where TJson : IJsonStore {
-        var json = await jsonStore.RetrieveAsync(serial).ConfigureAwait(false);
+        var json = await jsonStore.Retrieve(serial).ConfigureAwait(false);
         Console.WriteLine($"{Environment.NewLine}    Json at {chainId}@{serial}:");
         if (json is null)
             Console.WriteLine("    -- Could not retrieve it!");

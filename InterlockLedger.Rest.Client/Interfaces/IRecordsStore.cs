@@ -35,8 +35,7 @@ namespace InterlockLedger.Rest.Client.Abstractions;
 public interface IRecordsStore
 {
     Task<RecordModel?> AddRecordAsync(NewRecordModel model);
-
     Task<PageOf<RecordModel>?> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
-
     Task<PageOf<RecordModel>?> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
+    Task<PageOf<RecordModel>?> RecordsForAppFromAsync(ulong appId, ulong howMany = 0, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false);
 }

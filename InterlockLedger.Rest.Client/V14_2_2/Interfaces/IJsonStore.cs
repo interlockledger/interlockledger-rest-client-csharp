@@ -35,13 +35,24 @@ namespace InterlockLedger.Rest.Client.V14_2_2;
 
 public interface IJsonStore
 {
+    string NetworkName { get; }
+    string ChainId { get; }
+    bool HasData { get; }
     bool IsWritable { get; }
-    Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument);
-    Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, PublicKey readerKey, string readerKeyId);
-    Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, RecordReference[] allowedReadersReferences);
-    Task<JsonDocumentModel?> AddAsync<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders);
-    Task<JsonDocumentModel?> RetrieveAsync(ulong serial);
-    Task<T?> RetrieveAsyncAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class;
-    Task<AllowedReadersRecordModel?> AddAllowedReadersAsync(AllowedReadersModel allowedReaders);
-    Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReadersAsync(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10);
+    Task<JsonDocumentModel?> Add<T>(T jsonDocument);
+    Task<JsonDocumentModel?> Add<T>(T jsonDocument, PublicKey readerKey, string readerKeyId);
+    Task<JsonDocumentModel?> Add<T>(T jsonDocument, RecordReference[] allowedReadersReferences);
+    Task<JsonDocumentModel?> Add<T>(T jsonDocument, string[] idOfChainsWithAllowedReaders);
+    Task<JsonDocumentModel?> Retrieve(ulong serial);
+    async Task<JsonDocumentModel?> Retrieve(UniversalRecordReference reference) =>
+        reference.Network.Equals(NetworkName, StringComparison.OrdinalIgnoreCase) && reference.ChainId == ChainId
+            ? await Retrieve(reference.Serial).ConfigureAwait(false)
+            : null;
+    Task<T?> RetrieveDecodedAs<T>(ulong serial, X509Certificate2? certificate = null) where T : class;
+    async Task<T?> RetrieveDecodedAs<T>(UniversalRecordReference reference, X509Certificate2? certificate = null) where T : class =>
+        reference.Network.Equals(NetworkName, StringComparison.OrdinalIgnoreCase) && reference.ChainId == ChainId
+            ? await RetrieveDecodedAs<T>(reference.Serial, certificate).ConfigureAwait(false)
+            : null;
+    Task<AllowedReadersRecordModel?> AddAllowedReaders(AllowedReadersModel allowedReaders);
+    Task<PageOfAllowedReadersRecordModel?> RetrieveAllowedReaders(string chain, string? contextId = null, bool lastToFirst = false, int page = 0, int pageSize = 10);
 }

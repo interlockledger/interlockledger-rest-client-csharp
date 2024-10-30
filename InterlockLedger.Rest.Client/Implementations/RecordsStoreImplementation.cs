@@ -39,15 +39,14 @@ internal sealed class RecordsStoreImplementation<T> : IRecordsStore where T : IR
         _node = _parent._node;
         _id = _parent.Id;
     }
-
     public Task<RecordModel?> AddRecordAsync(NewRecordModel model)
         => _node.PostAsync<RecordModel>($"records@{_id}", model);
-
     public Task<PageOf<RecordModel>?> RecordsFromAsync(ulong firstSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
         => _node.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
-
     public Task<PageOf<RecordModel>?> RecordsFromToAsync(ulong firstSerial, ulong lastSerial, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
         => _node.GetAsync<PageOf<RecordModel>>($"records@{_id}?firstSerial={firstSerial}&lastSerial={lastSerial}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
+    public Task<PageOf<RecordModel>?> RecordsForAppFromAsync(ulong appId, ulong howMany = 0, ushort page = 0, byte pageSize = 10, bool lastToFirst = false, bool ommitPayload = false)
+        => _node.GetAsync<PageOf<RecordModel>>($"records@{_id}/query?queryAsInterlockQL=USE APP #{appId}\nEVERYTHING&howMany={howMany}&page={page}&pageSize={pageSize}&lastToFirst={lastToFirst}&ommitPayload={ommitPayload}");
 
     private readonly string _id;
     private readonly RestAbstractChain<T> _parent;

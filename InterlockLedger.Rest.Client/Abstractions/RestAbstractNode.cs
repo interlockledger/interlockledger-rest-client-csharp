@@ -38,6 +38,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Net.Security;
 using System.Security;
+using System.Xml.Linq;
 using InterlockLedger.Rest.Client.V14_2_2;
 
 namespace InterlockLedger.Rest.Client.Abstractions;
@@ -53,14 +54,17 @@ public abstract class RestAbstractNode<T> where T : IRestChain
         CertificateKeyId = _certificate.ToKeyId();
         BaseUri = new Uri($"https://{address}:{port}/", UriKind.Absolute);
         Network = new RestNetwork<T>(this);
+        _networkName = new Lazy<string?>(() => GetDetailsAsync().Result?.Network);
     }
 
     protected RestAbstractNode(string certFile, string certPassword, NetworkPredefinedPorts networkId = NetworkPredefinedPorts.MainNet, string address = "localhost")
-        : this(certFile, certPassword, (ushort)networkId, address) { }
+            : this(certFile, certPassword, (ushort)networkId, address) { }
 
     protected RestAbstractNode(string certFile, string certPassword, ushort port, string address = "localhost")
         : this(GetCertFromFile(certFile, certPassword), port, address) { }
 
+    private readonly Lazy<string?> _networkName;
+    public string NetworkName => _networkName.Value ?? "?";
     public Uri BaseUri { get; }
     public X509Certificate2 Certificate => _certificate;
     public string CertificateName => _certificate.FriendlyName.WithDefault(_certificate.Subject);

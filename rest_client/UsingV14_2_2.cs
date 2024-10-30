@@ -51,7 +51,7 @@ public class UsingV14_2_2(RestAbstractNode<RestChainV14_2_2> node) : AbstractUsi
                 // Add something
             }
             await ReadSomeJsonDocumentsRecordsAsync(certificate, chain.JsonStore, chain.Records, chain.Id, 2100, "jsonDocuments", RetrieveAndDumpJsonDocumentsAsync).ConfigureAwait(false);
-            var query = await chain.JsonStore.RetrieveAllowedReadersAsync(chain.Id).ConfigureAwait(false);
+            var query = await chain.JsonStore.RetrieveAllowedReaders(chain.Id).ConfigureAwait(false);
             if (query.TotalNumberOfPages > 0) {
                 Console.WriteLine($"    RetrieveAllowedReadersAsync retrieved first page of {query.TotalNumberOfPages} pages with {query.Items.Count()} items");
                 Console.WriteLine(query.First()?.AsJson());
