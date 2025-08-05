@@ -4,7 +4,7 @@
         <TargetFrameworks>net8.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Copyright>Copyright (c) 2018-2024 InterlockLedger Network</Copyright>
+        <Copyright>Copyright (c) 2018-2025 InterlockLedger Network</Copyright>
         <Description>
             This library implements a C# wrapper around the InterlockLedger Node REST API.
         </Description>
@@ -51,17 +51,18 @@
             <PackagePath></PackagePath>
         </None>
     </ItemGroup>
-    <Target Name="TagSources">
-        <Exec Command="git tag v$(Version)" ContinueOnError="true" StandardErrorImportance="low" StandardOutputImportance="low" IgnoreExitCode="true" />
-        <Message Importance="high" Text="Recent tags:" />
-        <Exec Command="git tag --sort=-creatordate | grep v | head -n 1" ContinueOnError="true" StandardErrorImportance="high" StandardOutputImportance="high" IgnoreExitCode="true" />
+    <Target Name="CleanPackages" BeforeTargets="Build">
+        <ItemGroup>
+            <NugetPackages Include="$(PackageOutputAbsolutePath)*.nupkg" />
+        </ItemGroup>
+        <Delete Files="@(NugetPackages)" />
     </Target>
-
+    <Target Name="TagSources" />
     <Target Name="PublishLocally" AfterTargets="Pack" Condition="Exists('$(INTERLOCK_LOCAL_NUGETS_FOLDER)')">
         <ItemGroup>
-            <NugetPackages Include="$(PackageOutputAbsolutePath)\*.nupkg" />
+            <NugetPackages Include="$(PackageOutputAbsolutePath)$(PackageId).$(Version).nupkg" />
         </ItemGroup>
-        <Message Importance="high" Text="Publish to Local Nugets Folder '$(INTERLOCK_LOCAL_NUGETS_FOLDER)'" />
+        <Message Importance="high" Text="Publish to Local Nugets Folder '$(INTERLOCK_LOCAL_NUGETS_FOLDER)': %(NugetPackages.Filename)%(NugetPackages.Extension)" />
         <Copy DestinationFolder="$(INTERLOCK_LOCAL_NUGETS_FOLDER)" SourceFiles="@(NugetPackages)" ContinueOnError="true" SkipUnchangedFiles="false" />
     </Target>
 

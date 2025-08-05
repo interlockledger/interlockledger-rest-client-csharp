@@ -3,12 +3,12 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <LangVersion>preview</LangVersion>
         <Authors>Rafael Teixeira</Authors>
         <Company>InterlockLedger Network</Company>
         <Product>InterlockLedger</Product>
         <Copyright>Copyright (c) 2017-2024 InterlockLedger Network</Copyright>
-        <Version>13.6.0</Version>
         <ImplicitUsings>Enable</ImplicitUsings>
     </PropertyGroup>
 
@@ -27,7 +27,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\InterlockLedger.Rest.Client\InterlockLedger.Rest.Client.csproj" />
+        <ProjectReference
+            Include="..\InterlockLedger.Rest.Client\InterlockLedger.Rest.Client.csproj" />
     </ItemGroup>
 
     <ItemGroup>

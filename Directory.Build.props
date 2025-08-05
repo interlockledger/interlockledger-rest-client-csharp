@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <Version>16.2.5</Version>
-        <PackageReleaseNotes>Moving to Directory.Build.props for versioning</PackageReleaseNotes>
+        <Version>16.2.6</Version>
+        <PackageReleaseNotes>Fixing nuget generation</PackageReleaseNotes>
     </PropertyGroup>
 </Project>
